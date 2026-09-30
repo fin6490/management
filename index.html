@@ -50,9 +50,16 @@
 <body>
 <div class="max-w-6xl mx-auto px-4 py-4 sm:py-6">
 
-  <header class="flex items-baseline justify-between gap-3 mb-4">
-    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Auto-Dice <span class="text-blue-400">Simulator</span></h1>
-    <span class="label">Fair odds · 0% edge</span>
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div>
+      <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Auto-Dice <span class="text-blue-400">Simulator</span></h1>
+      <div class="label mt-0.5">Fair odds · 0% edge · play money</div>
+    </div>
+    <div class="flex items-center gap-4 rounded-xl border pl-3 pr-2 py-2" style="background:var(--panel);border-color:var(--line)">
+      <div><div class="label">Bankroll</div><div id="bankroll" class="num font-bold">0.00</div></div>
+      <div><div class="label">In play</div><div id="inPlay" class="num font-bold" style="color:var(--muted)">0.00</div></div>
+      <button id="refillBtn" class="btn bg-blue-600 text-white" style="padding:0.5rem 0.75rem;font-size:0.8rem" title="Top the bankroll back up to 1,000 play money">Refill</button>
+    </div>
   </header>
 
   <main class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
@@ -80,7 +87,7 @@
 
       <fieldset id="config" class="flex flex-col gap-5">
         <div class="grid grid-cols-2 gap-3">
-          <label class="flex flex-col gap-1.5"><span class="label">Starting balance</span>
+          <label class="flex flex-col gap-1.5"><span class="label">Buy-in <span class="normal-case tracking-normal font-normal">(from bankroll)</span></span>
             <input id="startBalance" class="field" type="number" inputmode="decimal" min="0.01" step="0.01" value="100"></label>
           <label class="flex flex-col gap-1.5"><span class="label">Base bet</span>
             <input id="baseBet" class="field" type="number" inputmode="decimal" min="0.01" step="0.01" value="1"></label>
@@ -139,11 +146,20 @@
         </div>
       </fieldset>
 
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-end justify-between gap-3">
+          <label for="speed" class="label" style="color:var(--ink)">Speed</label>
+          <span id="speedLabel" class="num text-sm text-blue-400 font-bold">20 bets/s</span>
+        </div>
+        <input id="speed" type="range" min="0" max="10" step="1" value="4">
+        <div class="num flex justify-between text-[0.7rem]" style="color:var(--muted)"><span>1/s</span><span>adjustable while running</span><span>5,000/s</span></div>
+      </div>
+
       <div class="flex flex-col gap-2">
         <div class="grid grid-cols-2 gap-2">
           <button id="startBtn" class="btn bg-green-600 text-white">Start AutoBet</button>
           <button id="stopBtn" class="btn bg-rose-600 text-white" disabled>Stop AutoBet</button>
-          <button id="resetBtn" class="btn bg-slate-600 text-white col-span-2">Reset Data</button>
+          <button id="resetBtn" class="btn bg-slate-600 text-white col-span-2">Reset Data &amp; Cash Out</button>
         </div>
         <p id="status" class="text-sm min-h-[1.25rem]" style="color:var(--muted)" aria-live="polite">Ready. Next bet: 1.00</p>
       </div>
@@ -160,16 +176,57 @@
     lossPct: $('lossPct'), stopProfit: $('stopProfit'), stopLoss: $('stopLoss'), maxBets: $('maxBets'),
     startBtn: $('startBtn'), stopBtn: $('stopBtn'), resetBtn: $('resetBtn'), status: $('status'), config: $('config'),
     statBalance: $('statBalance'), statProfit: $('statProfit'), statWagered: $('statWagered'), statBets: $('statBets'),
-    lastRoll: $('lastRoll'), canvas: $('chart'),
+    lastRoll: $('lastRoll'), canvas: $('chart'), speed: $('speed'), speedLabel: $('speedLabel'),
+    bankroll: $('bankroll'), inPlay: $('inPlay'), refillBtn: $('refillBtn'),
   };
 
   const MIN_BET = 0.01;
-  const TICK_MS = 50;
+  const SPEEDS = [1, 2, 5, 10, 20, 50, 100, 250, 500, 1000, 5000]; // bets per second
+  const MAX_POINTS = 100000;   // chart history cap; older points are thinned 2:1 beyond this
+  const REFILL_TO = 1000;
   const cents = x => Math.round(x * 100) / 100;
   const fmt = x => x.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const num = (input, fallback = NaN) => { const v = parseFloat(input.value); return Number.isFinite(v) ? v : fallback; };
 
-  const state = { start: 100, balance: 100, bet: 1, base: 1, bets: 0, wagered: 0, history: [100], timer: null, busy: false };
+  const state = {
+    start: 100, balance: 100, bet: 1, base: 1, bets: 0, wagered: 0,
+    history: [100], stride: 1,   // history[i] = balance after bet i * stride
+    live: false,                 // true once the buy-in has left the bankroll
+    timer: null, owed: 0, last: 0,
+  };
+
+  // ---------- play-money bankroll (per browser, via localStorage) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('autodice.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('autodice.' + k, JSON.stringify(v)); } catch {} },
+  };
+  const bank = { wallet: store.get('wallet', REFILL_TO), refills: store.get('refills', 0) };
+  // A session left open when the page closed is cashed back into the bankroll.
+  const orphan = store.get('inplay', 0);
+  if (orphan > 0) bank.wallet = cents(bank.wallet + orphan);
+  store.set('inplay', 0);
+  function saveBank() {
+    store.set('wallet', bank.wallet);
+    store.set('refills', bank.refills);
+    store.set('inplay', state.live ? state.balance : 0);
+  }
+  function renderBank() {
+    el.bankroll.textContent = fmt(bank.wallet);
+    el.inPlay.textContent = fmt(state.live ? state.balance : 0);
+    el.inPlay.style.color = state.live ? 'var(--ink)' : 'var(--muted)';
+    const total = bank.wallet + (state.live ? state.balance : 0);
+    el.refillBtn.disabled = !!state.timer || total >= REFILL_TO;
+  }
+  function cashOut() {
+    if (!state.live) return 0;
+    const back = state.balance;
+    bank.wallet = cents(bank.wallet + back);
+    state.live = false;
+    saveBank();
+    return back;
+  }
+  window.addEventListener('pagehide', saveBank);
+  document.addEventListener('visibilitychange', saveBank);
 
   // ---------- config ----------
   function clampChance(v) { return Math.min(99.99, Math.max(0.01, v)); }
@@ -184,9 +241,19 @@
   });
   el.chanceNum.addEventListener('change', () => { el.chanceNum.value = clampChance(num(el.chanceNum, 50)).toFixed(2).replace(/\.?0+$/, ''); el.chance.value = el.chanceNum.value; updateMultiplier(); });
 
+  const speed = () => SPEEDS[+el.speed.value] || 20;
+  function updateSpeed() {
+    el.speedLabel.textContent = speed().toLocaleString() + ' bets/s';
+    store.set('speed', +el.speed.value);
+    if (state.timer) { clearInterval(state.timer); state.timer = setInterval(tick, interval()); }
+  }
+  const interval = () => Math.max(16, Math.round(1000 / speed()));
+  el.speed.value = store.get('speed', 4);
+  el.speed.addEventListener('input', updateSpeed);
+
   function readConfig() {
     const start = num(el.startBalance), base = num(el.baseBet);
-    if (!(start >= MIN_BET)) return { error: 'Starting balance must be at least 0.01.' };
+    if (!(start >= MIN_BET)) return { error: 'Buy-in must be at least 0.01.' };
     if (!(base >= MIN_BET)) return { error: 'Base bet must be at least 0.01.' };
     const opt = input => { const v = num(input); return Number.isFinite(v) ? v : null; };
     return {
@@ -212,6 +279,15 @@
     return cents(bet);
   }
 
+  function record() {
+    if (state.bets % state.stride !== 0) return;
+    state.history.push(state.balance);
+    if (state.history.length > MAX_POINTS) {
+      state.history = state.history.filter((_, i) => i % 2 === 0);
+      state.stride *= 2;
+    }
+  }
+
   function placeBet(cfg) {
     const bet = safeBet(state.bet);
     const roll = Math.random() * 100;
@@ -223,14 +299,14 @@
     if (state.balance < MIN_BET) state.balance = 0;
     state.bets += 1;
     state.wagered += bet;
-    state.history.push(state.balance);
+    record();
     state.bet = applyRule(win ? cfg.win : cfg.loss, bet, cfg.base);
     if (state.balance > 0) state.bet = safeBet(state.bet);
     return { roll, win, bet };
   }
 
   function checkStop(cfg) {
-    if (state.balance <= 0) return { msg: `BUST after ${state.bets.toLocaleString()} bets. Balance hit 0.`, tone: 'loss' };
+    if (state.balance <= 0) return { msg: `BUST after ${state.bets.toLocaleString()} bets. The buy-in is gone.`, tone: 'loss' };
     if (cfg.stopProfit !== null && state.balance >= cfg.stopProfit) return { msg: `Stop profit hit: balance ${fmt(state.balance)} ≥ ${fmt(cfg.stopProfit)}.`, tone: 'win' };
     if (cfg.stopLoss !== null && state.balance <= cfg.stopLoss) return { msg: `Stop loss hit: balance ${fmt(state.balance)} ≤ ${fmt(cfg.stopLoss)}.`, tone: 'loss' };
     if (cfg.maxBets !== null && state.bets >= cfg.maxBets) return { msg: `Max bets reached (${state.bets.toLocaleString()}).`, tone: 'muted' };
@@ -248,43 +324,65 @@
     el.startBtn.disabled = on;
     el.stopBtn.disabled = !on;
     el.resetBtn.disabled = on;
+    renderBank();
   }
 
   function start() {
     const cfg = readConfig();
     if (cfg.error) return setStatus(cfg.error, 'loss');
-    // Fresh session if nothing has been played or the previous one went bust.
-    if (state.bets === 0 || state.balance <= 0) resetData(cfg);
-    else { state.base = cfg.base; }
-    if (state.balance <= 0) return setStatus('Balance is 0. Press Reset to start again.', 'loss');
+    if (!state.live || state.balance <= 0) {
+      // New session: the buy-in moves from the bankroll onto the table.
+      cashOut();
+      if (cfg.start > bank.wallet) {
+        renderBank();
+        return setStatus(`Not enough play money. Bankroll is ${fmt(bank.wallet)}; lower the buy-in or tap Refill.`, 'loss');
+      }
+      bank.wallet = cents(bank.wallet - cfg.start);
+      newSession(cfg);
+      state.live = true;
+      saveBank();
+    } else {
+      state.base = cfg.base;
+    }
     const pre = checkStop(cfg);
-    if (pre) return setStatus('Already past a stop condition. ' + pre.msg, pre.tone);
+    if (pre) { renderBank(); return setStatus('Already past a stop condition. ' + pre.msg, pre.tone); }
     activeCfg = cfg;
+    state.owed = 1;                    // place the first bet right away
+    state.last = performance.now();
+    state.timer = setInterval(tick, interval());
     setRunning(true);
     setStatus('Running…', 'ink');
-    state.timer = setInterval(tick, TICK_MS);
+    tick();
   }
 
   function stop(msg, tone) {
     clearInterval(state.timer);
     state.timer = null;
+    if (state.balance <= 0) state.live = false;   // bust: nothing left to cash out
+    saveBank();
     setRunning(false);
-    setStatus(msg || `Stopped by you after ${state.bets.toLocaleString()} bets.`, tone || 'muted');
+    setStatus(msg || `Paused after ${state.bets.toLocaleString()} bets. Start resumes; Reset cashes out.`, tone || 'muted');
   }
 
   function tick() {
-    const r = placeBet(activeCfg);
+    const now = performance.now();
+    state.owed += (now - state.last) * speed() / 1000;
+    state.last = now;
+    const n = Math.min(Math.floor(state.owed), 20000);
+    if (n < 1) return;
+    state.owed -= n;
+    let r, s = null;
+    for (let i = 0; i < n && !s; i++) { r = placeBet(activeCfg); s = checkStop(activeCfg); }
     el.lastRoll.textContent = `Roll ${r.roll.toFixed(2)} · ${r.win ? 'WIN' : 'LOSS'} ${fmt(r.bet)}`;
     el.lastRoll.style.color = r.win ? 'var(--win)' : 'var(--loss)';
     render();
-    const s = checkStop(activeCfg);
     if (s) stop(s.msg, s.tone);
     else setStatus(`Running… next bet ${fmt(state.bet)}`, 'ink');
   }
 
-  function resetData(cfg = readConfig()) {
+  function newSession(cfg) {
     const start = cfg.error ? 100 : cfg.start, base = cfg.error ? 1 : cfg.base;
-    Object.assign(state, { start, balance: start, base, bets: 0, wagered: 0, history: [start] });
+    Object.assign(state, { start, balance: start, base, bets: 0, wagered: 0, history: [start], stride: 1 });
     state.bet = safeBet(base);
     el.lastRoll.textContent = 'No rolls yet';
     el.lastRoll.style.color = 'var(--muted)';
@@ -293,10 +391,22 @@
 
   el.startBtn.addEventListener('click', start);
   el.stopBtn.addEventListener('click', () => stop());
-  el.resetBtn.addEventListener('click', () => { resetData(); setStatus(`Data reset. Next bet: ${fmt(state.bet)}`); });
-  // Reflect config edits immediately while idle and untouched.
+  el.resetBtn.addEventListener('click', () => {
+    const wasLive = state.live, back = cashOut();
+    newSession(readConfig());
+    setStatus(wasLive ? `Cashed out ${fmt(back)} to the bankroll. Data reset.` : `Data reset. Next bet: ${fmt(state.bet)}`);
+  });
+  el.refillBtn.addEventListener('click', () => {
+    const total = bank.wallet + (state.live ? state.balance : 0);
+    if (total >= REFILL_TO) return;
+    bank.wallet = cents(REFILL_TO - (state.live ? state.balance : 0));
+    bank.refills += 1;
+    saveBank(); renderBank();
+    setStatus(`Bankroll refilled to ${fmt(REFILL_TO)} play money.`, 'ink');
+  });
+  // While no money is on the table, preview edits to the buy-in and base bet.
   [el.startBalance, el.baseBet].forEach(i => i.addEventListener('input', () => {
-    if (!state.timer && state.bets === 0) { resetData(); setStatus(`Ready. Next bet: ${fmt(state.bet)}`); }
+    if (!state.live) { newSession(readConfig()); setStatus(`Ready. Next bet: ${fmt(state.bet)}`); }
   }));
 
   // ---------- rendering ----------
@@ -335,21 +445,24 @@
 
     const css = getComputedStyle(document.documentElement);
     const C = k => css.getPropertyValue(k).trim();
-    const hist = state.history, n = hist.length;
+    const hist = state.history, n = hist.length, stride = state.stride;
 
-    let lo = state.start, hi = state.start;
+    let lo = Math.min(state.start, state.balance), hi = Math.max(state.start, state.balance);
     for (let i = 0; i < n; i++) { if (hist[i] < lo) lo = hist[i]; if (hist[i] > hi) hi = hist[i]; }
     const span = Math.max(hi - lo, state.start * 0.1, 0.1);
     lo = Math.max(0, lo - span * 0.1); hi = hi + span * 0.1;
     const step = niceStep(hi - lo, 5);
     lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
 
+    // y labels carry as many decimals as the grid step needs, so no two read the same
+    const dec = Math.min(2, Math.max(0, -Math.floor(Math.log10(step) + 1e-9)));
+    const yLabel = v => hi >= 1e4 ? shortNum(v) : v.toFixed(dec);
     ctx.font = `11px ${C('--font-num')}`;
-    const labelW = Math.max(ctx.measureText(shortNum(hi)).width, ctx.measureText(shortNum(lo)).width);
+    const labelW = Math.max(ctx.measureText(yLabel(hi)).width, ctx.measureText(yLabel(lo)).width);
     const pad = { l: labelW + 12, r: 10, t: 10, b: 24 };
     const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
-    const maxX = Math.max(n - 1, 1);
-    const X = i => pad.l + (i / maxX) * pw;
+    const maxX = Math.max(state.bets, 1);
+    const X = bet => pad.l + (bet / maxX) * pw;
     const Y = v => pad.t + (1 - (v - lo) / (hi - lo)) * ph;
 
     // grid + y labels
@@ -358,32 +471,32 @@
     for (let v = lo; v <= hi + step / 2; v += step) {
       const y = Math.round(Y(v)) + 0.5;
       ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
-      ctx.fillText(shortNum(v), pad.l - 6, y);
+      ctx.fillText(yLabel(v), pad.l - 6, y);
     }
     // x labels
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    const xs = niceStep(maxX, Math.max(2, Math.floor(pw / 70)));
-    for (let i = 0; i <= maxX; i += Math.max(1, xs)) {
-      const x = X(i);
-      ctx.fillText(i.toLocaleString(), Math.min(Math.max(x, pad.l + 8), w - pad.r - 12), h - pad.b + 7);
+    const xs = Math.max(1, niceStep(maxX, Math.max(2, Math.floor(pw / 70))));
+    for (let i = 0; i <= maxX; i += xs) {
+      ctx.fillText(shortNum(i).replace(/\.00?$/, ''), Math.min(Math.max(X(i), pad.l + 8), w - pad.r - 14), h - pad.b + 7);
     }
 
-    // points: downsample to ~2 per pixel, keeping min & max so spikes survive
+    // points as [betIndex, balance]; downsample to ~2 per pixel, keeping min & max so spikes survive
     const pts = [];
     const bucket = Math.max(1, Math.floor(n / (pw * 2)));
-    if (bucket === 1) for (let i = 0; i < n; i++) pts.push([i, hist[i]]);
+    if (bucket === 1) for (let i = 0; i < n; i++) pts.push([i * stride, hist[i]]);
     else {
       for (let s = 0; s < n; s += bucket) {
         let mi = s, ma = s;
         for (let i = s; i < Math.min(n, s + bucket); i++) { if (hist[i] < hist[mi]) mi = i; if (hist[i] > hist[ma]) ma = i; }
-        if (mi < ma) pts.push([mi, hist[mi]], [ma, hist[ma]]); else if (mi > ma) pts.push([ma, hist[ma]], [mi, hist[mi]]); else pts.push([mi, hist[mi]]);
+        const a = Math.min(mi, ma), b = Math.max(mi, ma);
+        pts.push([a * stride, hist[a]]); if (b !== a) pts.push([b * stride, hist[b]]);
       }
-      if (pts[pts.length - 1][0] !== n - 1) pts.push([n - 1, hist[n - 1]]);
     }
-    if (n === 1) pts.push([1, hist[0]]);
+    if (pts[pts.length - 1][0] !== state.bets) pts.push([state.bets, state.balance]);
+    if (state.bets === 0) pts.push([1, state.start]);
 
-    const up = hist[n - 1] >= state.start;
-    const lineColor = n === 1 ? C('--accent') : up ? C('--win') : C('--loss');
+    const up = state.balance >= state.start;
+    const dotColor = state.bets === 0 ? C('--accent') : up ? C('--win') : C('--loss');
 
     // gradient area
     const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ph);
@@ -407,8 +520,8 @@
     ctx.strokeStyle = C('--accent'); ctx.lineWidth = 1.75; ctx.lineJoin = 'round'; ctx.stroke();
 
     // endpoint
-    const ex = X(pts[pts.length - 1][0]), ey = Y(hist[n - 1]);
-    ctx.beginPath(); ctx.arc(ex, ey, 4, 0, Math.PI * 2); ctx.fillStyle = lineColor; ctx.fill();
+    const [lx, lv] = pts[pts.length - 1];
+    ctx.beginPath(); ctx.arc(X(lx), Y(lv), 4, 0, Math.PI * 2); ctx.fillStyle = dotColor; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = C('--panel'); ctx.stroke();
 
     // start label chip, drawn last so the line never covers it
@@ -426,11 +539,13 @@
   }
 
   let raf = 0;
-  function render() { renderStats(); if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawChart(); }); }
+  function render() { renderStats(); renderBank(); if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawChart(); }); }
   new ResizeObserver(() => drawChart()).observe(el.canvas);
 
   updateMultiplier();
-  resetData();
+  updateSpeed();
+  newSession(readConfig());
+  setStatus(orphan > 0 ? `Returned ${fmt(orphan)} from your last session to the bankroll.` : `Ready. Next bet: ${fmt(state.bet)}`);
 })();
 </script>
 </body>
