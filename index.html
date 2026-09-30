@@ -237,14 +237,16 @@
 
     // Place one bet, then run every rule whose condition matches, top to bottom.
     function step(cfg, s, rand = Math.random) {
-      const bet = cents(Math.min(Math.max(MIN_BET, s.bet), s.balance));
+      const bet = Math.min(cents(Math.max(MIN_BET, s.bet)), Math.floor(s.balance * 100 + 1e-6) / 100); // all-in never exceeds the balance
       const chance = s.chance;
       const roll = rand() * 100;
       const win = roll <= chance;
       // Fair settlement: stake leaves the balance, a win returns stake × (100 / chance). EV = 0.
+      // The balance is kept exact (not rounded to cents): rounding every payout to the nearest
+      // cent would bias tiny bets and create profit that a fair game cannot produce.
       s.balance -= bet;
       if (win) s.balance += bet * (100 / chance);
-      s.balance = cents(s.balance);
+      s.balance = Math.round(s.balance * 1e8) / 1e8;
       if (s.balance < MIN_BET) s.balance = 0;
       s.bets += 1; s.wagered += bet;
       if (win) { s.wins += 1; s.winStreak += 1; s.lossStreak = 0; }
@@ -271,7 +273,8 @@
       }
       if (cfg.maxBet && nb > cfg.maxBet) nb = cfg.overMax === 'reset' ? cfg.base : cfg.maxBet;
       if (cfg.minBet && nb < cfg.minBet) nb = cfg.minBet;
-      s.bet = Math.max(MIN_BET, cents(nb));
+      // Keep the unrounded size so small % steps accumulate; it is rounded to cents only when placed.
+      s.bet = Math.max(MIN_BET, nb);
       s.chance = ch;
       return { roll, win, bet, chance, stopRule };
     }
@@ -514,6 +517,8 @@
       { chance: 66, base: 2, rules: [R('win', 'every', 1, 'inc', 25), R('loss', 'every', 1, 'reset')], maxBet: 12, overMax: 'reset', stopProfit: 150, trailing: 15 }),
     P('Safe 90%', 'Flat 5 bets at 90% odds. Profit in 63% of runs: usually +20, otherwise about −33.',
       { chance: 90, base: 5, rules: [], stopProfit: 120, stopLoss: 70 }),
+    P('42% Grind', 'Your 42% strategy (+10% on win, −12% on loss) with a min bet of 2 so bets can’t shrink to nothing. Hits +50 in 49% of runs (~350 bets). Lower the target to 125 for a 66% hit rate.',
+      { chance: 42, base: 2, minBet: 2, rules: [R('win', 'every', 1, 'inc', 10), R('loss', 'every', 1, 'dec', 12)], stopProfit: 150, stopLoss: 50 }),
   ];
   const EV_NOTE = ' Average result ≈ 0, as in any fair game.';
   let applying = false, presetIndex = -1;
