@@ -517,8 +517,8 @@
       { chance: 66, base: 2, rules: [R('win', 'every', 1, 'inc', 25), R('loss', 'every', 1, 'reset')], maxBet: 12, overMax: 'reset', stopProfit: 150, trailing: 15 }),
     P('Safe 90%', 'Flat 5 bets at 90% odds. Profit in 63% of runs: usually +20, otherwise about −33.',
       { chance: 90, base: 5, rules: [], stopProfit: 120, stopLoss: 70 }),
-    P('42% Grind', 'Your 42% strategy (+10% on win, −12% on loss) with a min bet of 2 so bets can’t shrink to nothing. Hits +50 in 49% of runs (~350 bets). Lower the target to 125 for a 66% hit rate.',
-      { chance: 42, base: 2, minBet: 2, rules: [R('win', 'every', 1, 'inc', 10), R('loss', 'every', 1, 'dec', 12)], stopProfit: 150, stopLoss: 50 }),
+    P('42% Grind', 'Your 42% strategy (+10% on win, −12% on loss) with a min bet of 2 so bets can’t shrink to nothing. Hits the +25 target in 66% of runs (~190 bets); the rest stop at −50.',
+      { chance: 42, base: 2, minBet: 2, rules: [R('win', 'every', 1, 'inc', 10), R('loss', 'every', 1, 'dec', 12)], stopProfit: 125, stopLoss: 50 }),
   ];
   const EV_NOTE = ' Average result ≈ 0, as in any fair game.';
   let applying = false, presetIndex = -1;
