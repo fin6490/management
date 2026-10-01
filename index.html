@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auto-Dice Simulator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* Layout: one scrolling column on phones; chart + stats left, control panel right on desktop. */
+  :root {
+    color-scheme: dark;
+    --bg: #0b1220;        /* slate-950, blue-biased */
+    --panel: #111a2e;
+    --line: #22304d;
+    --ink: #e2e8f0;
+    --muted: #8b9ab5;
+    --accent: #3b82f6;
+    --win: #22c55e;
+    --loss: #f43f5e;
+    --font-ui: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-num: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font-family: var(--font-ui); -webkit-tap-highlight-color: transparent; }
+  .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  .label { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .field {
+    width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 0.5rem;
+    padding: 0.6rem 0.7rem; color: var(--ink); font-family: var(--font-num); font-size: 16px; /* 16px stops iOS zoom */
+    font-variant-numeric: tabular-nums;
+  }
+  .field:focus, select.field:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .field:disabled { opacity: 0.45; }
+  select.field { font-family: var(--font-ui); appearance: none; padding-right: 2rem;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 2rem; }
+  input[type=range]:disabled { opacity: 0.45; }
+  .btn { border-radius: 0.6rem; padding: 0.85rem 0.5rem; font-weight: 700; font-size: 0.95rem; transition: filter .15s, transform .05s; }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:hover:not(:disabled) { filter: brightness(1.12); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .chip { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px;
+    padding: 0.45rem 0.8rem; font-size: 0.82rem; font-weight: 600; transition: border-color .15s, background .15s; }
+  .chip:hover:not(:disabled) { border-color: var(--accent); }
+  .chip[aria-pressed="true"] { border-color: var(--accent); background: rgba(59,130,246,0.18); color: #bfdbfe; }
+  .chip:disabled { opacity: 0.45; }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .field.sm { padding: 0.45rem 0.55rem; border-radius: 0.4rem; }
+  select.field.sm { padding-right: 1.5rem; background-position: calc(100% - 13px) 55%, calc(100% - 8px) 55%; }
+  .rule { border: 1px solid var(--line); background: var(--bg); border-radius: 0.6rem; }
+  .rule { padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .rule .field { background: var(--panel); }
+  .rule-when, .rule-do { display: grid; gap: 0.375rem; align-items: center; }
+  .rule-when { grid-template-columns: 1.1rem minmax(0,1.25fr) 3.6rem minmax(0,1fr); }
+  .rule-do { grid-template-columns: 1.1rem minmax(0,1.4fr) minmax(0,1fr) 2.25rem; }
+  .rule-no { font-family: var(--font-num); font-size: 0.7rem; color: var(--muted); }
+  .iconbtn { width: 2.25rem; height: 2.25rem; border-radius: 0.4rem; border: 1px solid var(--line); color: var(--muted);
+    display: grid; place-items: center; font-size: 1.1rem; line-height: 1; }
+  .iconbtn:hover:not(:disabled) { color: var(--loss); border-color: var(--loss); }
+  .iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .iconbtn:disabled { opacity: 0.45; }
+  .metric { background: var(--bg); border-radius: 0.5rem; padding: 0.55rem 0.7rem; }
+  #chart { width: 100%; height: 100%; display: block; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="max-w-6xl mx-auto px-4 py-4 sm:py-6">
+
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div>
+      <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Auto-Dice <span class="text-blue-400">Simulator</span></h1>
+      <div class="label mt-0.5">Fair odds · 0% edge · play money</div>
+    </div>
+    <div class="flex items-center gap-4 rounded-xl border pl-3 pr-2 py-2" style="background:var(--panel);border-color:var(--line)">
+      <div><div class="label">Bankroll</div><div id="bankroll" class="num font-bold">0.00</div></div>
+      <div><div class="label">In play</div><div id="inPlay" class="num font-bold" style="color:var(--muted)">0.00</div></div>
+      <button id="refillBtn" class="btn bg-blue-600 text-white" style="padding:0.5rem 0.75rem;font-size:0.8rem" title="Top the bankroll back up to 1,000 play money">Refill</button>
+    </div>
+  </header>
+
+  <main class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
+
+    <!-- Visualization & stats -->
+    <section class="flex flex-col gap-4 min-w-0">
+      <div class="rounded-xl border p-3 sm:p-4" style="background:var(--panel);border-color:var(--line)">
+        <div class="flex items-center justify-between mb-2">
+          <span class="label">Balance vs. bets placed</span>
+          <span id="lastRoll" class="num text-xs" style="color:var(--muted)">No rolls yet</span>
+        </div>
+        <div class="h-64 sm:h-80 lg:h-[26rem]"><canvas id="chart" aria-label="Balance chart" role="img"></canvas></div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-xl overflow-hidden border" style="background:var(--line);border-color:var(--line)">
+        <div class="p-3" style="background:var(--panel)"><div class="label">Balance</div><div id="statBalance" class="num text-lg font-bold mt-1">0.00</div></div>
+        <div class="p-3" style="background:var(--panel)"><div class="label">Profit / Loss</div><div id="statProfit" class="num text-lg font-bold mt-1">0.00</div></div>
+        <div class="p-3" style="background:var(--panel)"><div class="label">Wagered</div><div id="statWagered" class="num text-lg font-bold mt-1">0.00</div></div>
+        <div class="p-3" style="background:var(--panel)"><div class="label">Bets placed</div><div id="statBets" class="num text-lg font-bold mt-1">0</div></div>
+      </div>
+    </section>
+
+    <!-- Controls -->
+    <section class="rounded-xl border p-4 flex flex-col gap-5 min-w-0" style="background:var(--panel);border-color:var(--line)">
+
+      <fieldset id="config" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <div class="label" style="color:var(--ink)">Strategy presets</div>
+          <div id="presets" class="flex flex-wrap gap-2" role="group" aria-label="Strategy presets"></div>
+          <p id="presetNote" class="text-xs leading-relaxed" style="color:var(--muted)">Tap a preset to load its settings, or set your own below.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <label class="flex flex-col gap-1.5"><span class="label">Buy-in <span class="normal-case tracking-normal font-normal">(from bankroll)</span></span>
+            <input id="startBalance" class="field" type="number" inputmode="decimal" min="0.01" step="0.01" value="100"></label>
+          <label class="flex flex-col gap-1.5"><span class="label">Base bet</span>
+            <input id="baseBet" class="field" type="number" inputmode="decimal" min="0.01" step="0.01" value="1"></label>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-end justify-between gap-3">
+            <label for="chance" class="label">Win chance</label>
+            <div class="text-right">
+              <span class="label">Payout</span>
+              <span id="multiplier" class="num text-blue-400 font-bold ml-1">2.0000×</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <input id="chance" type="range" min="0.01" max="99.99" step="0.01" value="50" class="flex-1 min-w-0">
+            <div class="relative w-28 shrink-0">
+              <input id="chanceNum" class="field pr-7" type="number" inputmode="decimal" min="0.01" max="99.99" step="0.01" value="50" aria-label="Win chance percent">
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm" style="color:var(--muted)">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-baseline justify-between gap-2">
+            <div class="label" style="color:var(--ink)">Conditions</div>
+            <span class="text-[0.7rem]" style="color:var(--muted)">checked top to bottom after every bet</span>
+          </div>
+          <div id="rules" class="flex flex-col gap-2"></div>
+          <button type="button" id="addRule" class="chip self-start">+ Add condition</button>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="label" style="color:var(--ink)">Bet limits <span class="normal-case tracking-normal font-normal" style="color:var(--muted)">(blank = off)</span></div>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex flex-col gap-1.5"><span class="label">Min bet</span>
+              <input id="minBet" class="field" type="number" inputmode="decimal" min="0.01" step="0.01"></label>
+            <label class="flex flex-col gap-1.5"><span class="label">Max bet</span>
+              <input id="maxBet" class="field" type="number" inputmode="decimal" min="0.01" step="0.01"></label>
+            <label class="flex flex-col gap-1.5"><span class="label">Above max</span>
+              <select id="overMax" class="field"><option value="cap">Cap it</option><option value="reset">Reset</option></select></label>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="label" style="color:var(--ink)">Stop conditions <span class="normal-case tracking-normal font-normal" style="color:var(--muted)">(blank = off)</span></div>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1.5"><span class="label">Balance ≥</span>
+              <input id="stopProfit" class="field" type="number" inputmode="decimal" step="0.01" value="110"></label>
+            <label class="flex flex-col gap-1.5"><span class="label">Balance ≤</span>
+              <input id="stopLoss" class="field" type="number" inputmode="decimal" step="0.01"></label>
+            <label class="flex flex-col gap-1.5"><span class="label">Drop from peak ≥</span>
+              <input id="trailing" class="field" type="number" inputmode="decimal" step="0.01" min="0.01"></label>
+            <label class="flex flex-col gap-1.5"><span class="label">Max bets</span>
+              <input id="maxBets" class="field" type="number" inputmode="numeric" step="1" min="1" value="10000"></label>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-end justify-between gap-3">
+          <label for="speed" class="label" style="color:var(--ink)">Speed</label>
+          <span id="speedLabel" class="num text-sm text-blue-400 font-bold">20 bets/s</span>
+        </div>
+        <input id="speed" type="range" min="0" max="10" step="1" value="4">
+        <div class="num flex justify-between text-[0.7rem]" style="color:var(--muted)"><span>1/s</span><span>adjustable while running</span><span>5,000/s</span></div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button id="startBtn" class="btn bg-green-600 text-white">Start AutoBet</button>
+          <button id="stopBtn" class="btn bg-rose-600 text-white" disabled>Stop AutoBet</button>
+          <button id="resetBtn" class="btn bg-slate-600 text-white col-span-2">Reset Data &amp; Cash Out</button>
+        </div>
+        <p id="status" class="text-sm min-h-[1.25rem]" style="color:var(--muted)" aria-live="polite">Ready. Next bet: 1.00</p>
+      </div>
+
+      <div class="flex flex-col gap-2 border-t pt-4" style="border-color:var(--line)">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="label" style="color:var(--ink)">Backtest</div>
+            <div class="text-[0.7rem]" style="color:var(--muted)">1,000 fresh sessions with these settings. Bankroll untouched.</div>
+          </div>
+          <button id="btBtn" type="button" class="chip shrink-0" style="border-color:var(--accent)">Run backtest</button>
+        </div>
+        <div id="btOut" class="grid grid-cols-2 gap-2" hidden>
+          <div class="metric"><div class="label">Sessions in profit</div><div id="btWin" class="num font-bold mt-0.5"></div></div>
+          <div class="metric"><div class="label" title="± is the 95% margin of error">Average result</div><div id="btAvg" class="num font-bold mt-0.5"></div></div>
+          <div class="metric"><div class="label">Busted</div><div id="btBust" class="num font-bold mt-0.5"></div></div>
+          <div class="metric"><div class="label">Avg bets / session</div><div id="btBets" class="num font-bold mt-0.5"></div></div>
+          <div class="metric col-span-2"><div class="label">Bad · typical · good session</div><div id="btRange" class="num font-bold mt-0.5"></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  /* ENGINE START: pure betting logic, shared by live play and the backtester */
+  const Engine = (() => {
+    const MIN_BET = 0.01;
+    const cents = x => Math.round(x * 100) / 100;
+    const clampChance = v => Math.min(99.99, Math.max(0.01, v));
+
+    function newSession(cfg) {
+      return { balance: cfg.start, bet: cfg.base, chance: cfg.chance, bets: 0, wins: 0, losses: 0,
+               winStreak: 0, lossStreak: 0, peak: cfg.start, wagered: 0 };
+    }
+
+    function fires(r, s, win) {
+      if (r.on === 'win' && !win) return false;
+      if (r.on === 'loss' && win) return false;
+      const count = r.on === 'win' ? s.wins : r.on === 'loss' ? s.losses : s.bets;
+      const streak = r.on === 'win' ? s.winStreak : r.on === 'loss' ? s.lossStreak : s.bets;
+      const n = Math.max(1, Math.floor(r.n) || 1);
+      if (r.mode === 'streak') return streak === n;
+      if (r.mode === 'streakGte') return streak >= n;
+      return count % n === 0; // 'every'
+    }
+
+    // Place one bet, then run every rule whose condition matches, top to bottom.
+    function step(cfg, s, rand = Math.random) {
+      const bet = Math.min(cents(Math.max(MIN_BET, s.bet)), Math.floor(s.balance * 100 + 1e-6) / 100); // all-in never exceeds the balance
+      const chance = s.chance;
+      const roll = rand() * 100;
+      const win = roll <= chance;
+      // Fair settlement: stake leaves the balance, a win returns stake × (100 / chance). EV = 0.
+      // The balance is kept exact (not rounded to cents): rounding every payout to the nearest
+      // cent would bias tiny bets and create profit that a fair game cannot produce.
+      s.balance -= bet;
+      if (win) s.balance += bet * (100 / chance);
+      s.balance = Math.round(s.balance * 1e8) / 1e8;
+      if (s.balance < MIN_BET) s.balance = 0;
+      s.bets += 1; s.wagered += bet;
+      if (win) { s.wins += 1; s.winStreak += 1; s.lossStreak = 0; }
+      else { s.losses += 1; s.lossStreak += 1; s.winStreak = 0; }
+      if (s.balance > s.peak) s.peak = s.balance;
+
+      let nb = bet, ch = chance, stopRule = null;
+      for (const r of cfg.rules) {
+        if (!fires(r, s, win)) continue;
+        const v = +r.value || 0;
+        switch (r.action) {
+          case 'inc': nb *= 1 + v / 100; break;
+          case 'dec': nb *= 1 - v / 100; break;
+          case 'reset': nb = cfg.base; break;
+          case 'set': nb = v; break;
+          case 'mult': nb = cfg.base * v; break;
+          case 'add': nb += v; break;
+          case 'sub': nb -= v; break;
+          case 'chance': ch = clampChance(v); break;
+          case 'chanceAdd': ch = clampChance(ch + v); break;
+          case 'chanceReset': ch = cfg.chance; break;
+          case 'stop': stopRule = r; break;
+        }
+      }
+      if (cfg.maxBet && nb > cfg.maxBet) nb = cfg.overMax === 'reset' ? cfg.base : cfg.maxBet;
+      if (cfg.minBet && nb < cfg.minBet) nb = cfg.minBet;
+      // Keep the unrounded size so small % steps accumulate; it is rounded to cents only when placed.
+      s.bet = Math.max(MIN_BET, nb);
+      s.chance = ch;
+      return { roll, win, bet, chance, stopRule };
+    }
+
+    function stopReason(cfg, s, last) {
+      if (s.balance <= 0) return { code: 'bust' };
+      if (last && last.stopRule) return { code: 'rule' };
+      if (cfg.stopProfit !== null && s.balance >= cfg.stopProfit) return { code: 'profit' };
+      if (cfg.stopLoss !== null && s.balance <= cfg.stopLoss) return { code: 'loss' };
+      if (cfg.trailing !== null && s.peak - s.balance >= cfg.trailing) return { code: 'trailing' };
+      if (cfg.maxBets !== null && s.bets >= cfg.maxBets) return { code: 'max' };
+      return null;
+    }
+
+    // Play one fresh session to its end (or `cap` bets) and report how it finished.
+    function playOut(cfg, cap = 10000, rand = Math.random) {
+      const s = newSession(cfg);
+      let last = null;
+      while (!stopReason(cfg, s, last) && s.bets < cap) last = step(cfg, s, rand);
+      return { pl: s.balance - cfg.start, bust: s.balance <= 0, bets: s.bets };
+    }
+
+    function summarize(list) {
+      const n = list.length, pls = list.map(r => r.pl).sort((a, b) => a - b);
+      const q = p => pls[Math.min(n - 1, Math.floor(n * p))];
+      const sum = (f) => list.reduce((t, r) => t + f(r), 0);
+      const avg = sum(r => r.pl) / n;
+      const sd = Math.sqrt(sum(r => (r.pl - avg) ** 2) / Math.max(1, n - 1));
+      return { runs: n, winRate: sum(r => r.pl > 0.004 ? 1 : 0) / n, bustRate: sum(r => r.bust ? 1 : 0) / n,
+               avg, margin: 1.96 * sd / Math.sqrt(n), avgBets: sum(r => r.bets) / n, p10: q(0.10), median: q(0.5), p90: q(0.90) };
+    }
+
+    function backtest(cfg, runs, cap = 10000, rand = Math.random) {
+      const list = [];
+      for (let i = 0; i < runs; i++) list.push(playOut(cfg, cap, rand));
+      return summarize(list);
+    }
+
+    return { MIN_BET, cents, clampChance, newSession, step, stopReason, playOut, summarize, backtest };
+  })();
+  /* ENGINE END */
+
+  const $ = id => document.getElementById(id);
+  const el = {
+    startBalance: $('startBalance'), baseBet: $('baseBet'), chance: $('chance'), chanceNum: $('chanceNum'),
+    multiplier: $('multiplier'), rules: $('rules'), addRule: $('addRule'),
+    minBet: $('minBet'), maxBet: $('maxBet'), overMax: $('overMax'),
+    stopProfit: $('stopProfit'), stopLoss: $('stopLoss'), trailing: $('trailing'), maxBets: $('maxBets'),
+    startBtn: $('startBtn'), stopBtn: $('stopBtn'), resetBtn: $('resetBtn'), status: $('status'), config: $('config'),
+    statBalance: $('statBalance'), statProfit: $('statProfit'), statWagered: $('statWagered'), statBets: $('statBets'),
+    lastRoll: $('lastRoll'), canvas: $('chart'), speed: $('speed'), speedLabel: $('speedLabel'),
+    bankroll: $('bankroll'), inPlay: $('inPlay'), refillBtn: $('refillBtn'),
+    presets: $('presets'), presetNote: $('presetNote'),
+    btBtn: $('btBtn'), btOut: $('btOut'), btWin: $('btWin'), btAvg: $('btAvg'), btBust: $('btBust'), btBets: $('btBets'), btRange: $('btRange'),
+  };
+
+  const { cents, clampChance } = Engine;
+  const SPEEDS = [1, 2, 5, 10, 20, 50, 100, 250, 500, 1000, 5000]; // bets per second
+  const MAX_POINTS = 100000;   // chart history cap; older points are thinned 2:1 beyond this
+  const REFILL_TO = 1000;
+  const MAX_RULES = 10;
+  const BACKTEST_RUNS = 1000, BACKTEST_CAP = 10000;
+  const fmt = x => x.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const signed = x => (x > 0.004 ? '+' : '') + fmt(x);
+  const num = (input, fallback = NaN) => { const v = parseFloat(input.value); return Number.isFinite(v) ? v : fallback; };
+  const opt = input => { const v = num(input); return Number.isFinite(v) && v > 0 ? v : null; };
+
+  const state = {
+    s: null,                     // Engine session: balance, bet, chance, streaks…
+    start: 100,
+    history: [100], stride: 1,   // history[i] = balance after bet i * stride
+    live: false,                 // true once the buy-in has left the bankroll
+    timer: null, owed: 0, last: 0,
+  };
+  const S = () => state.s;
+
+  // ---------- storage ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('autodice.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('autodice.' + k, JSON.stringify(v)); } catch {} },
+  };
+
+  // ---------- play-money bankroll ----------
+  const bank = { wallet: store.get('wallet', REFILL_TO), refills: store.get('refills', 0) };
+  // A session left open when the page closed is cashed back into the bankroll.
+  const orphan = store.get('inplay', 0);
+  if (orphan > 0) bank.wallet = cents(bank.wallet + orphan);
+  store.set('inplay', 0);
+  function saveBank() {
+    store.set('wallet', bank.wallet);
+    store.set('refills', bank.refills);
+    store.set('inplay', state.live ? S().balance : 0);
+  }
+  function renderBank() {
+    const inPlay = state.live ? S().balance : 0;
+    el.bankroll.textContent = fmt(bank.wallet);
+    el.inPlay.textContent = fmt(inPlay);
+    el.inPlay.style.color = state.live ? 'var(--ink)' : 'var(--muted)';
+    el.refillBtn.disabled = !!state.timer || bank.wallet + inPlay >= REFILL_TO;
+  }
+  function cashOut() {
+    if (!state.live) return 0;
+    const back = S().balance;
+    bank.wallet = cents(bank.wallet + back);
+    state.live = false;
+    saveBank();
+    return back;
+  }
+  window.addEventListener('pagehide', saveBank);
+  document.addEventListener('visibilitychange', saveBank);
+
+  // ---------- conditions builder ----------
+  const ACTIONS = [
+    ['inc', 'Bet + %', '%'], ['dec', 'Bet − %', '%'], ['reset', 'Reset bet', ''], ['set', 'Set bet to', ''],
+    ['mult', 'Bet = base ×', '×'], ['add', 'Bet + amount', ''], ['sub', 'Bet − amount', ''],
+    ['chance', 'Set chance to', '%'], ['chanceAdd', 'Chance + %', '±%'], ['chanceReset', 'Reset chance', ''],
+    ['stop', 'Stop autobet', ''],
+  ];
+  const NO_VALUE = new Set(['reset', 'chanceReset', 'stop']);
+  const R = (on, mode, n, action, value = '') => ({ on, mode, n, action, value });
+
+  function ruleRow(r) {
+    const row = document.createElement('div');
+    row.className = 'rule';
+    row.innerHTML = `
+      <div class="rule-when">
+        <span class="rule-no"></span>
+        <select data-k="mode" class="field sm" aria-label="When">
+          <option value="every">Every</option><option value="streak">Streak of</option><option value="streakGte">Streak ≥</option>
+        </select>
+        <input data-k="n" class="field sm" type="number" inputmode="numeric" min="1" step="1" aria-label="Count">
+        <select data-k="on" class="field sm" aria-label="Event">
+          <option value="win">wins</option><option value="loss">losses</option><option value="bet">bets</option>
+        </select>
+      </div>
+      <div class="rule-do">
+        <span class="rule-no" aria-hidden="true">→</span>
+        <select data-k="action" class="field sm" aria-label="Action">${ACTIONS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
+        <input data-k="value" class="field sm" type="number" inputmode="decimal" step="any" aria-label="Value">
+        <button type="button" class="iconbtn" data-del aria-label="Remove condition">×</button>
+      </div>`;
+    const f = k => row.querySelector(`[data-k="${k}"]`);
+    f('mode').value = r.mode; f('n').value = r.n; f('on').value = r.on; f('action').value = r.action; f('value').value = r.value;
+    const sync = () => {
+      const a = f('action').value, v = f('value');
+      v.style.visibility = NO_VALUE.has(a) ? 'hidden' : 'visible';
+      v.placeholder = (ACTIONS.find(x => x[0] === a) || [])[2] || '';
+      f('mode').disabled = f('on').value === 'bet' ? (f('mode').value = 'every', true) : false;
+    };
+    f('action').addEventListener('change', sync);
+    f('on').addEventListener('change', sync);
+    row.querySelector('[data-del]').addEventListener('click', () => { row.remove(); renumber(); onConfigEdit(); });
+    sync();
+    return row;
+  }
+  function renumber() {
+    [...el.rules.children].forEach((row, i) => { row.querySelector('.rule-no').textContent = i + 1; });
+    el.addRule.disabled = el.rules.children.length >= MAX_RULES;
+  }
+  function setRules(rules) {
+    el.rules.replaceChildren(...rules.map(ruleRow));
+    renumber();
+  }
+  function readRules() {
+    return [...el.rules.children].map(row => {
+      const f = k => row.querySelector(`[data-k="${k}"]`).value;
+      return { mode: f('mode'), n: Math.max(1, parseInt(f('n'), 10) || 1), on: f('on'), action: f('action'), value: parseFloat(f('value')) || 0 };
+    });
+  }
+  el.addRule.addEventListener('click', () => {
+    if (el.rules.children.length >= MAX_RULES) return;
+    el.rules.appendChild(ruleRow(R('loss', 'every', 1, 'inc', 100)));
+    renumber(); onConfigEdit();
+  });
+
+  // ---------- config ----------
+  function updateMultiplier() {
+    el.multiplier.textContent = (100 / clampChance(num(el.chance, 50))).toFixed(4) + '×';
+  }
+  el.chance.addEventListener('input', () => { el.chanceNum.value = el.chance.value; updateMultiplier(); });
+  el.chanceNum.addEventListener('input', () => {
+    const v = num(el.chanceNum);
+    if (Number.isFinite(v)) { el.chance.value = clampChance(v); updateMultiplier(); }
+  });
+  el.chanceNum.addEventListener('change', () => { el.chanceNum.value = +clampChance(num(el.chanceNum, 50)).toFixed(2); el.chance.value = el.chanceNum.value; updateMultiplier(); });
+
+  const speed = () => SPEEDS[+el.speed.value] || 20;
+  const interval = () => Math.max(16, Math.round(1000 / speed()));
+  function updateSpeed() {
+    el.speedLabel.textContent = speed().toLocaleString() + ' bets/s';
+    store.set('speed', +el.speed.value);
+    if (state.timer) { clearInterval(state.timer); state.timer = setInterval(tick, interval()); }
+  }
+  el.speed.value = store.get('speed', 4);
+  el.speed.addEventListener('input', updateSpeed);
+
+  function readConfig() {
+    const start = num(el.startBalance), base = num(el.baseBet);
+    if (!(start >= 0.01)) return { error: 'Buy-in must be at least 0.01.' };
+    if (!(base >= 0.01)) return { error: 'Base bet must be at least 0.01.' };
+    const minBet = opt(el.minBet), maxBet = opt(el.maxBet);
+    if (minBet && maxBet && minBet > maxBet) return { error: 'Min bet is larger than max bet.' };
+    return {
+      start: cents(start), base: cents(base), chance: clampChance(num(el.chance, 50)), rules: readRules(),
+      minBet, maxBet, overMax: el.overMax.value,
+      stopProfit: opt(el.stopProfit), stopLoss: opt(el.stopLoss), trailing: opt(el.trailing), maxBets: opt(el.maxBets),
+    };
+  }
+  // Write a config object into the form (presets and saved settings use this).
+  function writeConfig(c) {
+    const v = x => (x === null || x === undefined ? '' : x);
+    el.startBalance.value = c.start; el.baseBet.value = c.base;
+    el.chance.value = el.chanceNum.value = c.chance;
+    setRules(c.rules);
+    el.minBet.value = v(c.minBet); el.maxBet.value = v(c.maxBet); el.overMax.value = c.overMax || 'cap';
+    el.stopProfit.value = v(c.stopProfit); el.stopLoss.value = v(c.stopLoss);
+    el.trailing.value = v(c.trailing); el.maxBets.value = v(c.maxBets);
+    updateMultiplier();
+  }
+
+  // ---------- strategy presets (odds from 20,000 simulated sessions each, 100 buy-in) ----------
+  const P = (name, note, c) => ({ name, note, cfg: Object.assign({ start: 100, minBet: null, maxBet: null, overMax: 'cap',
+    stopProfit: null, stopLoss: null, trailing: null, maxBets: 10000 }, c) });
+  const PRESETS = [
+    P('Martingale', 'Double after every loss. Reached +10 in 91% of runs; the other 9% lost the whole 100.',
+      { chance: 50, base: 1, rules: [R('win', 'every', 1, 'reset'), R('loss', 'every', 1, 'inc', 100)], stopProfit: 110 }),
+    P('Capped Martingale', 'Martingale that gives up after 6 losses in a row instead of chasing. Profit in 79% of runs (+15); never busts, but bad runs cost about −57.',
+      { chance: 50, base: 1, rules: [R('win', 'every', 1, 'reset'), R('loss', 'every', 1, 'inc', 100), R('loss', 'streak', 6, 'reset')], stopProfit: 115, stopLoss: 60 }),
+    P("D'Alembert", 'Add 1 after a loss, take 1 off after a win, never below 1. Profit in 68% of runs (+20); bad runs about −46.',
+      { chance: 50, base: 1, minBet: 1, rules: [R('win', 'every', 1, 'sub', 1), R('loss', 'every', 1, 'add', 1)], stopProfit: 120, stopLoss: 60 }),
+    P('1-3-2-6', 'Classic streak system: bet 1, 3, 2, 6 units through a 4-win streak, back to 1 on any loss. Profit in 42% of runs; good runs about +44.',
+      { chance: 50, base: 2, rules: [R('win', 'streak', 1, 'mult', 3), R('win', 'streak', 2, 'mult', 2), R('win', 'streak', 3, 'mult', 6), R('win', 'streak', 4, 'reset'), R('loss', 'every', 1, 'reset')], stopProfit: 140, stopLoss: 70 }),
+    P('Paroli 3-step', 'Double after each win, bank it after 3 in a row, trailing stop 25 off the peak. Profit in 33% of runs; good runs about +42.',
+      { chance: 50, base: 2, rules: [R('win', 'every', 1, 'inc', 100), R('win', 'streak', 3, 'reset'), R('loss', 'every', 1, 'reset')], stopProfit: 140, stopLoss: 70, trailing: 25 }),
+    P('Chance ladder', 'Start at 10% (10×). Each loss adds 5% chance and 10% bet, max bet 20; a win resets both. Profit in 56% of runs (+30); bad runs about −41.',
+      { chance: 10, base: 1, rules: [R('win', 'every', 1, 'reset'), R('win', 'every', 1, 'chanceReset'), R('loss', 'every', 1, 'chanceAdd', 5), R('loss', 'every', 1, 'inc', 10)], maxBet: 20, overMax: 'reset', stopProfit: 130, stopLoss: 60 }),
+    P('Sniper 1%', '100× shots at 1% odds, bet +1% per miss, reset after 250 misses. About 49% reach +50; the rest drop −50. Long runs: use top speed.',
+      { chance: 1, base: 0.1, rules: [R('win', 'every', 1, 'reset'), R('loss', 'every', 1, 'inc', 1), R('loss', 'streak', 250, 'reset')], stopProfit: 150, stopLoss: 50 }),
+    P('Profit locker', 'Press wins at 66% (+25% per win, max 12), trailing stop 15 off the peak. Small, protected sessions: 36% profit, bad runs only about −15.',
+      { chance: 66, base: 2, rules: [R('win', 'every', 1, 'inc', 25), R('loss', 'every', 1, 'reset')], maxBet: 12, overMax: 'reset', stopProfit: 150, trailing: 15 }),
+    P('Safe 90%', 'Flat 5 bets at 90% odds. Profit in 63% of runs: usually +20, otherwise about −33.',
+      { chance: 90, base: 5, rules: [], stopProfit: 120, stopLoss: 70 }),
+    P('42% Grind', 'Your 42% strategy (+10% on win, −12% on loss) with a min bet of 2 so bets can’t shrink to nothing. Hits the +25 target in 66% of runs (~190 bets); the rest stop at −50.',
+      { chance: 42, base: 2, minBet: 2, rules: [R('win', 'every', 1, 'inc', 10), R('loss', 'every', 1, 'dec', 12)], stopProfit: 125, stopLoss: 50 }),
+    P('Win Doubler', 'Double the bet after every win, halve it after every loss, never below 1. Profit in 42% of runs; streaks compound, so good runs reach about +96, while bad runs stop near −50 (about −63 when a big bet loses).',
+      { chance: 50, base: 1, minBet: 1, rules: [R('win', 'every', 1, 'inc', 100), R('loss', 'every', 1, 'dec', 50)], stopProfit: 150, stopLoss: 50 }),
+    P('11% Hunter', '11.11% chance (9× payout), 10 buy-in, 0.20 base. Every loss resets the bet; every 4th loss doubles it for one bet. Doubles the 10 to 20 in 48% of runs; the rest bust.',
+      { start: 10, chance: 11.11, base: 0.2, rules: [R('loss', 'every', 1, 'reset'), R('loss', 'every', 4, 'inc', 100)], stopProfit: 20 }),
+  ];
+  const EV_NOTE = ' Average result ≈ 0, as in any fair game.';
+  let applying = false, presetIndex = -1;
+  function markPreset(i) {
+    presetIndex = i;
+    [...el.presets.children].forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+    el.presetNote.textContent = i >= 0 ? PRESETS[i].note + EV_NOTE : 'Custom settings. Run a backtest to see how they do.';
+  }
+  function applyPreset(i) {
+    applying = true;
+    writeConfig(PRESETS[i].cfg);
+    applying = false;
+    markPreset(i);
+    saveConfig();
+    clearBacktest();
+    if (!state.live) { newSession(readConfig()); setStatus(`${PRESETS[i].name} loaded. Next bet: ${fmt(S().bet)}`); }
+    else setStatus(`${PRESETS[i].name} loaded. It applies from the next bet when you press Start.`);
+  }
+  PRESETS.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = p.name; b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => applyPreset(i));
+    el.presets.appendChild(b);
+  });
+
+  function saveConfig() {
+    const c = readConfig();
+    if (!c.error) store.set('config', { ...c, preset: presetIndex });
+  }
+  function clearBacktest() { el.btOut.hidden = true; el.btBtn.textContent = 'Run backtest'; }
+  function onConfigEdit() {
+    if (applying) return;
+    markPreset(-1);
+    saveConfig();
+    clearBacktest();
+    if (!state.live) { const c = readConfig(); if (!c.error) { newSession(c); setStatus(`Ready. Next bet: ${fmt(S().bet)}`); } }
+  }
+  el.config.addEventListener('input', e => { if (!el.presets.contains(e.target)) onConfigEdit(); });
+  el.config.addEventListener('change', e => { if (e.target.tagName === 'SELECT') onConfigEdit(); });
+
+  // ---------- engine loop ----------
+  let activeCfg = null;
+  function setStatus(msg, tone = 'muted') {
+    el.status.textContent = msg;
+    el.status.style.color = { win: 'var(--win)', loss: 'var(--loss)', ink: 'var(--ink)' }[tone] || 'var(--muted)';
+  }
+  function setRunning(on) {
+    el.config.disabled = on;
+    el.startBtn.disabled = on;
+    el.stopBtn.disabled = !on;
+    el.resetBtn.disabled = on;
+    el.btBtn.disabled = on;
+    renderBank();
+  }
+  function stopMessage(code) {
+    const s = S(), c = activeCfg, n = s.bets.toLocaleString();
+    switch (code) {
+      case 'bust': return [`BUST after ${n} bets. The buy-in is gone.`, 'loss'];
+      case 'rule': return [`A "Stop autobet" condition fired after ${n} bets.`, 'ink'];
+      case 'profit': return [`Stop profit hit: balance ${fmt(s.balance)} ≥ ${fmt(c.stopProfit)}.`, 'win'];
+      case 'loss': return [`Stop loss hit: balance ${fmt(s.balance)} ≤ ${fmt(c.stopLoss)}.`, 'loss'];
+      case 'trailing': return [`Trailing stop: dropped ${fmt(s.peak - s.balance)} from the peak of ${fmt(s.peak)}.`, s.balance > state.start ? 'win' : 'loss'];
+      case 'max': return [`Max bets reached (${n}).`, 'muted'];
+    }
+  }
+
+  function record() {
+    const s = S();
+    if (s.bets % state.stride !== 0) return;
+    state.history.push(s.balance);
+    if (state.history.length > MAX_POINTS) {
+      state.history = state.history.filter((_, i) => i % 2 === 0);
+      state.stride *= 2;
+    }
+  }
+
+  function start() {
+    const cfg = readConfig();
+    if (cfg.error) return setStatus(cfg.error, 'loss');
+    if (!state.live || S().balance <= 0) {
+      // New session: the buy-in moves from the bankroll onto the table.
+      cashOut();
+      if (cfg.start > bank.wallet) {
+        renderBank();
+        return setStatus(`Not enough play money. Bankroll is ${fmt(bank.wallet)}; lower the buy-in or tap Refill.`, 'loss');
+      }
+      bank.wallet = cents(bank.wallet - cfg.start);
+      newSession(cfg);
+      state.live = true;
+      saveBank();
+    }
+    activeCfg = cfg;
+    const pre = Engine.stopReason(cfg, S(), null);
+    if (pre) { renderBank(); const [m, t] = stopMessage(pre.code); return setStatus('Already past a stop condition. ' + m, t); }
+    state.owed = 1;                    // place the first bet right away
+    state.last = performance.now();
+    state.timer = setInterval(tick, interval());
+    setRunning(true);
+    setStatus('Running…', 'ink');
+    tick();
+  }
+
+  function stop(msg, tone) {
+    clearInterval(state.timer);
+    state.timer = null;
+    if (S().balance <= 0) state.live = false;   // bust: nothing left to cash out
+    saveBank();
+    setRunning(false);
+    setStatus(msg || `Paused after ${S().bets.toLocaleString()} bets. Start resumes; Reset cashes out.`, tone || 'muted');
+  }
+
+  function tick() {
+    const now = performance.now();
+    state.owed += (now - state.last) * speed() / 1000;
+    state.last = now;
+    const n = Math.min(Math.floor(state.owed), 20000);
+    if (n < 1) return;
+    state.owed -= n;
+    let r, why = null;
+    for (let i = 0; i < n && !why; i++) {
+      r = Engine.step(activeCfg, S());
+      record();
+      why = Engine.stopReason(activeCfg, S(), r);
+    }
+    el.lastRoll.textContent = `Roll ${r.roll.toFixed(2)} @ ${+r.chance.toFixed(2)}% · ${r.win ? 'WIN' : 'LOSS'} ${fmt(r.bet)}`;
+    el.lastRoll.style.color = r.win ? 'var(--win)' : 'var(--loss)';
+    render();
+    if (why) stop(...stopMessage(why.code));
+    else setStatus(`Running… next bet ${fmt(Math.min(S().bet, S().balance))} at ${+S().chance.toFixed(2)}%`, 'ink');
+  }
+
+  function newSession(cfg) {
+    state.s = Engine.newSession(cfg);
+    state.start = cfg.start;
+    state.history = [cfg.start]; state.stride = 1;
+    el.lastRoll.textContent = 'No rolls yet';
+    el.lastRoll.style.color = 'var(--muted)';
+    render();
+  }
+
+  el.startBtn.addEventListener('click', start);
+  el.stopBtn.addEventListener('click', () => stop());
+  el.resetBtn.addEventListener('click', () => {
+    const wasLive = state.live, back = cashOut();
+    const c = readConfig();
+    newSession(c.error ? PRESETS[0].cfg : c);
+    setStatus(wasLive ? `Cashed out ${fmt(back)} to the bankroll. Data reset.` : `Data reset. Next bet: ${fmt(S().bet)}`);
+  });
+  el.refillBtn.addEventListener('click', () => {
+    const inPlay = state.live ? S().balance : 0;
+    if (bank.wallet + inPlay >= REFILL_TO) return;
+    bank.wallet = cents(REFILL_TO - inPlay);
+    bank.refills += 1;
+    saveBank(); renderBank();
+    setStatus(`Bankroll refilled to ${fmt(REFILL_TO)} play money.`, 'ink');
+  });
+
+  // ---------- backtest (runs in small chunks so the page stays responsive) ----------
+  el.btBtn.addEventListener('click', () => {
+    const cfg = readConfig();
+    if (cfg.error) return setStatus(cfg.error, 'loss');
+    const cap = Math.min(cfg.maxBets || BACKTEST_CAP, BACKTEST_CAP);
+    const results = [];
+    el.btBtn.disabled = true; el.startBtn.disabled = true;
+    const chunk = () => {
+      const t0 = performance.now();
+      while (results.length < BACKTEST_RUNS && performance.now() - t0 < 30) results.push(Engine.playOut(cfg, cap));
+      el.btBtn.textContent = `Running ${Math.round(results.length / BACKTEST_RUNS * 100)}%`;
+      if (results.length < BACKTEST_RUNS) return setTimeout(chunk, 0);
+      const r = Engine.summarize(results);
+      const tone = x => x > 0.004 ? 'var(--win)' : x < -0.004 ? 'var(--loss)' : 'var(--ink)';
+      el.btWin.textContent = (r.winRate * 100).toFixed(1) + '%';
+      // The ± is the 95% margin of error: an average inside it is indistinguishable from luck.
+      el.btAvg.innerHTML = `${signed(r.avg)} <span class="text-xs font-normal" style="color:var(--muted)">± ${fmt(r.margin)}</span>`;
+      el.btAvg.style.color = tone(r.avg);
+      el.btBust.textContent = (r.bustRate * 100).toFixed(1) + '%'; el.btBust.style.color = r.bustRate > 0 ? 'var(--loss)' : 'var(--ink)';
+      el.btBets.textContent = Math.round(r.avgBets).toLocaleString();
+      el.btRange.innerHTML = [r.p10, r.median, r.p90].map(x => `<span style="color:${tone(x)}">${signed(x)}</span>`).join(' <span style="color:var(--muted)">·</span> ');
+      el.btOut.hidden = false;
+      el.btBtn.textContent = 'Run again';
+      el.btBtn.disabled = false; el.startBtn.disabled = !!state.timer;
+    };
+    chunk();
+  });
+
+  // ---------- rendering ----------
+  function renderStats() {
+    const s = S(), pl = s.balance - state.start;
+    el.statBalance.textContent = fmt(s.balance);
+    el.statProfit.textContent = signed(pl);
+    el.statProfit.style.color = pl > 0.004 ? 'var(--win)' : pl < -0.004 ? 'var(--loss)' : 'var(--ink)';
+    el.statWagered.textContent = fmt(s.wagered);
+    el.statBets.textContent = s.bets.toLocaleString();
+  }
+
+  const ctx = el.canvas.getContext('2d');
+  function niceStep(range, target) {
+    const raw = range / target, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / mag;
+    return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+  }
+  function shortNum(v) {
+    const a = Math.abs(v);
+    if (a >= 1e9) return (v / 1e9).toFixed(1) + 'B';
+    if (a >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+    if (a >= 1e4) return (v / 1e3).toFixed(1) + 'k';
+    return a >= 100 ? v.toFixed(0) : v.toFixed(2).replace(/\.00$/, '');
+  }
+
+  function drawChart() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = el.canvas.clientWidth, h = el.canvas.clientHeight;
+    if (!w || !h) return;
+    if (el.canvas.width !== Math.round(w * dpr) || el.canvas.height !== Math.round(h * dpr)) {
+      el.canvas.width = Math.round(w * dpr); el.canvas.height = Math.round(h * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const css = getComputedStyle(document.documentElement);
+    const C = k => css.getPropertyValue(k).trim();
+    const hist = state.history, n = hist.length, stride = state.stride;
+
+    let lo = Math.min(state.start, S().balance), hi = Math.max(state.start, S().balance);
+    for (let i = 0; i < n; i++) { if (hist[i] < lo) lo = hist[i]; if (hist[i] > hi) hi = hist[i]; }
+    const span = Math.max(hi - lo, state.start * 0.1, 0.1);
+    lo = Math.max(0, lo - span * 0.1); hi = hi + span * 0.1;
+    const step = niceStep(hi - lo, 5);
+    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+
+    // y labels carry as many decimals as the grid step needs, so no two read the same
+    const dec = Math.min(2, Math.max(0, -Math.floor(Math.log10(step) + 1e-9)));
+    const yLabel = v => hi >= 1e4 ? shortNum(v) : v.toFixed(dec);
+    ctx.font = `11px ${C('--font-num')}`;
+    const labelW = Math.max(ctx.measureText(yLabel(hi)).width, ctx.measureText(yLabel(lo)).width);
+    const pad = { l: labelW + 12, r: 10, t: 10, b: 24 };
+    const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+    const maxX = Math.max(S().bets, 1);
+    const X = bet => pad.l + (bet / maxX) * pw;
+    const Y = v => pad.t + (1 - (v - lo) / (hi - lo)) * ph;
+
+    // grid + y labels
+    ctx.strokeStyle = C('--line'); ctx.lineWidth = 1; ctx.fillStyle = C('--muted');
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let v = lo; v <= hi + step / 2; v += step) {
+      const y = Math.round(Y(v)) + 0.5;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+      ctx.fillText(yLabel(v), pad.l - 6, y);
+    }
+    // x labels
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const xs = Math.max(1, niceStep(maxX, Math.max(2, Math.floor(pw / 70))));
+    for (let i = 0; i <= maxX; i += xs) {
+      ctx.fillText(shortNum(i).replace(/\.00?$/, ''), Math.min(Math.max(X(i), pad.l + 8), w - pad.r - 14), h - pad.b + 7);
+    }
+
+    // points as [betIndex, balance]; downsample to ~2 per pixel, keeping min & max so spikes survive
+    const pts = [];
+    const bucket = Math.max(1, Math.floor(n / (pw * 2)));
+    if (bucket === 1) for (let i = 0; i < n; i++) pts.push([i * stride, hist[i]]);
+    else {
+      for (let s = 0; s < n; s += bucket) {
+        let mi = s, ma = s;
+        for (let i = s; i < Math.min(n, s + bucket); i++) { if (hist[i] < hist[mi]) mi = i; if (hist[i] > hist[ma]) ma = i; }
+        const a = Math.min(mi, ma), b = Math.max(mi, ma);
+        pts.push([a * stride, hist[a]]); if (b !== a) pts.push([b * stride, hist[b]]);
+      }
+    }
+    if (pts[pts.length - 1][0] !== S().bets) pts.push([S().bets, S().balance]);
+    if (S().bets === 0) pts.push([1, state.start]);
+
+    const up = S().balance >= state.start;
+    const dotColor = S().bets === 0 ? C('--accent') : up ? C('--win') : C('--loss');
+
+    // gradient area
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ph);
+    grad.addColorStop(0, hexA(C('--accent'), 0.35));
+    grad.addColorStop(1, hexA(C('--accent'), 0));
+    ctx.beginPath();
+    ctx.moveTo(X(pts[0][0]), Y(pts[0][1]));
+    for (const [i, v] of pts) ctx.lineTo(X(i), Y(v));
+    ctx.lineTo(X(pts[pts.length - 1][0]), pad.t + ph);
+    ctx.lineTo(X(pts[0][0]), pad.t + ph);
+    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+    // starting balance reference
+    const sy = Math.round(Y(state.start)) + 0.5;
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = C('--muted'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l, sy); ctx.lineTo(w - pad.r, sy); ctx.stroke(); ctx.setLineDash([]);
+
+    // balance line
+    ctx.beginPath();
+    pts.forEach(([i, v], k) => k ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)));
+    ctx.strokeStyle = C('--accent'); ctx.lineWidth = 1.75; ctx.lineJoin = 'round'; ctx.stroke();
+
+    // endpoint
+    const [lx, lv] = pts[pts.length - 1];
+    ctx.beginPath(); ctx.arc(X(lx), Y(lv), 4, 0, Math.PI * 2); ctx.fillStyle = dotColor; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = C('--panel'); ctx.stroke();
+
+    // start label chip, drawn last so the line never covers it
+    const tag = 'start ' + shortNum(state.start), tw = ctx.measureText(tag).width + 10;
+    const tx = w - pad.r - tw, ty = Math.min(Math.max(sy - 8, pad.t), pad.t + ph - 16);
+    ctx.fillStyle = C('--panel'); ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(tx, ty, tw, 16, 4) : ctx.rect(tx, ty, tw, 16); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(tag, tx + 5, ty + 8.5);
+  }
+  function hexA(hex, a) {
+    const m = hex.replace('#', '');
+    const v = parseInt(m.length === 3 ? m.split('').map(c => c + c).join('') : m, 16);
+    return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
+  }
+
+  let raf = 0;
+  function render() { renderStats(); renderBank(); if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawChart(); }); }
+  new ResizeObserver(() => drawChart()).observe(el.canvas);
+
+  updateMultiplier();
+  updateSpeed();
+  const saved = store.get('config', null);
+  if (saved && Array.isArray(saved.rules)) {
+    applying = true; writeConfig(saved); applying = false;
+    markPreset(PRESETS[saved.preset] ? saved.preset : -1);
+  } else {
+    applying = true; writeConfig(PRESETS[0].cfg); applying = false;
+    markPreset(0);
+  }
+  { const c = readConfig(); newSession(c.error ? PRESETS[0].cfg : c); }
+  setStatus(orphan > 0 ? `Returned ${fmt(orphan)} from your last session to the bankroll.` : `Ready. Next bet: ${fmt(S().bet)}`);
+})();
+</script>
+</body>
+</html>
