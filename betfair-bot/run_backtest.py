@@ -2,6 +2,8 @@
 
 Usage:
     python run_backtest.py data/historic/*.bz2 --fair-prices data/fair_prices.csv
+    python run_backtest.py data/historic/*.bz2 --strategy progression \
+        --progression progressions/11pct_hunter.json
 """
 import argparse
 import glob
@@ -12,12 +14,14 @@ from flumine.streams.betfairhistoricalstream import BetfairHistoricalStream
 
 from bot.config import Settings
 from bot.fair_prices import CsvFairPrices
+from bot.progression import Progression, ProgressionConfig
+from bot.progression_strategy import ProgressionStrategy
 from bot.report import format_summary, summarise
 from bot.risk import RiskManager
 from bot.strategy import ValueBackStrategy
 
 
-def build(files, settings, fair_prices):
+def build(files, settings, fair_prices=None, progression=None):
     risk = RiskManager(daily_loss_limit=settings.daily_loss_limit,
                        max_market_exposure=settings.max_market_exposure,
                        kill_switch_file=None)  # a stray KILL file shouldn't stop a backtest
@@ -25,9 +29,13 @@ def build(files, settings, fair_prices):
         BetfairHistoricalStream(file_path=f, listener_kwargs={"inplay": False})
         for f in files
     ]
-    strategy = ValueBackStrategy(streams=streams, fair_prices=fair_prices, settings=settings,
-                                 risk=risk, max_order_exposure=settings.max_stake,
-                                 max_selection_exposure=settings.max_market_exposure)
+    common = dict(streams=streams, settings=settings, risk=risk,
+                  max_order_exposure=settings.max_market_exposure if progression is not None else settings.max_stake,
+                  max_selection_exposure=settings.max_market_exposure)
+    if progression is not None:
+        strategy = ProgressionStrategy(progression=progression, **common)
+    else:
+        strategy = ValueBackStrategy(fair_prices=fair_prices, **common)
     framework = FlumineSimulation(client=clients.SimulatedClient())
     framework.add_strategy(strategy)
     return framework, strategy
@@ -36,7 +44,10 @@ def build(files, settings, fair_prices):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("files", nargs="+", help="historical stream files or glob patterns")
-    parser.add_argument("--fair-prices", help="CSV of market_id,selection_id,probability")
+    parser.add_argument("--strategy", choices=["value", "progression"], default="value")
+    parser.add_argument("--fair-prices", help="value strategy: CSV of market_id,selection_id,probability")
+    parser.add_argument("--progression", default="progressions/11pct_hunter.json",
+                        help="progression strategy: JSON config")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.WARNING if args.quiet else logging.INFO,
@@ -46,14 +57,23 @@ def main(argv=None):
     files = sorted({f for pattern in args.files for f in glob.glob(pattern, recursive=True)})
     if not files:
         parser.error("no historical files matched")
-    fair_prices = CsvFairPrices(args.fair_prices or settings.fair_prices_csv)
-    if not len(fair_prices):
-        parser.error("no fair prices loaded: the strategy needs your model's probabilities to bet")
+    fair_prices = progression = None
+    if args.strategy == "progression":
+        progression = Progression(ProgressionConfig.load(args.progression), min_stake=settings.min_stake)
+    else:
+        fair_prices = CsvFairPrices(args.fair_prices or settings.fair_prices_csv)
+        if not len(fair_prices):
+            parser.error("no fair prices loaded: the strategy needs your model's probabilities to bet")
 
-    framework, strategy = build(files, settings, fair_prices)
+    framework, strategy = build(files, settings, fair_prices, progression)
     framework.run()
     summary = summarise(strategy.results)
     print(format_summary(summary))
+    if progression is not None:
+        summary["balance"] = round(progression.balance, 2)
+        summary["session_end"] = progression.stopped or "data ran out"
+        print(f"Session balance : {progression.balance:.2f} of {progression.cfg.bankroll:.2f} "
+              f"({summary['session_end']})")
     return summary
 
 

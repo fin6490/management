@@ -44,3 +44,22 @@ def test_no_bets_without_value(env):
     tmp_path, market = env
     csv = f"market_id,selection_id,probability\n{make_market.MARKET_ID},102,0.30\n"
     assert run(tmp_path, market, csv)["bets"] == 0
+
+
+def test_progression_strategy_runs_11pct_hunter_on_a_race_series(env, tmp_path):
+    _, _ = env
+    # Five races; in each the 9.0-ish runner is 201. It loses four times, then wins.
+    files = []
+    for i, winner in enumerate([202, 202, 202, 202, 201], start=1):
+        files.append(make_market.write(
+            str(tmp_path / f"race{i}.json"), market_id=f"1.80000000{i}",
+            prices={201: 8.6, 202: 3.0, 203: 12.0}, winner=winner,
+            t0=make_market.T0 + i * 3_600_000))
+    s = run_backtest.main(files + ["--strategy", "progression",
+                                   "--progression", os.path.join(os.path.dirname(__file__), "..",
+                                                                 "progressions", "11pct_hunter.json"),
+                                   "--quiet"])
+    # stakes 1,1,1,1 then 2 after the 4th loss; the win at 8.6 pays 2*7.6=15.20, 5% -> 0.76
+    assert s["bets"] == 5 and s["staked"] == 6.0
+    assert s["commission"] == 0.76 and s["net_pnl"] == round(-4 + 15.20 - 0.76, 2)
+    assert s["balance"] == round(50 - 4 + 14.44, 2)

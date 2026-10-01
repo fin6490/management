@@ -31,7 +31,7 @@ cd betfair-bot
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # then fill it in
-python -m pytest -q         # 17 tests, no Betfair account needed
+python -m pytest -q         # 24 tests, no Betfair account needed
 ```
 
 ### Betfair account pieces
@@ -100,6 +100,41 @@ The stream is set by `EVENT_TYPE_IDS`, `COUNTRY_CODES` and `MARKET_TYPES` (defau
 horse-racing WIN markets). The bot only bets in the last `SECONDS_BEFORE_START` seconds before
 the off, never in-play, and at most once per runner. Unmatched bets lapse at the off.
 
+## Progression strategies (from the Auto-Dice simulator)
+
+`--strategy progression` runs a dice-style bet-sizing progression on Betfair, using the same rule
+engine as the simulator's condition builder (checked against it in `tests/test_progression.py`).
+The included preset is the **11% Hunter**:
+
+```json
+progressions/11pct_hunter.json
+  target_odds 9.0 (+/- 1.0)   -> the exchange equivalent of an 11.11% chance
+  bankroll 50, base 1.00      -> the dice preset (10 / 0.20) scaled to Betfair's minimum stake
+  stop at balance 100         -> double the session bankroll, or bust
+  rules: every loss -> reset; every 4th loss -> double
+```
+
+In each pre-race market it backs the runner whose price is closest to the target odds. It places
+one bet at a time and waits for that market to settle before the next, because each stake depends
+on the last result.
+
+```bash
+python simulate_progression.py progressions/11pct_hunter.json        # the maths, no Betfair needed
+python run_backtest.py "data/historic/**/*.bz2" --strategy progression
+python run_bot.py --strategy progression --mode paper
+```
+
+**What to expect.** `simulate_progression.py` plays 20,000 sessions at a fairly priced 9.0:
+
+| Commission | Expected value per bet | Sessions that double | Average session result |
+|---|---|---|---|
+| 0% (like the dice app) | 0.00% | 48% | about 0 |
+| 2% | −1.78% | 43% | about −4.40 |
+| 5% | −4.44% | 37% | about −11.15 |
+
+A progression can't beat commission. It needs runners that win more often than their price says;
+`--edge 0.01` shows what one extra percentage point of true chance would do.
+
 ## Risk controls
 
 | Setting | Default | What it does |
@@ -122,6 +157,10 @@ bot/fair_prices.py   your model's probabilities
 bot/risk.py          loss limit, exposure, kill switch
 bot/strategy.py      the flumine strategy
 bot/report.py        backtest summary
+bot/progression.py   dice-style progression engine + Monte Carlo
+bot/progression_strategy.py  flumine strategy for progressions
+progressions/        progression presets (JSON)
+simulate_progression.py      session odds for a progression, no Betfair needed
 run_backtest.py      historical replay
 run_bot.py           paper / live
 tests/               unit tests + an end-to-end backtest on a synthetic market file

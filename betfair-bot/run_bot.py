@@ -2,6 +2,7 @@
 
     python run_bot.py --mode paper                      # live prices, simulated bets (default)
     python run_bot.py --mode live --i-accept-real-money # real bets with real money
+    python run_bot.py --strategy progression --progression progressions/11pct_hunter.json
 
 Paper mode logs in and streams real markets, but no order ever reaches Betfair.
 Create the kill-switch file (default: KILL) at any time to stop new bets.
@@ -18,6 +19,8 @@ from flumine.streams.betfairmarketstream import BetfairMarketStream
 
 from bot.config import Settings
 from bot.fair_prices import CsvFairPrices
+from bot.progression import Progression, ProgressionConfig
+from bot.progression_strategy import ProgressionStrategy
 from bot.risk import RiskManager
 from bot.strategy import ValueBackStrategy
 
@@ -27,6 +30,8 @@ def main(argv=None):
     parser.add_argument("--mode", choices=["paper", "live"], default="paper")
     parser.add_argument("--i-accept-real-money", action="store_true",
                         help="required with --mode live")
+    parser.add_argument("--strategy", choices=["value", "progression"], default="value")
+    parser.add_argument("--progression", default="progressions/11pct_hunter.json")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -41,9 +46,15 @@ def main(argv=None):
     if not os.path.isdir(s.certs_dir):
         sys.exit(f"Certificate folder not found: {s.certs_dir} (needed for non-interactive login)")
 
-    fair_prices = CsvFairPrices(s.fair_prices_csv)
-    if not len(fair_prices):
-        sys.exit(f"No fair prices in {s.fair_prices_csv}: the bot only bets where your model has a price.")
+    if args.strategy == "progression":
+        try:
+            progression = Progression(ProgressionConfig.load(args.progression), min_stake=s.min_stake)
+        except (OSError, ValueError, TypeError) as exc:
+            sys.exit(f"Bad progression config {args.progression}: {exc}")
+    else:
+        fair_prices = CsvFairPrices(s.fair_prices_csv)
+        if not len(fair_prices):
+            sys.exit(f"No fair prices in {s.fair_prices_csv}: the bot only bets where your model has a price.")
 
     trading = betfairlightweight.APIClient(s.username, s.password, app_key=s.app_key, certs=s.certs_dir)
     client = clients.BetfairClient(trading, paper_trade=(args.mode == "paper"),
@@ -59,11 +70,15 @@ def main(argv=None):
     )
     risk = RiskManager(daily_loss_limit=s.daily_loss_limit, max_market_exposure=s.max_market_exposure,
                        kill_switch_file=s.kill_switch_file)
-    framework.add_strategy(ValueBackStrategy(
-        stream=stream, fair_prices=fair_prices, settings=s, risk=risk,
-        max_order_exposure=s.max_stake, max_selection_exposure=s.max_market_exposure,
-    ))
-    logging.getLogger(__name__).info("Starting in %s mode", args.mode.upper())
+    common = dict(stream=stream, settings=s, risk=risk,
+                  max_order_exposure=s.max_market_exposure if args.strategy == "progression" else s.max_stake,
+                  max_selection_exposure=s.max_market_exposure)
+    if args.strategy == "progression":
+        strategy = ProgressionStrategy(progression=progression, **common)
+    else:
+        strategy = ValueBackStrategy(fair_prices=fair_prices, **common)
+    framework.add_strategy(strategy)
+    logging.getLogger(__name__).info("Starting %s strategy in %s mode", args.strategy, args.mode.upper())
     framework.run()
 
 
