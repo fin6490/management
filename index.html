@@ -519,6 +519,10 @@
       { chance: 90, base: 5, rules: [], stopProfit: 120, stopLoss: 70 }),
     P('42% Grind', 'Your 42% strategy (+10% on win, −12% on loss) with a min bet of 2 so bets can’t shrink to nothing. Hits the +25 target in 66% of runs (~190 bets); the rest stop at −50.',
       { chance: 42, base: 2, minBet: 2, rules: [R('win', 'every', 1, 'inc', 10), R('loss', 'every', 1, 'dec', 12)], stopProfit: 125, stopLoss: 50 }),
+    P('Win Doubler', 'Double the bet after every win, halve it after every loss, never below 1. Profit in 42% of runs; streaks compound, so good runs reach about +96, while bad runs stop near −50 (about −63 when a big bet loses).',
+      { chance: 50, base: 1, minBet: 1, rules: [R('win', 'every', 1, 'inc', 100), R('loss', 'every', 1, 'dec', 50)], stopProfit: 150, stopLoss: 50 }),
+    P('11% Hunter', '11.11% chance (9× payout), 10 buy-in, 0.20 base. Every loss resets the bet; every 4th loss doubles it for one bet. Doubles the 10 to 20 in 48% of runs; the rest bust.',
+      { start: 10, chance: 11.11, base: 0.2, rules: [R('loss', 'every', 1, 'reset'), R('loss', 'every', 4, 'inc', 100)], stopProfit: 20 }),
   ];
   const EV_NOTE = ' Average result ≈ 0, as in any fair game.';
   let applying = false, presetIndex = -1;
