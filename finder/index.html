@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Value &amp; Reload Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one phone-width column; sticky header + tabs, each tab a stack of panels. */
+  :root {
+    --bg: #eef2f5;          /* cool off-white, biased toward the teal accent */
+    --surface: #ffffff;
+    --ink: #13202b;
+    --muted: #5a6977;
+    --line: #d5dde4;
+    --accent: #0e6a86;      /* deep teal: controls and focus */
+    --accent-ink: #ffffff;
+    --back: #cfe6fa;        /* exchange convention: back = blue */
+    --back-ink: #0b3b62;
+    --lay: #fadbe3;         /* lay = pink */
+    --lay-ink: #6d1a33;
+    --win: #167a43;
+    --win-soft: #dcf1e4;
+    --loss: #b62f37;
+    --loss-soft: #f8e0e2;
+    --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+    --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d141b; --surface: #141e27; --ink: #e4ebf1; --muted: #8fa0ae; --line: #253441;
+      --accent: #4fb3d1; --accent-ink: #06222c;
+      --back: #183a55; --back-ink: #cfe6fa; --lay: #4a2230; --lay-ink: #fadbe3;
+      --win: #4cc983; --win-soft: #143424; --loss: #f07178; --loss-soft: #3a1a1e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d141b; --surface: #141e27; --ink: #e4ebf1; --muted: #8fa0ae; --line: #253441;
+    --accent: #4fb3d1; --accent-ink: #06222c;
+    --back: #183a55; --back-ink: #cfe6fa; --lay: #4a2230; --lay-ink: #fadbe3;
+    --win: #4cc983; --win-soft: #143424; --loss: #f07178; --loss-soft: #3a1a1e;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { margin: 0; font: 15px/1.5 var(--font-body); -webkit-tap-highlight-color: transparent; }
+  .wrap { max-width: 44rem; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px; }
+  .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  h1, h2, h3, .label, .tab, .seg button { font-family: var(--font-display); }
+  h1 { font-size: 1.45rem; font-weight: 700; margin: 0; letter-spacing: 0.01em; line-height: 1.1; }
+  h2 { font-size: 1.15rem; font-weight: 700; margin: 0; text-wrap: balance; }
+  .label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.85rem; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .spread { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+    padding-block: 14px 10px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+  .tab { border: 0; background: transparent; color: var(--muted); font-size: 0.98rem; font-weight: 600;
+    padding: 8px 4px; border-radius: 7px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+  .tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .note { border-radius: 10px; padding: 10px 12px; font-size: 0.88rem; background: var(--surface); border: 1px dashed var(--line); color: var(--muted); }
+  .note strong { color: var(--ink); }
+
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  input, select { width: 100%; font: 16px var(--font-num); color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
+  select { font-family: var(--font-body); }
+  input[type="text"], input[type="password"], input[type="date"] { font-family: var(--font-body); }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 420px) { .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .btn { font: 600 0.95rem var(--font-body); border-radius: 9px; padding: 10px 14px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.sm { padding: 6px 10px; font-size: 0.85rem; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; padding: 2px; background: var(--bg); flex-wrap: wrap; }
+  .seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 7px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+  .chip { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px;
+    padding: 5px 11px; font: 500 0.85rem var(--font-body); cursor: pointer; }
+  .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--surface); }
+
+  .price { display: inline-flex; flex-direction: column; align-items: center; min-width: 4.6rem; border-radius: 7px; padding: 4px 8px; line-height: 1.2; }
+  .price b { font: 600 1.05rem var(--font-num); }
+  .price span { font-size: 0.72rem; }
+  .price.back { background: var(--back); color: var(--back-ink); }
+  .price.lay { background: var(--lay); color: var(--lay-ink); }
+  .pill { display: inline-block; border-radius: 999px; padding: 2px 9px; font: 600 0.8rem var(--font-num); }
+  .pill.good { background: var(--win-soft); color: var(--win); }
+  .pill.bad { background: var(--loss-soft); color: var(--loss); }
+  .pill.plain { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+  .pos { color: var(--win); } .neg { color: var(--loss); }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .card .event { font-weight: 600; }
+  .card .meta { font-size: 0.8rem; color: var(--muted); }
+  .card .prices { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+  .card .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat .v { font: 600 1rem var(--font-num); }
+
+  .big { font: 600 2rem var(--font-num); letter-spacing: -0.01em; }
+  table.out { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  table.out th, table.out td { text-align: right; padding: 7px 4px; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  table.out th:first-child, table.out td:first-child { text-align: left; }
+  table.out th { font: 600 0.75rem var(--font-display); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  table.out td { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  table.out td:first-child { font-family: var(--font-body); }
+
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .tile .v { font: 600 1.25rem var(--font-num); }
+  #chart { width: 100%; height: 180px; display: block; }
+  .entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .entry:last-child { border-bottom: 0; }
+  .entry .what { font-weight: 600; overflow-wrap: anywhere; }
+  .entry .sub { font-size: 0.8rem; color: var(--muted); }
+  .entry .amt { font: 600 1rem var(--font-num); text-align: right; }
+  .entry .acts { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+  details > summary { cursor: pointer; font-weight: 600; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "+ "; color: var(--accent); }
+  details[open] > summary::before { content: "− "; }
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 9px; font-size: 0.9rem; z-index: 10; max-width: calc(100% - 32px); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="spread" style="flex-wrap:nowrap;align-items:flex-start">
+      <div style="min-width:0">
+        <h1>Value &amp; Reload Finder</h1>
+        <div class="small muted">Find bets with an edge. You place them.</div>
+      </div>
+      <div style="text-align:right;flex:none">
+        <div class="label">Profit so far</div>
+        <div id="hdrProfit" class="num" style="font-weight:600;font-size:1.15rem">£0.00</div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-scan" data-tab="scan" aria-selected="true">Scan</button>
+      <button class="tab" role="tab" id="tab-calc" data-tab="calc" aria-selected="false">Calculator</button>
+      <button class="tab" role="tab" id="tab-track" data-tab="track" aria-selected="false">Tracker</button>
+      <button class="tab" role="tab" id="tab-set" data-tab="set" aria-selected="false">Settings</button>
+    </nav>
+  </header>
+
+  <!-- SCAN -->
+  <section id="view-scan" class="stack" role="tabpanel" aria-labelledby="tab-scan">
+    <div id="scanSource" class="note"></div>
+    <div class="panel stack">
+      <div class="spread">
+        <div class="seg" role="group" aria-label="What to find">
+          <button type="button" id="modeValue" data-mode="value" aria-pressed="true">Value bets</button>
+          <button type="button" id="modeLay" data-mode="lay" aria-pressed="false">Lay matches</button>
+        </div>
+        <button type="button" id="scanBtn" class="btn">Scan live odds</button>
+      </div>
+      <div class="stack" style="gap:6px">
+        <div class="label">Leagues</div>
+        <div id="leagues" class="row" role="group" aria-label="Leagues"></div>
+      </div>
+      <div id="layFilters" class="grid3" hidden>
+        <label class="field"><span class="label">Back odds from</span><input id="fMin" type="number" inputmode="decimal" step="0.1" value="1.5"></label>
+        <label class="field"><span class="label">Back odds to</span><input id="fMax" type="number" inputmode="decimal" step="0.1" value="8"></label>
+        <label class="field"><span class="label">Sort by</span>
+          <select id="fSort"><option value="ql">Qualifying loss</option><option value="snr">Free bet kept</option></select></label>
+      </div>
+      <p id="scanHelp" class="small muted" style="margin:0"></p>
+    </div>
+    <div id="results" class="stack"></div>
+  </section>
+
+  <!-- CALCULATOR -->
+  <section id="view-calc" class="stack" role="tabpanel" aria-labelledby="tab-calc" hidden>
+    <div class="panel stack">
+      <div class="seg" role="group" aria-label="Bet type">
+        <button type="button" data-calc="qual" aria-pressed="true">Qualifying bet</button>
+        <button type="button" data-calc="snr" aria-pressed="false">Free bet (SNR)</button>
+        <button type="button" data-calc="sr" aria-pressed="false">Free bet (SR)</button>
+      </div>
+      <p id="calcExplain" class="small muted" style="margin:0"></p>
+      <div class="grid2">
+        <label class="field"><span class="label">Back stake £</span><input id="cStake" type="number" inputmode="decimal" step="0.01" value="10"></label>
+        <label class="field"><span class="label">Back odds</span><input id="cBack" type="number" inputmode="decimal" step="0.01" value="3.0"></label>
+        <label class="field"><span class="label">Lay odds</span><input id="cLay" type="number" inputmode="decimal" step="0.01" value="3.1"></label>
+        <label class="field"><span class="label">Exchange</span>
+          <select id="cExch"><option value="betfair_ex_uk">Betfair</option><option value="smarkets">Smarkets</option><option value="matchbook">Matchbook</option></select></label>
+      </div>
+      <label class="field" style="max-width:12rem"><span class="label">Commission %</span><input id="cComm" type="number" inputmode="decimal" step="0.1" value="5"></label>
+    </div>
+    <div class="panel stack">
+      <div class="spread">
+        <div>
+          <div class="label">Lay stake</div>
+          <div class="big"><span id="cLayStake">£0.00</span></div>
+          <div class="small muted">Liability <span id="cLiab" class="num">£0.00</span> · keep this in your exchange balance</div>
+        </div>
+        <button type="button" id="cCopy" class="btn ghost sm">Copy lay stake</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="out">
+          <thead><tr><th>If this wins</th><th>Bookie</th><th>Exchange</th><th>Total</th></tr></thead>
+          <tbody id="cTable"></tbody>
+        </table>
+      </div>
+      <div class="spread">
+        <div id="cSummary" class="small"></div>
+        <button type="button" id="cLog" class="btn sm">Log to tracker</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section id="view-track" class="stack" role="tabpanel" aria-labelledby="tab-track" hidden>
+    <div class="tiles">
+      <div class="panel tile"><div class="label">Total</div><div id="tTotal" class="v">£0.00</div></div>
+      <div class="panel tile"><div class="label">This month</div><div id="tMonth" class="v">£0.00</div></div>
+      <div class="panel tile"><div class="label">Open bets</div><div id="tOpen" class="v">0</div></div>
+    </div>
+    <div class="panel"><div class="label" style="margin-bottom:6px">Running profit</div><canvas id="chart" role="img" aria-label="Running profit chart"></canvas></div>
+    <details class="panel" id="addBox">
+      <summary>Add an entry</summary>
+      <form id="addForm" class="stack" style="margin-top:12px">
+        <div class="grid2">
+          <label class="field"><span class="label">Date</span><input id="aDate" type="date"></label>
+          <label class="field"><span class="label">Type</span>
+            <select id="aKind"><option value="reload">Reload offer</option><option value="signup">Sign-up offer</option><option value="value">Value bet</option><option value="casino">Casino offer</option><option value="other">Other</option></select></label>
+          <label class="field"><span class="label">Account holder</span><input id="aWho" type="text" placeholder="Me" autocomplete="off"></label>
+          <label class="field"><span class="label">Bookmaker</span><input id="aBook" type="text" placeholder="e.g. Sky Bet" autocomplete="off"></label>
+        </div>
+        <label class="field"><span class="label">Note</span><input id="aNote" type="text" placeholder="e.g. Bet £10 get £5 free bet" autocomplete="off"></label>
+        <div id="aProfitRow" class="grid2">
+          <label class="field"><span class="label">Profit £ (negative for a loss)</span><input id="aProfit" type="number" inputmode="decimal" step="0.01"></label>
+        </div>
+        <div id="aValueRow" class="grid2" hidden>
+          <label class="field"><span class="label">Stake £</span><input id="aStake" type="number" inputmode="decimal" step="0.01"></label>
+          <label class="field"><span class="label">Odds</span><input id="aOdds" type="number" inputmode="decimal" step="0.01"></label>
+        </div>
+        <div><button class="btn" type="submit">Add entry</button></div>
+      </form>
+    </details>
+    <div class="panel">
+      <div class="spread" style="margin-bottom:4px">
+        <div class="label">Entries</div>
+        <button type="button" id="copyCsv" class="btn ghost sm">Copy as CSV</button>
+      </div>
+      <div id="entries"></div>
+    </div>
+    <p id="storeNote" class="small muted" style="margin:0"></p>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-set" class="stack" role="tabpanel" aria-labelledby="tab-set" hidden>
+    <div class="panel stack">
+      <h2>Live odds</h2>
+      <label class="field"><span class="label">The Odds API key</span><input id="sKey" type="password" autocomplete="off" placeholder="Paste your free key"></label>
+      <p class="small muted" style="margin:0">Get a free key at <a href="https://the-odds-api.com" style="color:var(--accent)">the-odds-api.com</a> (500 credits a month). Each league scanned costs 2 credits. The key stays in this browser only.</p>
+    </div>
+    <div class="panel stack">
+      <h2>Value bets</h2>
+      <div class="grid2">
+        <label class="field"><span class="label">Bankroll £</span><input id="sBank" type="number" inputmode="decimal" step="1" value="100"></label>
+        <label class="field"><span class="label">Minimum edge %</span><input id="sEdge" type="number" inputmode="decimal" step="0.5" value="3"></label>
+        <label class="field"><span class="label">Kelly fraction</span><input id="sKelly" type="number" inputmode="decimal" step="0.05" value="0.25"></label>
+        <label class="field"><span class="label">Max odds</span><input id="sMaxOdds" type="number" inputmode="decimal" step="0.5" value="10"></label>
+      </div>
+      <p class="small muted" style="margin:0">Stakes use a quarter of the Kelly amount by default, never more than 5% of the bankroll. Prices longer than the max odds are skipped: the exchange price is less reliable there.</p>
+    </div>
+    <div class="panel stack">
+      <h2>Exchange commission</h2>
+      <div class="grid3">
+        <label class="field"><span class="label">Betfair %</span><input id="sCbf" type="number" inputmode="decimal" step="0.1" value="5"></label>
+        <label class="field"><span class="label">Smarkets %</span><input id="sCsm" type="number" inputmode="decimal" step="0.1" value="2"></label>
+        <label class="field"><span class="label">Matchbook %</span><input id="sCmb" type="number" inputmode="decimal" step="0.1" value="2"></label>
+      </div>
+    </div>
+    <div class="panel stack">
+      <h2>My bookmakers</h2>
+      <p class="small muted" style="margin:0">Turn off bookmakers you don't have an account with, or that have restricted you. Results skip them.</p>
+      <div id="books" class="row"></div>
+    </div>
+  </section>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+/* FINDER START: pure maths, no DOM. Tested in finder/test_finder.js */
+const Finder = (() => {
+  const EXCHANGES = { betfair_ex_uk: 'Betfair', betfair_ex_eu: 'Betfair', smarkets: 'Smarkets', matchbook: 'Matchbook' };
+  const isExchange = key => key in EXCHANGES;
+
+  // Lay stake and outcomes for a back bet of `stake` at `back`, laid at `lay` with commission c (0-1).
+  // qual: normal bet. snr: free bet, stake not returned. sr: free bet, stake returned.
+  function calc(mode, stake, back, lay, c) {
+    const layStake = mode === 'snr' ? stake * (back - 1) / (lay - c) : stake * back / (lay - c);
+    const liability = layStake * (lay - 1);
+    const bookWin = mode === 'qual' ? stake * (back - 1) : mode === 'snr' ? stake * (back - 1) : stake * back;
+    const bookLose = mode === 'qual' ? -stake : 0;
+    const exchLayWins = layStake * (1 - c);
+    return {
+      layStake, liability,
+      backWins: { book: bookWin, exch: -liability, total: bookWin - liability },
+      layWins: { book: bookLose, exch: exchLayWins, total: bookLose + exchLayWins },
+    };
+  }
+
+  // Exchange view of one event: per outcome, best back and best lay across exchanges.
+  function exchangeBook(event) {
+    const out = {};
+    for (const bk of event.bookmakers || []) {
+      if (!isExchange(bk.key)) continue;
+      for (const m of bk.markets || []) {
+        for (const o of m.outcomes || []) {
+          const r = out[o.name] || (out[o.name] = { back: null, lay: null, layBook: null });
+          if (m.key === 'h2h' && (r.back === null || o.price > r.back)) r.back = o.price;
+          if (m.key === 'h2h_lay' && (r.lay === null || o.price < r.lay)) { r.lay = o.price; r.layBook = bk.key; }
+        }
+      }
+    }
+    return out;
+  }
+
+  // Fair win chance per outcome: midpoint of the exchange back/lay spread, normalised to 100%.
+  // Returns null when any outcome lacks a tight two-sided price.
+  function fairProbs(event, maxSpread = 0.1) {
+    const ex = exchangeBook(event), names = Object.keys(ex);
+    if (names.length < 2) return null;
+    const raw = {};
+    let sum = 0;
+    for (const n of names) {
+      const { back, lay } = ex[n];
+      if (!back || !lay || lay < back || lay / back - 1 > maxSpread) return null;
+      raw[n] = (1 / back + 1 / lay) / 2;
+      sum += raw[n];
+    }
+    for (const n of names) raw[n] /= sum;
+    return raw;
+  }
+
+  function kellyStake(p, odds, { bankroll, kellyFrac, cap = 0.05 }) {
+    const f = (p * odds - 1) / (odds - 1);
+    if (f <= 0) return 0;
+    return Math.floor(Math.min(f * kellyFrac, cap) * bankroll * 10) / 10;
+  }
+
+  // Bookmaker prices that beat the exchange's fair price by at least minEdge.
+  function valueBets(events, cfg) {
+    const out = [];
+    for (const ev of events) {
+      const fair = fairProbs(ev);
+      if (!fair) continue;
+      for (const bk of ev.bookmakers || []) {
+        if (isExchange(bk.key) || cfg.skipBooks?.includes(bk.key)) continue;
+        const m = (bk.markets || []).find(x => x.key === 'h2h');
+        for (const o of m ? m.outcomes : []) {
+          const p = fair[o.name];
+          if (!p || o.price > cfg.maxOdds) continue;
+          const edge = p * o.price - 1;
+          if (edge < cfg.minEdge) continue;
+          out.push({ event: ev, selection: o.name, book: bk.key, bookTitle: bk.title, odds: o.price,
+                     fairOdds: 1 / p, prob: p, edge, stake: kellyStake(p, o.price, cfg) });
+        }
+      }
+    }
+    return out.sort((a, b) => b.edge - a.edge);
+  }
+
+  // For each bookmaker price, the exchange lay that loses least on a £10 qualifier.
+  function layMatches(events, cfg) {
+    const out = [];
+    for (const ev of events) {
+      const lays = {};
+      for (const bk of ev.bookmakers || []) {
+        if (!isExchange(bk.key)) continue;
+        const m = (bk.markets || []).find(x => x.key === 'h2h_lay');
+        for (const o of m ? m.outcomes : []) (lays[o.name] = lays[o.name] || []).push({ book: bk.key, price: o.price });
+      }
+      for (const bk of ev.bookmakers || []) {
+        if (isExchange(bk.key) || cfg.skipBooks?.includes(bk.key)) continue;
+        const m = (bk.markets || []).find(x => x.key === 'h2h');
+        for (const o of m ? m.outcomes : []) {
+          if (o.price < cfg.minOdds || o.price > cfg.maxOdds) continue;
+          let best = null;
+          for (const l of lays[o.name] || []) {
+            const c = cfg.commission[l.book] ?? 0.05;
+            if (l.price <= 1 + c) continue;
+            const q = calc('qual', 10, o.price, l.price, c).backWins.total;
+            if (!best || q > best.ql) best = { ql: q, lay: l.price, exch: l.book, c };
+          }
+          if (!best) continue;
+          const snr = calc('snr', 10, o.price, best.lay, best.c).layWins.total / 10;
+          out.push({ event: ev, selection: o.name, book: bk.key, bookTitle: bk.title, back: o.price,
+                     lay: best.lay, exch: best.exch, commission: best.c, ql: best.ql, snr });
+        }
+      }
+    }
+    return out;
+  }
+
+  return { EXCHANGES, isExchange, calc, exchangeBook, fairProbs, kellyStake, valueBets, layMatches };
+})();
+/* FINDER END */
+if (typeof module !== 'undefined') module.exports = Finder;
+</script>
+
+<script>
+(() => {
+  if (typeof document === 'undefined') return;
+  const $ = id => document.getElementById(id);
+  const gbp = x => (x < 0 ? '−£' : '£') + Math.abs(x).toFixed(2);
+  const signedGbp = x => (x > 0.004 ? '+' : '') + gbp(x);
+  const pct = x => (x * 100).toFixed(1) + '%';
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const toast = msg => { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2200); };
+
+  // ---------- browser storage (settings, per device) ----------
+  const local = {
+    get(k, d) { try { const v = localStorage.getItem('finder.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('finder.' + k, JSON.stringify(v)); } catch {} },
+  };
+
+  const LEAGUES = [
+    ['soccer_epl', 'Premier League'], ['soccer_efl_champ', 'Championship'], ['soccer_england_league1', 'League One'],
+    ['soccer_spain_la_liga', 'La Liga'], ['soccer_germany_bundesliga', 'Bundesliga'], ['soccer_italy_serie_a', 'Serie A'],
+    ['soccer_france_ligue_one', 'Ligue 1'], ['soccer_uefa_champs_league', 'Champions League'], ['soccer_uefa_europa_league', 'Europa League'],
+  ];
+  const BOOKS = [
+    ['williamhill', 'William Hill'], ['skybet', 'Sky Bet'], ['paddypower', 'Paddy Power'], ['betfair_sb_uk', 'Betfair Sportsbook'],
+    ['ladbrokes_uk', 'Ladbrokes'], ['coral', 'Coral'], ['betfred', 'Betfred'], ['betvictor', 'BetVictor'], ['unibet_uk', 'Unibet'],
+    ['boylesports', 'BoyleSports'], ['livescorebet', 'LiveScore Bet'], ['virginbet', 'Virgin Bet'], ['sport888', '888sport'],
+    ['betway', 'Betway'], ['leovegas', 'LeoVegas'], ['casumo', 'Casumo'], ['grosvenor', 'Grosvenor'], ['mrgreen', 'Mr Green'],
+  ];
+
+  const S = Object.assign({ key: '', bankroll: 100, minEdge: 3, kelly: 0.25, maxOdds: 10, cbf: 5, csm: 2, cmb: 2,
+    leagues: ['soccer_epl', 'soccer_efl_champ', 'soccer_uefa_champs_league'], skipBooks: [], mode: 'value',
+    fMin: 1.5, fMax: 8, fSort: 'ql', tab: 'scan' }, local.get('settings', {}));
+  const saveSettings = () => local.set('settings', S);
+  const commission = () => ({ betfair_ex_uk: S.cbf / 100, betfair_ex_eu: S.cbf / 100, smarkets: S.csm / 100, matchbook: S.cmb / 100 });
+
+  // ---------- tabs ----------
+  function showTab(name) {
+    S.tab = name; saveSettings();
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    ['scan', 'calc', 'track', 'set'].forEach(n => { $('view-' + n).hidden = n !== name; });
+    if (name === 'track') drawChart();
+  }
+  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+  // ---------- example odds (shown until a live scan runs) ----------
+  function exampleEvents() {
+    const t0 = Date.now();
+    const mk = (i, league, home, away, prices) => ({
+      id: 'ex' + i, sport_key: league, sport_title: LEAGUES.find(l => l[0] === league)[1],
+      commence_time: new Date(t0 + (i + 2) * 3600e3 * 7).toISOString(), home_team: home, away_team: away,
+      bookmakers: Object.entries(prices).map(([key, p]) => {
+        const title = (BOOKS.find(b => b[0] === key) || [, Finder.EXCHANGES[key]])[1];
+        const outs = arr => [{ name: home, price: arr[0] }, { name: 'Draw', price: arr[1] }, { name: away, price: arr[2] }];
+        const markets = [{ key: 'h2h', outcomes: outs(p.b || p) }];
+        if (p.l) markets.push({ key: 'h2h_lay', outcomes: outs(p.l) });
+        return { key, title, markets };
+      }),
+    });
+    return [
+      mk(0, 'soccer_epl', 'Arsenal', 'Brighton', {
+        betfair_ex_uk: { b: [1.62, 4.3, 6.0], l: [1.63, 4.4, 6.2] }, smarkets: { b: [1.61, 4.3, 5.9], l: [1.64, 4.4, 6.2] },
+        williamhill: [1.57, 4.2, 6.5], skybet: [1.6, 4.0, 5.5], paddypower: [1.62, 4.2, 5.5], betfred: [1.57, 4.33, 6.0] }),
+      mk(1, 'soccer_epl', 'Aston Villa', 'Newcastle', {
+        betfair_ex_uk: { b: [2.56, 3.55, 2.86], l: [2.6, 3.6, 2.9] }, smarkets: { b: [2.54, 3.5, 2.86], l: [2.6, 3.6, 2.92] },
+        williamhill: [2.5, 3.5, 2.8], skybet: [2.7, 3.4, 2.62], coral: [2.45, 3.6, 3.0], ladbrokes_uk: [2.45, 3.6, 2.88] }),
+      mk(2, 'soccer_efl_champ', 'Leeds', 'Sunderland', {
+        betfair_ex_uk: { b: [1.95, 3.6, 4.2], l: [1.97, 3.65, 4.3] }, matchbook: { b: [1.95, 3.6, 4.2], l: [1.98, 3.7, 4.3] },
+        betvictor: [1.91, 3.6, 4.33], unibet_uk: [1.93, 3.55, 4.5], skybet: [1.91, 3.5, 4.0], betfred: [1.95, 3.5, 4.0] }),
+      mk(3, 'soccer_uefa_champs_league', 'Real Madrid', 'Inter', {
+        betfair_ex_uk: { b: [2.08, 3.7, 3.55], l: [2.1, 3.75, 3.6] }, smarkets: { b: [2.06, 3.7, 3.55], l: [2.1, 3.8, 3.6] },
+        williamhill: [2.05, 3.6, 3.5], paddypower: [2.1, 3.5, 3.4], betfred: [2.0, 3.75, 3.75], boylesports: [2.15, 3.6, 3.3] }),
+    ];
+  }
+
+  // ---------- scan ----------
+  let scan = { events: exampleEvents(), live: false, at: null, remaining: null, error: null };
+  function renderSource() {
+    const n = $('scanSource');
+    if (scan.error) { n.innerHTML = `<strong>Scan failed.</strong> ${esc(scan.error)}`; return; }
+    if (scan.live) {
+      const t = scan.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      n.innerHTML = `<strong>Live odds</strong> from ${scan.events.length} matches, updated ${t}.` +
+        (scan.remaining !== null ? ` ${esc(scan.remaining)} API credits left this month.` : '');
+    } else {
+      n.innerHTML = '<strong>Example odds.</strong> These matches and prices are made up to show how results look. ' +
+        (S.key ? 'Tap “Scan live odds” for real prices.' : 'Add your free odds API key in Settings, then scan for real prices.');
+    }
+  }
+
+  async function runScan() {
+    if (!S.key) { showTab('set'); $('sKey').focus(); return toast('Add your odds API key first'); }
+    if (!S.leagues.length) return toast('Pick at least one league');
+    const btn = $('scanBtn');
+    btn.disabled = true; btn.textContent = 'Scanning…';
+    const events = []; let remaining = null; scan.error = null;
+    try {
+      for (const lg of S.leagues) {
+        const url = `https://api.the-odds-api.com/v4/sports/${lg}/odds/?apiKey=${encodeURIComponent(S.key)}&regions=uk&markets=h2h,h2h_lay&oddsFormat=decimal`;
+        const r = await fetch(url);
+        if (r.status === 401) throw new Error('The odds API rejected the key. Check it in Settings.');
+        if (r.status === 429) throw new Error('Out of API credits for this month, or too many requests. Try again later.');
+        if (!r.ok) throw new Error(`The odds API answered ${r.status} for ${lg}.`);
+        remaining = r.headers.get('x-requests-remaining') ?? remaining;
+        const now = Date.now();
+        for (const ev of await r.json()) if (Date.parse(ev.commence_time) > now) events.push(ev);
+      }
+      scan = { events, live: true, at: new Date(), remaining, error: null };
+    } catch (e) {
+      scan.error = e instanceof TypeError
+        ? 'Live odds could not load here. This preview blocks outside connections; open the GitHub Pages version of this page instead (see the README).'
+        : e.message;
+    }
+    btn.disabled = false; btn.textContent = 'Scan live odds';
+    renderSource(); renderResults();
+  }
+  $('scanBtn').addEventListener('click', runScan);
+
+  function kickoff(ev) {
+    const d = new Date(ev.commence_time);
+    return d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  const evTitle = ev => `${ev.home_team} v ${ev.away_team}`;
+
+  function renderResults() {
+    const box = $('results');
+    const cfg = { bankroll: +S.bankroll, kellyFrac: +S.kelly, minEdge: S.minEdge / 100, maxOdds: +S.maxOdds,
+                  skipBooks: S.skipBooks, commission: commission(), minOdds: +S.fMin };
+    if (S.mode === 'value') {
+      $('scanHelp').textContent = 'A value bet is a bookmaker price longer than the exchange says it should be. Stakes are sized for your bankroll; the edge only shows over many bets.';
+      const list = Finder.valueBets(scan.events, cfg);
+      if (!list.length) { box.innerHTML = `<div class="note">No prices beat the exchange by ${S.minEdge}% right now. Value is rare; scan again closer to kick-off, or lower the minimum edge in Settings.</div>`; return; }
+      box.innerHTML = list.map((v, i) => `
+        <article class="card">
+          <div class="spread"><div><div class="event">${esc(evTitle(v.event))}</div><div class="meta">${esc(v.event.sport_title)} · ${kickoff(v.event)}</div></div>
+            <span class="pill good">+${pct(v.edge)} edge</span></div>
+          <div class="prices">
+            <div class="price back"><b>${v.odds.toFixed(2)}</b><span>${esc(v.bookTitle)}</span></div>
+            <div class="stack" style="gap:2px;justify-content:center"><div><strong>${esc(v.selection)}</strong></div>
+              <div class="small muted">Fair odds <span class="num">${v.fairOdds.toFixed(2)}</span> · wins ${pct(v.prob)} of the time</div></div>
+          </div>
+          <div class="spread"><div class="small">Stake <strong class="num">${v.stake >= 0.1 ? gbp(v.stake) : 'too small'}</strong>
+            · average gain <span class="num pos">${gbp(v.stake * v.edge)}</span></div>
+            <button type="button" class="btn sm" data-logvalue="${i}">Log bet</button></div>
+        </article>`).join('');
+      box.querySelectorAll('[data-logvalue]').forEach(b => b.addEventListener('click', () => {
+        const v = list[+b.dataset.logvalue];
+        addEntry({ kind: 'value', book: v.bookTitle, note: `${v.selection} · ${evTitle(v.event)}`, stake: v.stake, odds: v.odds, status: 'open', profit: null });
+        toast('Logged as an open bet in Tracker');
+      }));
+    } else {
+      $('scanHelp').textContent = 'For a reload offer: pick the bet the offer needs, then lay it on the exchange shown. Qualifying loss is per £10; free bet kept is how much of a free bet you lock in.';
+      const list = Finder.layMatches(scan.events, { ...cfg, minOdds: +S.fMin, maxOdds: +S.fMax });
+      list.sort(S.fSort === 'snr' ? (a, b) => b.snr - a.snr : (a, b) => b.ql - a.ql);
+      const top = list.slice(0, 30);
+      if (!top.length) { box.innerHTML = '<div class="note">No matches in that odds range. Widen the range above.</div>'; return; }
+      box.innerHTML = top.map((m, i) => `
+        <article class="card">
+          <div><div class="event">${esc(m.selection)} <span class="muted" style="font-weight:400">· ${esc(evTitle(m.event))}</span></div>
+            <div class="meta">${esc(m.event.sport_title)} · ${kickoff(m.event)}</div></div>
+          <div class="prices">
+            <div class="price back"><b>${m.back.toFixed(2)}</b><span>${esc(m.bookTitle)}</span></div>
+            <div class="price lay"><b>${m.lay.toFixed(2)}</b><span>${esc(Finder.EXCHANGES[m.exch])} ${(m.commission * 100).toFixed(0)}%</span></div>
+          </div>
+          <div class="spread">
+            <div class="small">Qualifying <span class="num ${m.ql >= 0 ? 'pos' : 'neg'}">${signedGbp(m.ql)}</span> per £10 · free bet kept <span class="num">${pct(m.snr)}</span></div>
+            <button type="button" class="btn ghost sm" data-calc-i="${i}">Calculate</button>
+          </div>
+        </article>`).join('');
+      box.querySelectorAll('[data-calc-i]').forEach(b => b.addEventListener('click', () => {
+        const m = top[+b.dataset.calcI];
+        $('cBack').value = m.back; $('cLay').value = m.lay;
+        $('cExch').value = m.exch === 'betfair_ex_eu' ? 'betfair_ex_uk' : m.exch;
+        $('cComm').value = +(m.commission * 100).toFixed(2);
+        calcNote = `${m.selection} · ${evTitle(m.event)}`; calcBook = m.bookTitle;
+        renderCalc(); showTab('calc');
+      }));
+    }
+  }
+
+  function renderLeagues() {
+    $('leagues').innerHTML = LEAGUES.map(([k, n]) => `<button type="button" class="chip" data-lg="${k}" aria-pressed="${S.leagues.includes(k)}">${n}</button>`).join('');
+    $('scanBtn').title = `Uses about ${S.leagues.length * 2} API credits`;
+  }
+  $('leagues').addEventListener('click', e => {
+    const b = e.target.closest('[data-lg]'); if (!b) return;
+    const k = b.dataset.lg;
+    S.leagues = S.leagues.includes(k) ? S.leagues.filter(x => x !== k) : [...S.leagues, k];
+    saveSettings(); renderLeagues();
+  });
+  document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+    S.mode = b.dataset.mode; saveSettings();
+    document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('layFilters').hidden = S.mode !== 'lay';
+    renderResults();
+  }));
+  [['fMin', 'fMin'], ['fMax', 'fMax'], ['fSort', 'fSort']].forEach(([id, k]) => {
+    $(id).value = S[k];
+    $(id).addEventListener('change', () => { S[k] = id === 'fSort' ? $(id).value : +$(id).value; saveSettings(); renderResults(); });
+  });
+
+  // ---------- calculator ----------
+  let calcMode = 'qual', calcNote = '', calcBook = '';
+  const EXPLAIN = {
+    qual: 'The bet you place to unlock an offer. Laying it means you lose only a few pence whatever happens.',
+    snr: 'A free bet that pays winnings only (the usual kind). Lay it at longer odds to keep more of it.',
+    sr: 'A free bet that also returns the stake. Rare, and worth almost its full value.',
+  };
+  function renderCalc() {
+    const stake = +$('cStake').value, back = +$('cBack').value, lay = +$('cLay').value, c = +$('cComm').value / 100;
+    $('calcExplain').textContent = EXPLAIN[calcMode];
+    if (!(stake > 0 && back > 1 && lay > 1 + c)) {
+      $('cLayStake').textContent = '—'; $('cLiab').textContent = '—'; $('cTable').innerHTML = '';
+      $('cSummary').textContent = 'Enter a stake and odds above 1.'; return null;
+    }
+    const r = Finder.calc(calcMode, stake, back, lay, c);
+    $('cLayStake').textContent = gbp(r.layStake);
+    $('cLiab').textContent = gbp(r.liability);
+    const row = (label, o) => `<tr><td>${label}</td><td class="${o.book < 0 ? 'neg' : ''}">${signedGbp(o.book)}</td><td class="${o.exch < 0 ? 'neg' : ''}">${signedGbp(o.exch)}</td><td class="${o.total >= 0 ? 'pos' : 'neg'}"><strong>${signedGbp(o.total)}</strong></td></tr>`;
+    $('cTable').innerHTML = row('Back bet', r.backWins) + row('Lay bet', r.layWins);
+    const worst = Math.min(r.backWins.total, r.layWins.total);
+    $('cSummary').innerHTML = calcMode === 'qual'
+      ? (worst >= 0 ? `Makes <strong class="num pos">${gbp(worst)}</strong> whichever side wins.`
+                    : `Costs <strong class="num">${gbp(-worst)}</strong> to qualify (${pct(-worst / stake)} of the stake).`)
+      : `Locks in <strong class="num pos">${gbp(worst)}</strong>, ${pct(worst / stake)} of the free bet.`;
+    return { ...r, worst, stake, back, lay };
+  }
+  document.querySelectorAll('[data-calc]').forEach(b => b.addEventListener('click', () => {
+    calcMode = b.dataset.calc;
+    document.querySelectorAll('[data-calc]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderCalc();
+  }));
+  ['cStake', 'cBack', 'cLay', 'cComm'].forEach(id => $(id).addEventListener('input', renderCalc));
+  $('cExch').addEventListener('change', () => { $('cComm').value = commission()[$('cExch').value] * 100; renderCalc(); });
+  $('cCopy').addEventListener('click', () => {
+    const v = $('cLayStake').textContent.replace('£', '');
+    const done = () => toast('Lay stake copied');
+    try { navigator.clipboard.writeText(v).then(done, () => toast('Copy blocked here: lay ' + v)); } catch { toast('Copy blocked here: lay ' + v); }
+  });
+  $('cLog').addEventListener('click', () => {
+    const r = renderCalc(); if (!r) return;
+    const kindName = { qual: 'Qualifying bet', snr: 'Free bet (SNR)', sr: 'Free bet (SR)' }[calcMode];
+    addEntry({ kind: 'reload', book: calcBook, profit: Math.round(r.worst * 100) / 100, status: 'settled',
+               note: `${kindName}: £${r.stake} at ${r.back}, lay ${r.lay}` + (calcNote ? ` · ${calcNote}` : '') });
+    toast('Logged in Tracker');
+  });
+
+  // ---------- tracker storage: Claude store when available, else this browser ----------
+  const makeExamples = () => {
+    const d = n => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+    return [
+      { id: 'e1', example: true, date: d(9), kind: 'reload', who: 'Me', book: 'Sky Bet', note: 'Example: Bet £10 get £5 free bet, qualifier', profit: -0.42, status: 'settled' },
+      { id: 'e2', example: true, date: d(7), kind: 'reload', who: 'Me', book: 'Sky Bet', note: 'Example: £5 free bet (SNR) laid at 6.2', profit: 3.9, status: 'settled' },
+      { id: 'e3', example: true, date: d(4), kind: 'value', who: 'Me', book: 'Betfred', note: 'Example: Inter at 3.75 (fair 3.58)', stake: 3, odds: 3.75, profit: -3, status: 'settled' },
+      { id: 'e4', example: true, date: d(2), kind: 'reload', who: 'Me', book: 'Paddy Power', note: 'Example: money back as free bet', profit: 4.15, status: 'settled' },
+    ];
+  };
+  // Examples show only until the first real entry exists anywhere.
+  let entries = local.get('entries', null) || [];
+  let started = local.get('started', false);
+  const withExamples = () => { if (!entries.length && !started) entries = makeExamples(); };
+  withExamples();
+  let remote = null;   // { col } when the Claude store is in use
+  const sortEntries = () => entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.id < b.id ? -1 : 1));
+
+  async function connectStore() {
+    if (!window.claude?.use) return;
+    try {
+      const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      const uid = user ? await user.id() : null;
+      if (!db || !uid) return;
+      const col = db.doc(`data/users/${uid}/finder`).collection('entries');
+      let first = true;
+      col.onSnapshot(snap => {
+        remote = { col };
+        const real = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        const localOnly = entries.filter(e => !e.example && !real.some(r => r.id === e.id));
+        if (first) { first = false; localOnly.forEach(e => persist(e)); }   // move this browser's entries up once
+        if (real.length) { started = true; local.set('started', true); }
+        entries = real.concat(localOnly);
+        withExamples(); sortEntries(); renderTracker();
+      }, () => { remote = null; $('storeNote').textContent = 'Entries are saved in this browser.'; });
+      $('storeNote').textContent = 'Entries are saved to your Claude account and show on any device where you open this page.';
+    } catch { remote = null; }
+  }
+
+  async function persist(e, del = false) {
+    local.set('entries', entries.filter(x => !x.example));
+    if (!remote) return;
+    const { id, ...body } = e;
+    try { del ? await remote.col.doc(id).delete() : await remote.col.doc(id).set(body); }
+    catch (err) { toast(err?.code === 'quota_exceeded' ? 'Storage is full. Delete old entries.' : 'Saved on this device only'); }
+  }
+  function addEntry(e) {
+    entries = entries.filter(x => !x.example);
+    started = true; local.set('started', true);
+    const entry = { id: 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      date: new Date().toISOString().slice(0, 10), who: 'Me', book: '', note: '', ...e };
+    entries.push(entry); sortEntries(); renderTracker(); persist(entry);
+  }
+
+  function renderTracker() {
+    const settled = entries.filter(e => e.status !== 'open');
+    const total = settled.reduce((t, e) => t + (+e.profit || 0), 0);
+    const month = new Date().toISOString().slice(0, 7);
+    const mTotal = settled.filter(e => e.date.startsWith(month)).reduce((t, e) => t + (+e.profit || 0), 0);
+    const open = entries.filter(e => e.status === 'open');
+    const tone = (el, v) => { el.textContent = signedGbp(v); el.className = el.className.replace(/ ?(pos|neg)/g, '') + (v > 0.004 ? ' pos' : v < -0.004 ? ' neg' : ''); };
+    tone($('tTotal'), total); tone($('tMonth'), mTotal); tone($('hdrProfit'), entries.some(e => e.example) ? 0 : total);
+    $('tOpen').textContent = open.length;
+    const KIND = { reload: 'Reload', signup: 'Sign-up', value: 'Value bet', casino: 'Casino', other: 'Other' };
+    const rows = entries.slice().reverse();
+    $('entries').innerHTML = rows.length ? rows.map(e => `
+      <div class="entry">
+        <div><div class="what">${esc(e.note || KIND[e.kind])}</div>
+          <div class="sub">${esc(e.date)} · ${KIND[e.kind] || 'Other'}${e.book ? ' · ' + esc(e.book) : ''}${e.who && e.who !== 'Me' ? ' · ' + esc(e.who) : ''}${e.status === 'open' ? ` · open: £${(+e.stake).toFixed(2)} at ${e.odds}` : ''}</div></div>
+        <div class="amt ${e.status === 'open' ? '' : e.profit > 0 ? 'pos' : e.profit < 0 ? 'neg' : ''}">${e.status === 'open' ? '<span class="pill plain">open</span>' : signedGbp(+e.profit)}</div>
+        ${e.example ? '' : `<div class="acts">${e.status === 'open' ? `<button class="btn sm" data-settle="won" data-id="${e.id}">Won</button><button class="btn sm ghost" data-settle="lost" data-id="${e.id}">Lost</button><button class="btn sm ghost" data-settle="void" data-id="${e.id}">Void</button>` : ''}<button class="btn sm ghost" data-del="${e.id}">Delete</button></div>`}
+      </div>`).join('') : '<p class="small muted">No entries yet. Log a bet from the Scan or Calculator tab, or add one above.</p>';
+    if (entries.some(e => e.example)) $('entries').insertAdjacentHTML('afterbegin', '<p class="small muted" style="margin:6px 0">These are example entries. They disappear when you add your first real one.</p>');
+    drawChart();
+  }
+  $('entries').addEventListener('click', e => {
+    const s = e.target.closest('[data-settle]'), d = e.target.closest('[data-del]');
+    if (s) {
+      const en = entries.find(x => x.id === s.dataset.id); if (!en) return;
+      en.profit = s.dataset.settle === 'won' ? Math.round(en.stake * (en.odds - 1) * 100) / 100 : s.dataset.settle === 'lost' ? -en.stake : 0;
+      en.status = 'settled'; renderTracker(); persist(en);
+    } else if (d) {
+      if (d.dataset.confirm !== '1') { d.dataset.confirm = '1'; d.textContent = 'Tap again to delete'; return; }
+      const en = entries.find(x => x.id === d.dataset.del); if (!en) return;
+      entries = entries.filter(x => x !== en); withExamples(); renderTracker(); persist(en, true);
+    }
+  });
+
+  $('aDate').value = new Date().toISOString().slice(0, 10);
+  $('aKind').addEventListener('change', () => { const v = $('aKind').value === 'value'; $('aValueRow').hidden = !v; $('aProfitRow').hidden = v; });
+  $('addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const kind = $('aKind').value, base = { kind, date: $('aDate').value || new Date().toISOString().slice(0, 10),
+      who: $('aWho').value.trim() || 'Me', book: $('aBook').value.trim(), note: $('aNote').value.trim() };
+    if (kind === 'value') {
+      const stake = +$('aStake').value, odds = +$('aOdds').value;
+      if (!(stake > 0 && odds > 1)) return toast('Enter the stake and odds');
+      addEntry({ ...base, stake, odds, profit: null, status: 'open' });
+    } else {
+      const p = parseFloat($('aProfit').value);
+      if (!Number.isFinite(p)) return toast('Enter the profit (or a negative loss)');
+      addEntry({ ...base, profit: p, status: 'settled' });
+    }
+    $('aNote').value = ''; $('aProfit').value = ''; $('aStake').value = ''; $('aOdds').value = '';
+    toast('Entry added');
+  });
+  $('copyCsv').addEventListener('click', () => {
+    const q = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
+    const csv = ['date,type,account holder,bookmaker,note,stake,odds,status,profit']
+      .concat(entries.filter(e => !e.example).map(e => [e.date, e.kind, e.who, e.book, e.note, e.stake ?? '', e.odds ?? '', e.status, e.profit ?? ''].map(q).join(','))).join('\n');
+    try { navigator.clipboard.writeText(csv).then(() => toast('CSV copied'), () => toast('Copy blocked here')); } catch { toast('Copy blocked here'); }
+  });
+
+  // ---------- running profit chart ----------
+  function drawChart() {
+    const cv = $('chart'); if (!cv || cv.offsetParent === null) return;
+    const css = getComputedStyle(document.documentElement), C = k => css.getPropertyValue(k).trim();
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    const pts = [0]; for (const e of entries) if (e.status !== 'open') pts.push(pts[pts.length - 1] + (+e.profit || 0));
+    if (pts.length < 2) pts.push(0);
+    let lo = Math.min(0, ...pts), hi = Math.max(0, ...pts); const span = Math.max(hi - lo, 5);
+    lo -= span * 0.12; hi += span * 0.12;
+    const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), st = (raw / mag < 1.5 ? 1 : raw / mag < 3 ? 2 : raw / mag < 7 ? 5 : 10) * mag;
+    lo = Math.floor(lo / st) * st; hi = Math.ceil(hi / st) * st;
+    const dec = st < 1 ? 2 : 0, lab = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFixed(dec);
+    g.font = `11px ${C('--font-num')}`;
+    const padL = Math.max(g.measureText(lab(hi)).width, g.measureText(lab(lo)).width) + 10, padR = 8, padT = 6, padB = 6;
+    const pw = w - padL - padR, ph = h - padT - padB, n = pts.length;
+    const X = i => padL + (i / (n - 1)) * pw, Y = v => padT + (1 - (v - lo) / (hi - lo)) * ph;
+    g.strokeStyle = C('--line'); g.fillStyle = C('--muted'); g.textAlign = 'right'; g.textBaseline = 'middle'; g.lineWidth = 1;
+    for (let v = lo; v <= hi + st / 2; v += st) { const y = Math.round(Y(v)) + 0.5; g.beginPath(); g.moveTo(padL, y); g.lineTo(w - padR, y); g.stroke(); g.fillText(lab(v), padL - 6, y); }
+    const zy = Y(0), area = () => { g.beginPath(); g.moveTo(X(0), zy); pts.forEach((v, i) => g.lineTo(X(i), Y(v))); g.lineTo(X(n - 1), zy); g.closePath(); };
+    const tint = (hex, a) => { const m = hex.replace('#', ''); const v = parseInt(m, 16); return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`; };
+    g.save(); g.beginPath(); g.rect(padL, padT, pw, zy - padT); g.clip(); area(); g.fillStyle = tint(C('--win'), 0.18); g.fill(); g.restore();
+    g.save(); g.beginPath(); g.rect(padL, zy, pw, padT + ph - zy); g.clip(); area(); g.fillStyle = tint(C('--loss'), 0.18); g.fill(); g.restore();
+    g.beginPath(); pts.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)));
+    g.strokeStyle = C('--accent'); g.lineWidth = 2; g.lineJoin = 'round'; g.stroke();
+    const last = pts[n - 1]; g.beginPath(); g.arc(X(n - 1), Y(last), 4, 0, Math.PI * 2);
+    g.fillStyle = last > 0.004 ? C('--win') : last < -0.004 ? C('--loss') : C('--accent'); g.fill();
+  }
+  new ResizeObserver(() => drawChart()).observe($('chart'));
+
+  // ---------- settings ----------
+  const SET = [['sKey', 'key'], ['sBank', 'bankroll'], ['sEdge', 'minEdge'], ['sKelly', 'kelly'], ['sMaxOdds', 'maxOdds'], ['sCbf', 'cbf'], ['sCsm', 'csm'], ['sCmb', 'cmb']];
+  SET.forEach(([id, k]) => {
+    $(id).value = S[k];
+    $(id).addEventListener('change', () => {
+      S[k] = id === 'sKey' ? $(id).value.trim() : Math.max(0, +$(id).value || 0);
+      saveSettings(); renderSource(); renderResults();
+      if (id === 'sCbf' || id === 'sCsm' || id === 'sCmb') { $('cComm').value = commission()[$('cExch').value] * 100; renderCalc(); }
+    });
+  });
+  function renderBooks() {
+    $('books').innerHTML = BOOKS.map(([k, n]) => `<button type="button" class="chip" data-book="${k}" aria-pressed="${!S.skipBooks.includes(k)}">${n}</button>`).join('');
+  }
+  $('books').addEventListener('click', e => {
+    const b = e.target.closest('[data-book]'); if (!b) return;
+    const k = b.dataset.book;
+    S.skipBooks = S.skipBooks.includes(k) ? S.skipBooks.filter(x => x !== k) : [...S.skipBooks, k];
+    saveSettings(); renderBooks(); renderResults();
+  });
+
+  // ---------- start ----------
+  document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.mode === S.mode)));
+  $('layFilters').hidden = S.mode !== 'lay';
+  $('cComm').value = S.cbf;
+  $('storeNote').textContent = 'Entries are saved in this browser.';
+  renderLeagues(); renderBooks(); renderSource(); renderResults(); renderCalc(); sortEntries(); renderTracker();
+  showTab(S.tab || 'scan');
+  connectStore();
+})();
+</script>
+</body>
+</html>
