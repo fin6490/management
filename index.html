@@ -135,9 +135,10 @@
         <div class="flex flex-col gap-2">
           <div class="label" style="color:var(--ink)">Game</div>
           <input type="hidden" id="game" value="dice">
-          <div id="gameChips" class="grid grid-cols-2 gap-2" role="group" aria-label="Game">
+          <div id="gameChips" class="grid grid-cols-3 gap-2" role="group" aria-label="Game">
             <button type="button" class="chip" data-game="dice" aria-pressed="true">Dice</button>
             <button type="button" class="chip" data-game="roulette" aria-pressed="false">Roulette</button>
+            <button type="button" class="chip" data-game="baccarat" aria-pressed="false">Baccarat</button>
           </div>
         </div>
 
@@ -153,6 +154,21 @@
             <div class="metric"><div class="label">Payout</div><div id="rPayout" class="num font-bold mt-0.5 text-blue-400"></div></div>
             <div class="metric"><div class="label">House edge</div><div id="rEdge" class="num font-bold mt-0.5" style="color:var(--loss)"></div></div>
           </div>
+        </div>
+
+        <div id="baccaratBox" class="flex flex-col gap-2" hidden>
+          <label class="flex flex-col gap-1.5"><span class="label">Bet on</span>
+            <select id="bacBet" class="field">
+              <option value="banker">Banker (pays 0.95:1 after 5% commission)</option>
+              <option value="player">Player (pays 1:1)</option>
+              <option value="tie">Tie (pays 8:1)</option>
+            </select></label>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="metric"><div class="label">Win chance</div><div id="bChance" class="num font-bold mt-0.5"></div></div>
+            <div class="metric"><div class="label">Payout</div><div id="bPayout" class="num font-bold mt-0.5 text-blue-400"></div></div>
+            <div class="metric"><div class="label">House edge</div><div id="bEdge" class="num font-bold mt-0.5" style="color:var(--loss)"></div></div>
+          </div>
+          <p id="bPush" class="text-[0.7rem]" style="color:var(--muted)"></p>
         </div>
 
         <div id="diceBox" class="flex flex-col gap-1.5">
@@ -259,9 +275,34 @@
     const isRoulette = cfg => cfg.game === 'roulette';
     const covers = (cover, pocket) => pocket >= 1 && pocket <= 36 && (cover === 18 ? RED.has(pocket) : pocket <= cover);
     const roulette = cfg => ({ chance: 100 * cfg.cover / cfg.wheel, payout: 36 / cfg.cover, edge: 100 * (1 - 36 / cfg.wheel) });
+    // Baccarat: punto banco from an endless shoe (each card drawn independently; an 8-deck
+    // shoe differs by a few hundredths of a percent). Banker pays 0.95:1, Player 1:1, Tie 8:1.
+    // A tie returns Banker and Player bets (a push). Exact long-run odds per hand:
+    const BACCARAT = {
+      banker: { chance: 45.84, push: 9.54, payout: 1.95, edge: 1.06, name: 'Banker' },
+      player: { chance: 44.62, push: 9.54, payout: 2, edge: 1.23, name: 'Player' },
+      tie: { chance: 9.54, push: 0, payout: 9, edge: 14.12, name: 'Tie' },
+    };
+    const isBaccarat = cfg => cfg.game === 'baccarat';
+    const card = rand => { const r = 1 + Math.floor(rand() * 13); return r >= 10 ? 0 : r; };
+    function dealBaccarat(rand) {
+      const p = [card(rand), card(rand)], b = [card(rand), card(rand)];
+      const tot = h => h.reduce((t, c) => t + c, 0) % 10;
+      if (tot(p) < 8 && tot(b) < 8) {   // no natural: third-card rules
+        let p3 = null;
+        if (tot(p) <= 5) { p3 = card(rand); p.push(p3); }
+        const bt = tot(b);
+        const bankerDraws = p3 === null ? bt <= 5
+          : bt <= 2 || (bt === 3 && p3 !== 8) || (bt === 4 && p3 >= 2 && p3 <= 7)
+            || (bt === 5 && p3 >= 4 && p3 <= 7) || (bt === 6 && (p3 === 6 || p3 === 7));
+        if (bankerDraws) b.push(card(rand));
+      }
+      const pt = tot(p), bt = tot(b);
+      return { player: pt, banker: bt, winner: pt > bt ? 'player' : bt > pt ? 'banker' : 'tie' };
+    }
 
     function newSession(cfg) {
-      return { balance: cfg.start, bet: cfg.base, chance: isRoulette(cfg) ? roulette(cfg).chance : cfg.chance, bets: 0, wins: 0, losses: 0,
+      return { balance: cfg.start, bet: cfg.base, chance: isRoulette(cfg) ? roulette(cfg).chance : isBaccarat(cfg) ? BACCARAT[cfg.bacBet].chance : cfg.chance, bets: 0, wins: 0, losses: 0,
                winStreak: 0, lossStreak: 0, peak: cfg.start, wagered: 0 };
     }
 
@@ -280,8 +321,13 @@
     function step(cfg, s, rand = Math.random) {
       const bet = Math.min(cents(Math.max(MIN_BET, s.bet)), Math.floor(s.balance * 100 + 1e-6) / 100); // all-in never exceeds the balance
       const chance = s.chance;
-      let roll, win, payout;
-      if (isRoulette(cfg)) {
+      let roll, win, payout, push = false;
+      if (isBaccarat(cfg)) {
+        roll = dealBaccarat(rand);
+        win = roll.winner === cfg.bacBet;
+        push = roll.winner === 'tie' && cfg.bacBet !== 'tie';
+        payout = BACCARAT[cfg.bacBet].payout;
+      } else if (isRoulette(cfg)) {
         roll = Math.floor(rand() * cfg.wheel);
         win = covers(cfg.cover, roll);
         payout = 36 / cfg.cover;
@@ -296,9 +342,11 @@
       // cent would bias tiny bets and create profit that a fair game cannot produce.
       s.balance -= bet;
       if (win) s.balance += bet * payout;
+      if (push) s.balance += bet;   // stake returned: neither a win nor a loss
       s.balance = Math.round(s.balance * 1e8) / 1e8;
       if (s.balance < MIN_BET) s.balance = 0;
       s.bets += 1; s.wagered += bet;
+      if (push) return { roll, win: false, push, bet, chance, stopRule: null };   // no rules fire, the bet stays
       if (win) { s.wins += 1; s.winStreak += 1; s.lossStreak = 0; }
       else { s.losses += 1; s.lossStreak += 1; s.winStreak = 0; }
       if (s.balance > s.peak) s.peak = s.balance;
@@ -306,7 +354,7 @@
       let nb = bet, ch = chance, stopRule = null;
       for (const r of cfg.rules) {
         if (!fires(r, s, win)) continue;
-        if (isRoulette(cfg) && r.action.startsWith('chance')) continue; // the bet type fixes the odds
+        if (cfg.game && cfg.game !== 'dice' && r.action.startsWith('chance')) continue; // the bet type fixes the odds
         const v = +r.value || 0;
         switch (r.action) {
           case 'inc': nb *= 1 + v / 100; break;
@@ -364,7 +412,7 @@
       return summarize(list);
     }
 
-    return { MIN_BET, RED, cents, clampChance, roulette, newSession, step, stopReason, playOut, summarize, backtest };
+    return { MIN_BET, RED, BACCARAT, cents, clampChance, roulette, dealBaccarat, newSession, step, stopReason, playOut, summarize, backtest };
   })();
   /* ENGINE END */
 
@@ -372,7 +420,8 @@
   const el = {
     startBalance: $('startBalance'), baseBet: $('baseBet'), chance: $('chance'), chanceNum: $('chanceNum'),
     multiplier: $('multiplier'), rules: $('rules'), addRule: $('addRule'),
-    game: $('game'), gameChips: $('gameChips'), diceBox: $('diceBox'), rouletteBox: $('rouletteBox'),
+    game: $('game'), gameChips: $('gameChips'), diceBox: $('diceBox'), rouletteBox: $('rouletteBox'), baccaratBox: $('baccaratBox'),
+    bacBet: $('bacBet'), bChance: $('bChance'), bPayout: $('bPayout'), bEdge: $('bEdge'), bPush: $('bPush'),
     wheel: $('wheel'), cover: $('cover'), rChance: $('rChance'), rPayout: $('rPayout'), rEdge: $('rEdge'), edgeLabel: $('edgeLabel'),
     minBet: $('minBet'), maxBet: $('maxBet'), overMax: $('overMax'),
     stopProfit: $('stopProfit'), stopLoss: $('stopLoss'), trailing: $('trailing'), maxBets: $('maxBets'),
@@ -502,7 +551,7 @@
       v.placeholder = (ACTIONS.find(x => x[0] === a) || [])[2] || '';
       f('mode').disabled = f('on').value === 'bet' ? (f('mode').value = 'every', true) : false;
     };
-    row.querySelectorAll('option[value^="chance"]').forEach(o => { o.disabled = isRoulette(); });
+    row.querySelectorAll('option[value^="chance"]').forEach(o => { o.disabled = el.game.value !== 'dice'; });
     f('action').addEventListener('change', sync);
     f('on').addEventListener('change', sync);
     row.querySelector('[data-del]').addEventListener('click', () => { row.remove(); renumber(); onConfigEdit(); });
@@ -534,12 +583,19 @@
   const isRoulette = () => el.game.value === 'roulette';
   function updateMultiplier() {
     el.multiplier.textContent = (100 / clampChance(num(el.chance, 50))).toFixed(4) + '×';
-    const r = isRoulette();
-    el.diceBox.hidden = r; el.rouletteBox.hidden = !r;
-    [...el.gameChips.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.game === el.game.value)));
-    // Chance actions don't apply to roulette: the bet type sets the odds.
-    el.rules.querySelectorAll('option[value^="chance"]').forEach(o => { o.disabled = r; });
-    if (r) {
+    const g = el.game.value, r = g === 'roulette';
+    el.diceBox.hidden = g !== 'dice'; el.rouletteBox.hidden = !r; el.baccaratBox.hidden = g !== 'baccarat';
+    [...el.gameChips.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.game === g)));
+    // Chance actions only apply to dice: in roulette and baccarat the bet type sets the odds.
+    el.rules.querySelectorAll('option[value^="chance"]').forEach(o => { o.disabled = g !== 'dice'; });
+    if (g === 'baccarat') {
+      const o = Engine.BACCARAT[el.bacBet.value];
+      el.bChance.textContent = o.chance.toFixed(2) + '%';
+      el.bPayout.textContent = o.payout + '×';
+      el.bEdge.textContent = o.edge.toFixed(2) + '%';
+      el.bPush.textContent = o.push ? `A tie (${o.push}% of hands) returns the stake. It doesn't count as a win or a loss, so no conditions fire.` : 'Tie bets lose whenever Banker or Player wins.';
+      el.edgeLabel.textContent = `Baccarat · ${o.name} bet · ${o.edge.toFixed(2)}% house edge · play money`;
+    } else if (r) {
       const o = Engine.roulette({ wheel: +el.wheel.value, cover: +el.cover.value });
       el.rChance.textContent = o.chance.toFixed(2) + '%';
       el.rPayout.textContent = o.payout.toFixed(2).replace(/\.00$/, '') + '×';
@@ -555,6 +611,7 @@
   });
   el.wheel.addEventListener('change', updateMultiplier);
   el.cover.addEventListener('change', updateMultiplier);
+  el.bacBet.addEventListener('change', updateMultiplier);
   el.chance.addEventListener('input', () => { el.chanceNum.value = el.chance.value; updateMultiplier(); });
   el.chanceNum.addEventListener('input', () => {
     const v = num(el.chanceNum);
@@ -580,7 +637,7 @@
     if (minBet && maxBet && minBet > maxBet) return { error: 'Min bet is larger than max bet.' };
     return {
       start: cents(start), base: cents(base), chance: clampChance(num(el.chance, 50)), rules: readRules(),
-      game: el.game.value, wheel: +el.wheel.value, cover: +el.cover.value,
+      game: el.game.value, wheel: +el.wheel.value, cover: +el.cover.value, bacBet: el.bacBet.value,
       minBet, maxBet, overMax: el.overMax.value,
       stopProfit: opt(el.stopProfit), stopLoss: opt(el.stopLoss), trailing: opt(el.trailing), maxBets: opt(el.maxBets),
     };
@@ -590,7 +647,8 @@
     const v = x => (x === null || x === undefined ? '' : x);
     el.startBalance.value = c.start; el.baseBet.value = c.base;
     el.chance.value = el.chanceNum.value = c.chance;
-    el.game.value = c.game === 'roulette' ? 'roulette' : 'dice';
+    el.game.value = ['roulette', 'baccarat'].includes(c.game) ? c.game : 'dice';
+    el.bacBet.value = Engine.BACCARAT[c.bacBet] ? c.bacBet : 'banker';
     el.wheel.value = c.wheel === 38 ? '38' : '37';
     el.cover.value = COVERS.some(x => x[0] === c.cover) ? c.cover : 4;
     setRules(c.rules);
@@ -601,7 +659,7 @@
   }
 
   // ---------- strategy presets (odds from 20,000 simulated sessions each, 100 buy-in) ----------
-  const P = (name, note, c) => ({ name, note, cfg: Object.assign({ start: 100, game: 'dice', wheel: 37, cover: 4, minBet: null, maxBet: null, overMax: 'cap',
+  const P = (name, note, c) => ({ name, note, cfg: Object.assign({ start: 100, game: 'dice', wheel: 37, cover: 4, bacBet: 'banker', minBet: null, maxBet: null, overMax: 'cap',
     stopProfit: null, stopLoss: null, trailing: null, maxBets: 10000 }, c) });
   const PRESETS = [
     P('Martingale', 'Double after every loss. Reached +10 in 91% of runs; the other 9% lost the whole 100.',
@@ -632,10 +690,16 @@
       { game: 'roulette', wheel: 37, cover: 4, start: 10, chance: 11.11, base: 0.2, rules: [R('loss', 'every', 1, 'reset'), R('loss', 'every', 4, 'inc', 100)], stopProfit: 42 }),
     P('Red Martingale', 'Martingale on red, European wheel. Reaches +10 in 89% of runs; the other 11% lose the whole 100. Average −2.35 per run (0 on the fair dice).',
       { game: 'roulette', wheel: 37, cover: 18, chance: 50, base: 1, rules: [R('win', 'every', 1, 'reset'), R('loss', 'every', 1, 'inc', 100)], stopProfit: 110 }),
+    P('Banker Martingale', 'Martingale on Banker: double after a loss, reset after a win; ties push and change nothing. Reaches +10 in 90% of runs; the other 10% lose the whole 100. Average −1.20 per run.',
+      { game: 'baccarat', bacBet: 'banker', chance: 50, base: 1, rules: [R('win', 'every', 1, 'reset'), R('loss', 'every', 1, 'inc', 100)], stopProfit: 110 }),
+    P('Tie Hunter', 'Your 11% Hunter on the Tie bet (pays 8:1, hits 9.5% of hands): 10 buy-in, 0.20 base, stop at 42. The 14% house edge is brutal: reaches 42 in about 1% of runs. Average −9.60 per run.',
+      { game: 'baccarat', bacBet: 'tie', start: 10, chance: 9.54, base: 0.2, rules: [R('loss', 'every', 1, 'reset'), R('loss', 'every', 4, 'inc', 100)], stopProfit: 42 }),
   ];
   const evNote = c => c.game === 'roulette'
     ? ` The ${c.wheel === 38 ? 'two zeros take' : 'zero takes'} ${Engine.roulette(c).edge.toFixed(2)}% of every bet, so the average result is a loss.`
-    : ' Average result ≈ 0, as in any fair game.';
+    : c.game === 'baccarat'
+      ? ` The house keeps ${Engine.BACCARAT[c.bacBet].edge.toFixed(2)}% of every ${Engine.BACCARAT[c.bacBet].name} bet, so the average result is a loss.`
+      : ' Average result ≈ 0, as in any fair game.';
   let applying = false, presetIndex = -1;
   function markPreset(i) {
     presetIndex = i;
@@ -760,13 +824,16 @@
       record();
       why = Engine.stopReason(activeCfg, S(), r);
     }
+    const verdict = r.push ? 'PUSH' : r.win ? 'WIN' : 'LOSS';
     el.lastRoll.textContent = activeCfg.game === 'roulette'
-      ? `Spin ${pocket(r.roll)} ${pocketColor(r.roll)} · ${coverName(activeCfg.cover)} · ${r.win ? 'WIN' : 'LOSS'} ${fmt(r.bet)}`
-      : `Roll ${r.roll.toFixed(2)} @ ${+r.chance.toFixed(2)}% · ${r.win ? 'WIN' : 'LOSS'} ${fmt(r.bet)}`;
-    el.lastRoll.style.color = r.win ? 'var(--win)' : 'var(--loss)';
+      ? `Spin ${pocket(r.roll)} ${pocketColor(r.roll)} · ${coverName(activeCfg.cover)} · ${verdict} ${fmt(r.bet)}`
+      : activeCfg.game === 'baccarat'
+        ? `Player ${r.roll.player} · Banker ${r.roll.banker} · on ${Engine.BACCARAT[activeCfg.bacBet].name} · ${verdict} ${fmt(r.bet)}`
+        : `Roll ${r.roll.toFixed(2)} @ ${+r.chance.toFixed(2)}% · ${verdict} ${fmt(r.bet)}`;
+    el.lastRoll.style.color = r.push ? 'var(--muted)' : r.win ? 'var(--win)' : 'var(--loss)';
     render();
     if (why) stop(...stopMessage(why.code));
-    else setStatus(`Running… next bet ${fmt(Math.min(S().bet, S().balance))} ${activeCfg.game === 'roulette' ? 'on ' + coverName(activeCfg.cover) : `at ${+S().chance.toFixed(2)}%`}`, 'ink');
+    else setStatus(`Running… next bet ${fmt(Math.min(S().bet, S().balance))} ${activeCfg.game === 'roulette' ? 'on ' + coverName(activeCfg.cover) : activeCfg.game === 'baccarat' ? 'on ' + Engine.BACCARAT[activeCfg.bacBet].name : `at ${+S().chance.toFixed(2)}%`}`, 'ink');
   }
 
   function newSession(cfg) {
