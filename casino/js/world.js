@@ -113,7 +113,7 @@ const World = (() => {
     for (let y = 4; y < 10; y++) m.act(3, y, { place: I.bar, label: PLACES[I.bar].name });
     m.props.push({ type: 'shelf', x: 1, y: 1, w: 3 });
     // slot machines on the right wall
-    for (let y = 3; y < 14; y += 1) { m.props.push({ type: 'slot', x: W - 2, y }); m.blockRect(W - 2, y, 1, 1); m.act(W - 2, y, { talk: 'This slot machine holds 12%. Doc would never forgive you.', label: 'Slot machine' }); }
+    for (let y = 3; y < 14; y += 1) { m.props.push({ type: 'slot', x: W - 2, y }); m.blockRect(W - 2, y, 1, 1); m.act(W - 2, y, { slots: venueId, label: `🎰 ${SLOT_MACHINES[venueId].name}` }); }
     // tables, 3 x 3 grid
     const cols = [7, 13, 19], rows = [4, 8, 12];
     let reg = 0; // regulars standing by the tables
@@ -544,6 +544,7 @@ const World = (() => {
         else await UI.dialog([{ who: 'narrator', text: `**${n.name}:** "${n.line}"` }]);
         return;
       }
+      if (f.slots) { const why = Career.canPlay(); if (why) { UI.toast(why, 'warn'); return; } savePos(); App.save(); Router.go('slots', f.slots); return; }
       if (f.place) await foodMenu(f.place);
       else if (f.sleep) await sleepMenu(f.sleep, f.label);
       else if (f.talk) await UI.dialog([{ who: 'narrator', text: f.talk }]);

@@ -5,6 +5,7 @@ const CHARACTERS = {
   vinnie: { name: 'Vinnie "The Vig" Moretti', face: '🦈', color: '#7a2131' },
   dolores: { name: 'Dolores, bartender at the Spur', face: '💁‍♀️', color: '#a0522d' },
   mick: { name: 'Mick "The Arrow" Doyle', face: '🎯', color: '#2e7d32' },
+  sparky: { name: 'Ignatius "Sparky" Vance', face: '🔧', color: '#d35400' },
   doc: { name: '"Doc" Holloway', face: '🧓', color: '#3a5f8a' },
   margot: { name: 'Margot Laval', face: '💃', color: '#8a2be2' },
   kessler: { name: 'Augustus Kessler', face: '🎩', color: '#222' },
@@ -80,6 +81,7 @@ const ITEMS = {
   muscle: { cat: 'Lifestyle', name: 'Cherry-Red Muscle Car', icon: '🏎️', price: 40000, swagger: 14, stamina: 10, requires: 'sedan', desc: 'Valet guys fight over it.' },
   limo: { cat: 'Lifestyle', name: 'Stretch Limo & Driver', icon: '🚙', price: 400000, swagger: 30, stamina: 30, upkeep: 300, requires: 'muscle', desc: 'Nap between casinos. +30 stamina. $300/day for the driver.' },
   // Gear (perks)
+  meterReader: { cat: 'Gear', name: 'Slot Tech\'s Meter Reader', icon: '📟', price: 4000, requiresQuest: 'slots3', questHint: 'Ask Sparky at the Spur\'s slot row about this', desc: 'A handheld that reads the mystery jackpot triggers. At any slot machine, shows exactly what the next spin is worth.' },
   flights: { cat: 'Gear', name: 'Custom Dart Flights', icon: '🪶', price: 400, desc: 'Stiff kite flights and a proper case. Your darts fly straighter: a steadier sight at the Spur\'s board.' },
   salDarts: { cat: 'Gear', name: "Sal's Tungsten Darts", icon: '🎯', price: 3000, requiresQuest: 'darts3', questHint: 'Ask Mick Doyle at the Spur about these', desc: '23-gram tungsten, worn smooth where Sal\'s fingers held them. Much steadier at the board, and Mick will want to see them.' },
   stratcard: { cat: 'Gear', name: 'Basic Strategy Card', icon: '🃏', price: 200, perks: ['bjhint'], desc: 'Highlights the mathematically best blackjack play.' },
@@ -183,6 +185,14 @@ const ACHIEVEMENTS = [
   { id: 'big50k', name: 'Monster Hit', desc: 'Win $50,000+ in one round', test: () => App.state.stats.biggestWin >= 50000, reward: 2500, swagger: 5 },
   { id: 'debtfree', name: 'Clean Slate', desc: 'Owe nobody anything', test: () => App.state.day > 1 && App.debt === 0, reward: 100, swagger: 2 },
   { id: 'mill', name: 'Millionaire', desc: 'Hold $1,000,000 in your bankroll', test: () => App.state.bank >= 1e6, reward: 0, swagger: 10 },
+  // slots
+  { id: 'sFS', name: 'Free Spins!', desc: 'Trigger free spins on a slot machine', test: () => App.counter('slotFS') >= 1, reward: 50 },
+  { id: 'sHS', name: 'Hold Tight', desc: 'Trigger Hold & Spin', test: () => App.counter('slotHS') >= 1, reward: 100 },
+  { id: 'sMystery', name: 'Mystery Money', desc: 'Win a slot mystery jackpot', test: () => MYSTERY.some(t => App.counter('slotMystery_' + t.key) >= 1), reward: 250, swagger: 1 },
+  { id: 'sDiamond', name: 'Diamond Strike', desc: 'Win a Diamond mystery jackpot', test: () => App.counter('slotMystery_diamond') >= 1, reward: 0, swagger: 6 },
+  { id: 'sEpic', name: 'Epic Win', desc: 'Win 100× your bet or more on one spin', test: () => App.counter('slotEpic') >= 1, reward: 500, swagger: 2 },
+  { id: 'sGrand', name: 'Fill the Screen', desc: 'Fill all 15 spots in Hold & Spin for the GRAND', test: () => App.counter('slotGrand') >= 1, reward: 0, swagger: 8 },
+  { id: 's1000', name: 'Iron Butt', desc: 'Spin a slot machine 1,000 times', test: () => App.counter('slotSpins') >= 1000, reward: 300, swagger: 1 },
   // darts
   { id: 'dWin', name: 'On the Oche', desc: 'Win a darts match', test: () => App.counter('dartWins') >= 1, reward: 100, swagger: 1 },
   { id: 'dClock', name: 'Round the Clock', desc: 'Go Around the Clock in 35 darts or fewer', test: () => App.counter('dartATCfast') >= 1, reward: 150 },
@@ -471,6 +481,7 @@ const Career = {
     st.thirst = clamp(st.thirst - 25 + (L.thirst || 0), 0, 100);
     st.today = { wagered: 0, net: 0, rounds: 0 };
     Progressives.dailyGrowth();
+    Slots.dailyGrowth();
     Rivals.newDay();
     this.rollEvent();
     this.randomNews();

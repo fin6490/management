@@ -82,6 +82,16 @@ const NPCS = {
       ['Big casinos, big money. Still nothing like a good leg of 501 in a smoky bar.'],
     ],
   },
+  sparky: {
+    role: 'a fired slot-machine technician who hangs around the Rusty Spur\'s slot row',
+    persona: 'Wiry, caffeinated ex-technician for Kessler Holdings, which rents every slot machine in town. Fired for refusing to tighten them, so he secretly reflashed them all to pay about 97 percent, with must-hit-by mystery jackpots that a sharp player can target. Talks fast, in tech jargon, paranoid that Kessler\'s men will notice. Loves explaining reels, volatility, hit rates and why a meter near its cap is worth money. Calls the player "chief".',
+    lines: [
+      ['Every mystery meter has to pop before its cap, chief. That\'s not luck, that\'s maths.', 'Kessler thinks his machines hold twelve percent. They don\'t. Don\'t tell him.', 'Free spins come about once every hundred and ten spins. Hold & Spin, one in one-forty. I counted.'],
+      ['The Riverboat\'s machines run the same firmware. Bigger meters, same rules.'],
+      ['The Palace has the Gilded Dragon bank. Watch its Gold meter: it creeps.'],
+      ['Kessler\'s Vault, in his own salon. I reflashed those too. He has no idea.'],
+    ],
+  },
   sal: {
     role: 'the player\'s uncle, who faked his own death three years ago and is now back behind the bar of Sal\'s',
     persona: 'Warm, mischievous old gambler with a gravel voice, endless stories and zero regrets except the funeral. Calls the player "kid". Fiercely proud of them. Still bets on 17.',
@@ -279,6 +289,10 @@ const QUESTS = {
   darts2: { giver: 'mick', chapter: 0, after: 'darts1', title: 'Pub Hustle', desc: 'Win 3 money matches at the Spur dartboard, against the regulars or a rival who\'s in.', need: 3, reward: { cash: 1000, swagger: 3 }, offer: 'Sal and I paid our rent hustling tourists on that board. Win three money games and I\'ll believe you\'ve got his arm.' },
   darts3: { giver: 'mick', chapter: 1, after: 'darts2', title: 'Sal\'s Arrows', desc: 'Sal\'s tungsten darts ended up in the Lucky Strike Outfitters curio case. Buy them ($3,000) and show Mick.', reward: { cash: 0, swagger: 3 }, offer: 'When Sal "died", Vinnie sold everything. Including his darts: twenty-three grams of tungsten, sitting in a glass case at the Outfitters. Get them back. Then we talk about the Golden Arrow.' },
   darts4: { giver: 'mick', chapter: 1, after: 'darts3', title: 'The Golden Arrow', desc: 'Win the Golden Arrow, an eight-player knockout at the Spur dartboard ($2,000 entry). Dutch Joost, Kessler\'s ringer, is the favourite.', reward: { cash: 5000, swagger: 6 }, offer: 'Every year Kessler flies in Dutch Joost to win the Golden Arrow and laugh at us. He beat Sal in the \'89 final with a dart that bounced out. Win it back, friend. Sign up at the board.' },
+  slots1: { giver: 'sparky', chapter: 0, title: 'Loose Machines', desc: 'Play 100 spins on any slot machine in town and see for yourself.', need: 100, reward: { cash: 300, swagger: 2 }, offer: 'Psst. Chief. Kessler Holdings rents every slot in town and sets them to hold twelve percent. I used to service them. Last month I... updated the firmware. Ninety-seven percent and change. Play a hundred spins and tell me I\'m wrong.' },
+  slots2: { giver: 'sparky', chapter: 0, after: 'slots1', title: 'Must Hit By', desc: 'Win any mystery jackpot (Copper or better). Each one must hit before its cap: play a machine whose meter is close.', reward: { cash: 750, swagger: 2 }, offer: 'See the four meters on top of every machine? Each one has a hidden trigger between its reset and its cap. When a meter\'s nearly capped, the next few spins are worth more than they cost. Go collect one.' },
+  slots3: { giver: 'sparky', chapter: 1, after: 'slots2', title: 'The Meter Reader', desc: 'Buy the Slot Tech\'s Meter Reader at Lucky Strike Outfitters ($4,000) and bring it to Sparky to calibrate.', reward: { cash: 0, swagger: 3 }, offer: 'I can\'t keep doing the maths for you, chief. Rosa at the Outfitters has an old tech\'s meter reader in the back. Buy it, bring it here, and I\'ll tune it to my firmware: it\'ll tell you exactly what a spin is worth.' },
+  slots4: { giver: 'sparky', chapter: 1, after: 'slots3', title: 'Diamond Hands', desc: 'Hit a Gold or Diamond mystery jackpot, or fill the screen in Hold & Spin for the GRAND.', reward: { cash: 10000, swagger: 6 }, offer: 'Kessler\'s techs are sniffing around; they\'ll find my firmware eventually. Before they do, I want proof it pays: a Gold or a Diamond, or a full screen of coins. Make it count.' },
   louDice: { giver: 'lou', chapter: 1, title: 'Hot shooter', desc: 'Make 3 points on a single craps shooter (watch the Fire Bet tracker), anywhere in town.', reward: { cash: 1000, swagger: 3 }, offer: 'Haven\'t seen a real hot hand on my boat since the eighties. Make three points in one roll of the dice and I\'ll put your picture on the wall!' },
 };
 const Quests = {
@@ -311,6 +325,7 @@ const Quests = {
   handIn(who) {
     const id = this.activeFor(who);
     if (id === 'pokerRoom' && App.has('backroom')) { App.state.flags.pokerRoom = App.state.day; this.complete(id); return 'New felt, a jukebox that plays something besides Patsy Cline... Sal would cry. The Back Room is OPEN. Tournaments every night, sugar: the door\'s behind the jukebox.'; }
+    if (id === 'slots3' && App.has('meterReader')) { this.complete(id); return 'Gimme. *pops the back off, solders something, blows on it* There. Point it at any machine and it reads the trigger heat. Green means the spin is worth more than it costs. Don\'t let Kessler see it.'; }
     if (id === 'darts3' && App.has('salDarts')) { App.state.flags.goldenArrow = App.state.day; this.complete(id); return 'Ah... look at that. The grip\'s worn right where he held them. They\'re yours now, friend: they\'ll steady you. And that means you\'re ready. The Golden Arrow.'; }
     if (id === 'docPie' && App.state.flags.hasPie) { App.state.flags.hasPie = false; this.complete(id); return 'Cherry! Mel still makes it right. Here: for your trouble, and a tip. The meters run hottest after a quiet night.'; }
     return null;
@@ -331,6 +346,7 @@ const Cast = {
       const spots = [[22, 17], [33, 33], [8, 33], [40, 20]];
       Object.keys(RIVALS).forEach((id, i) => { if (career && st.rivals && Rivals.where(id) === 'town') person(id, spots[i][0], spots[i][1], RIVALS[id].look, { wander: true, home: spots[i] }); });
     }
+    if (m.venue === 'spur') person('sparky', 22, 14, { shirt: '#d35400', pants: '#2c3e50', skin: '#e0ac69', hair: '#5a3a22', hat: true }, { dir: 'right' });
     if (m.venue === 'spur') person('mick', 19, 2, { shirt: '#2e7d32', pants: '#3b3b3b', skin: '#f0c19a', hair: '#ccc' }, { dir: 'left' });
     if (m.venue === 'spur' && st.ending === 'justice') person('sal', 4, 11, { shirt: '#6b4a12', pants: '#222', skin: '#e8b58f', hair: '#bbb', hat: true });
     if (m.venue && m.id !== 'town' && career && st.rivals) {
@@ -483,7 +499,7 @@ const Chat = {
     const bubble = (role, text) => { const b = h('div.cb.' + role, text); log.append(b); log.scrollTop = log.scrollHeight; return b; };
     const trim = () => { if (hist.length > 16) hist.splice(0, hist.length - 16); };
     // scripted beats (side jobs, the mystery) can speak for the character
-    const api = { say: text => { bubble('them', text); hist.push({ role: 'assistant', content: text }); trim(); App.save(); }, close: () => pop.close() };
+    const api = { say: text => { bubble('them', text); hist.push({ role: 'assistant', content: text }); trim(); App.save(); Voice.say(sp, text); }, close: () => pop.close() };
     const opener = (sp.handIn && sp.handIn()) || Mystery.opener(sp.id) || sp.opener();
     hist.push({ role: 'assistant', content: opener }); trim();
     hist.slice(-6).forEach(m => bubble(m.role === 'user' ? 'me' : 'them', m.content));
@@ -491,8 +507,22 @@ const Chat = {
     const input = h('input.field#chat-in', { placeholder: `Say something to ${sp.name.split(' ')[0].replace(/"/g, '')}…`, maxlength: 300, autocomplete: 'off' });
     const send = h('button.btn.primary', 'Send');
     const note = h('p.muted.small.chat-note');
-    const form = h('form.chat-form', input, send);
+    let open = true, listening = false;
+    // 🎤 speak instead of typing; in hands-free mode the mic reopens after each reply
+    const mic = Voice.canListen() ? h('button.btn.mic', { type: 'button', title: 'Speak', 'aria-label': 'Speak', onclick: () => listening ? Voice.stopListening() : listen() }, '🎤') : null;
+    const listen = async () => {
+      if (!open || listening || input.disabled || ctl) return;
+      listening = true; mic.classList.add('on'); input.placeholder = 'Listening…';
+      try {
+        const said = await Voice.listen(t => { input.value = t; });
+        if (said && open) { input.value = said; form.requestSubmit(); }
+      } catch (e) { UI.toast(Voice.errorText(e), 'warn'); }
+      finally { listening = false; if (mic) mic.classList.remove('on'); input.placeholder = `Say something to ${sp.name.split(' ')[0].replace(/"/g, '')}…`; }
+    };
+    const speakToggle = Voice.canSpeak() ? h('button.btn.ghost.sm.spk', { type: 'button', title: 'Read replies aloud', onclick: () => { const v = Voice.prefs(); v.speak = !v.speak; Voice.save(v); speakToggle.textContent = v.speak ? '🔊' : '🔇'; if (!v.speak) Voice.stop(); } }, Voice.prefs().speak ? '🔊' : '🔇') : null;
+    const form = h('form.chat-form', mic, input, send);
     const mode = await this.backend();
+    if (!mode && mic) mic.disabled = true;
     if (!mode) { input.disabled = send.disabled = true; note.append('To ask questions in your own words, connect Claude. ', h('button.btn.sm.primary', { type: 'button', onclick: () => { pop.close(); setTimeout(() => this.settings(), 50); } }, '💬 Set up AI chat')); }
     else note.textContent = mode === 'sample' ? 'Replies come from Claude on your account.' : 'Replies come from Claude using your API key.';
     let ctl = null;
@@ -506,19 +536,22 @@ const Chat = {
         const reply = await this.reply(sp, t => { out.textContent = t; out.classList.remove('typing'); log.scrollTop = log.scrollHeight; }, ctl.signal);
         out.textContent = reply; out.classList.remove('typing');
         hist.push({ role: 'assistant', content: reply });
+        Voice.say(sp, reply, () => { if (open && mic && Voice.prefs().handsFree && Voice.prefs().speak) setTimeout(listen, 250); });
       } catch (err) {
         const msg = this.errorText(err);
         out.textContent = msg || '…'; out.classList.remove('typing'); out.classList.add('err');
         hist.pop(); // drop the unanswered line so the next try starts clean
       } finally {
-        ctl = null; send.disabled = false; input.focus();
+        ctl = null; send.disabled = false; if (!listening) input.focus();
         trim(); App.save();
       }
     });
-    const body = h('div.chat', h('div.dialog', h('div.portrait', { style: { background: sp.color } }, sp.face), h('div.d-text', h('div.d-name', sp.name), h('p.muted.small', sp.subtitle || ''))), log, panels, form, note);
+    const body = h('div.chat', h('div.dialog', h('div.portrait', { style: { background: sp.color } }, sp.face), h('div.d-text', h('div.d-name', sp.name), h('p.muted.small', sp.subtitle || '')), speakToggle), log, panels, form, note);
     const pop = UI.modal({ title: null, body, cls: 'dlg' });
     setTimeout(() => { if (!input.disabled) input.focus(); log.scrollTop = log.scrollHeight; }, 50);
+    Voice.say(sp, opener, () => { if (open && mic && mode && Voice.prefs().handsFree && Voice.prefs().speak) setTimeout(listen, 250); });
     await pop;
+    open = false; Voice.stop(); Voice.stopListening();
     if (ctl) ctl.abort();
     App.save();
   },
@@ -568,6 +601,7 @@ const Chat = {
         h('label.lbl', { for: 'ai-key' }, 'Claude API key'), key,
         h('p.muted.small', 'The key stays in this browser only: it is never put in save files or exports. Replies are billed to your Anthropic account, roughly 1 to 2 cents each. Each phone or browser needs the key pasted once. Playing inside claude.ai instead needs no key at all.'),
         status);
+    body.append(Voice.settingsRows());
     const choice = await UI.modal({ title: '💬 AI chat', body, buttons: inSample ? [{ label: 'Done', cls: 'primary' }] : [{ label: 'Remove key', value: 'clear', cls: 'ghost' }, { label: 'Test', value: 'test' }, { label: 'Save', value: 'save', cls: 'primary' }] });
     if (choice === 'clear') { this.setKey(''); UI.toast('API key removed', 'good'); }
     if (choice === 'save' || choice === 'test') {
