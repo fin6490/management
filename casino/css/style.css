@@ -776,7 +776,8 @@ ul.timeline b { font-variant-numeric: tabular-nums; color: var(--gold); margin-r
   .die { width: 40px; height: 40px; padding: 4px; } .die i { width: 7px; height: 7px; }
   .roulette.vert .spot.rl-num { justify-content: center; padding-top: 0; }
   .table-top { gap: .4rem; }
-  .tt-right { width: 100%; gap: .35rem; flex-wrap: nowrap; }
+  .tt-right { width: 100%; gap: .35rem; flex-wrap: wrap; }
+  .tt-right .tt-extra { order: 5; width: 100%; font-size: .75rem; }
   .tt-right .pl { margin-right: auto; }
   .tt-right .btn.sm { padding: .3rem .5rem; font-size: .78rem; }
 }
@@ -824,3 +825,7 @@ body[data-screen="table"] #toasts, body[data-screen="slots"] #toasts, body[data-
 .sl-wheel-svg { width: 100%; height: 100%; display: block; }
 .sl-wheel-ptr { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 26px solid #fff; filter: drop-shadow(0 2px 3px #000); margin-bottom: -18px; z-index: 2; }
 .sl .tt-title { display: flex; flex-direction: column; min-width: 0; } .sl .tt-title span { font-size: .72rem; color: var(--muted); }
+.spot[hidden] { display: none !important; }
+.bj-n { display: flex; align-items: center; gap: .25rem; } .bj-n .btn { min-width: 2rem; padding: .25rem .5rem; } .bj-n .btn.on { border-color: var(--gold); color: var(--gold); background: rgba(233, 194, 90, .12); }
+.hand-name { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; }
+@media (max-width: 640px) { .hands { gap: .5rem; } .hand { padding: .2rem .25rem; } .tt-right .bj-n .btn { padding: .2rem .45rem; } }
