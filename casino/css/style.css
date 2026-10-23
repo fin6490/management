@@ -445,7 +445,7 @@ body[data-back="gold"] { --card-back: repeating-linear-gradient(45deg, #c9a14a 0
 body[data-screen="world"] main.screen { max-width: none; padding: 0; }
 body[data-screen="world"] { overflow: hidden; }
 body[data-screen="world"] #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
-body[data-screen="world"] main.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+body[data-screen="world"] main.screen { flex: 1; width: 100%; margin: 0; min-height: 0; display: flex; flex-direction: column; }
 .world { position: relative; flex: 1; min-height: 300px; margin-bottom: env(safe-area-inset-bottom); overflow: hidden; background: #000; touch-action: none; user-select: none; -webkit-user-select: none; }
 .world-cv { position: absolute; inset: 0; display: block; image-rendering: pixelated; }
 .w-top { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; pointer-events: none; }
@@ -829,3 +829,6 @@ body[data-screen="table"] #toasts, body[data-screen="slots"] #toasts, body[data-
 .bj-n { display: flex; align-items: center; gap: .25rem; } .bj-n .btn { min-width: 2rem; padding: .25rem .5rem; } .bj-n .btn.on { border-color: var(--gold); color: var(--gold); background: rgba(233, 194, 90, .12); }
 .hand-name { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; }
 @media (max-width: 640px) { .hands { gap: .5rem; } .hand { padding: .2rem .25rem; } .tt-right .bj-n .btn { padding: .2rem .45rem; } }
+.town-map-wrap { display: flex; flex-direction: column; align-items: center; gap: .5rem; } .town-map { max-width: 100%; border-radius: 10px; image-rendering: pixelated; border: 1px solid var(--line); }
+.scratch { display: grid; grid-template-columns: repeat(3, 64px); gap: 6px; justify-content: center; margin: .3rem 0 .6rem; }
+.sc { height: 64px; border-radius: 10px; border: 0; background: linear-gradient(135deg, #b0bec5, #78909c); font: 900 1.6rem system-ui; color: #37474f; cursor: pointer; } .sc.open { background: #fff8e1; animation: flipin .25s ease-out; }
