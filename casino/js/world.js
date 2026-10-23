@@ -428,7 +428,7 @@ const World = (() => {
   }
 
   // story characters and rivals move around with the story and the day, so refresh them on entry
-  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); m.caseSpots = Mystery.spots(m); }
+  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); m.caseSpots = Mystery.spots(m).concat(Holdem.spots(m)); }
   function npcAt(m, x, y) { return m.npcs.find(n => n.x === x && n.y === y); }
   function passable(m, x, y) { return !m.solid(x, y) && !npcAt(m, x, y); }
 
@@ -530,6 +530,7 @@ const World = (() => {
         savePos(); App.save(); Router.openTable(f.game); return;
       }
       if (f.kind === 'door') { await useDoor(f.door); return; }
+      if (f.kind === 'clue' && f.spot.id === 'backroom') { savePos(); App.save(); Router.go('poker'); return; }
       if (f.kind === 'clue') { await Mystery.examine(f.spot); populate(S.m); return; }
       if (f.kind === 'npc') {
         const n = f.npc;
@@ -701,6 +702,7 @@ const World = (() => {
       if (q.story) { c.fillStyle = '#ffe066'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('!', sx(q.fx + .5), sy(q.fy) - 4 * u + Math.sin(now / 200) * u); }
     }
     for (const c0 of m.caseSpots || []) { // something worth a closer look
+      if (c0.door) { c.fillStyle = '#2a170a'; c.fillRect(sx(c0.x) + 2 * u, sy(c0.y) - 6 * u, 12 * u, 22 * u); c.fillStyle = '#c9a14a'; c.fillRect(sx(c0.x) + 11 * u, sy(c0.y) + 6 * u, 2 * u, 2 * u); c.fillStyle = '#ffe9a8'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('♠', sx(c0.x + .5), sy(c0.y) + 2 * u); continue; }
       const tw = Math.sin(now / 180 + c0.x) * .5 + .5;
       c.fillStyle = `rgba(255, 236, 140, ${.45 + tw * .5})`;
       const cx0 = sx(c0.x + .5), cy0 = sy(c0.y + .5), r = (2 + tw * 2) * u;

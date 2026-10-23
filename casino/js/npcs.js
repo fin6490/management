@@ -265,6 +265,7 @@ const QUESTS = {
   docPie: { giver: 'doc', chapter: 1, title: "Doc's sweet tooth", desc: 'Doc wants a slice of cherry pie from Mel\'s Diner. Buy one and bring it to him on the Riverboat.', reward: { cash: 300, swagger: 2 }, offer: 'Do an old man a favour? Mel\'s cherry pie. I can\'t walk that far anymore. Bring me a slice and I\'ll make it worth your while.' },
   texDebt: { giver: 'vinnie', chapter: 1, title: 'Tex owes Vinnie', desc: 'Win a round at any table while Tex Calhoun is sitting with you. He drinks at the Spur and the Riverboat.', reward: { cash: 750, swagger: 2 }, offer: 'Tex Calhoun owes me and he\'s been ducking my calls. Beat him at a table while he watches. Humiliation is a down payment.' },
   baron: { giver: 'margot', chapter: 2, title: 'Humble the Baron', desc: 'Win 3 rounds at tables where Baron von Hollow is sitting. He plays the Palace and the Salon.', need: 3, reward: { cash: 5000, swagger: 5 }, offer: 'The Baron sneers at my staff and tips in foreign coins. Beat him three times at his own tables, darling. I\'ll be very grateful.' },
+  pokerRoom: { giver: 'dolores', chapter: 1, title: 'The Back Room', desc: 'Kessler shut the Spur\'s back poker room years ago. Buy the Back Room Refit at Lucky Strike Outfitters ($15,000), then tell Dolores.', reward: { cash: 0, swagger: 3 }, offer: 'See that door behind the jukebox? Best poker room in the state, once. Kessler had it shut after Sal started winning too much. Fix it up, sugar, and I\'ll run the tournaments.' },
   louDice: { giver: 'lou', chapter: 1, title: 'Hot shooter', desc: 'Make 3 points on a single craps shooter (watch the Fire Bet tracker), anywhere in town.', reward: { cash: 1000, swagger: 3 }, offer: 'Haven\'t seen a real hot hand on my boat since the eighties. Make three points in one roll of the dice and I\'ll put your picture on the wall!' },
 };
 const Quests = {
@@ -280,7 +281,7 @@ const Quests = {
     this.state()[id] = { s: 'done' };
     if (q.reward.cash) App.credit(q.reward.cash);
     if (q.reward.swagger) st.flags.bonusSwagger = (st.flags.bonusSwagger || 0) + q.reward.swagger;
-    UI.toast(`✅ ${q.title} done · +${fmt(q.reward.cash)} · ★ +${q.reward.swagger}`, 'big'); SFX.big();
+    UI.toast(`✅ ${q.title} done${q.reward.cash ? ' · +' + fmt(q.reward.cash) : ''} · ★ +${q.reward.swagger}`, 'big'); SFX.big();
     App.news(`✅ Finished "${q.title}".`); App.save(); Router.hud();
   },
   bump(id, by = 1) {
@@ -296,6 +297,7 @@ const Quests = {
   // checked when you talk to a giver
   handIn(who) {
     const id = this.activeFor(who);
+    if (id === 'pokerRoom' && App.has('backroom')) { App.state.flags.pokerRoom = App.state.day; this.complete(id); return 'New felt, a jukebox that plays something besides Patsy Cline... Sal would cry. The Back Room is OPEN. Tournaments every night, sugar: the door\'s behind the jukebox.'; }
     if (id === 'docPie' && App.state.flags.hasPie) { App.state.flags.hasPie = false; this.complete(id); return 'Cherry! Mel still makes it right. Here: for your trouble, and a tip. The meters run hottest after a quiet night.'; }
     return null;
   },
@@ -384,7 +386,8 @@ const Chat = {
       role: isRival ? 'a rival gambler who plays the same casinos as the player' : NPCS[who].role,
       subtitle: isRival ? 'Rival gambler' : NPCS[who].role,
       persona: (NPCS[who] || RIVALS[who]).persona,
-      opener: () => (!isRival && Quests.handIn(who)) || Cast.line(who),
+      handIn: () => !isRival && Quests.handIn(who),
+      opener: () => Cast.line(who),
       panel: api => Chat.jobPanel(who, isRival, api),
     };
   },
@@ -463,7 +466,7 @@ const Chat = {
     const trim = () => { if (hist.length > 16) hist.splice(0, hist.length - 16); };
     // scripted beats (side jobs, the mystery) can speak for the character
     const api = { say: text => { bubble('them', text); hist.push({ role: 'assistant', content: text }); trim(); App.save(); }, close: () => pop.close() };
-    const opener = Mystery.opener(sp.id) || sp.opener();
+    const opener = (sp.handIn && sp.handIn()) || Mystery.opener(sp.id) || sp.opener();
     hist.push({ role: 'assistant', content: opener }); trim();
     hist.slice(-6).forEach(m => bubble(m.role === 'user' ? 'me' : 'them', m.content));
     const panels = h('div.chat-panels', sp.panel ? sp.panel(api) : null, Mystery.panel(sp.id, api));

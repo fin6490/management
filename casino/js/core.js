@@ -80,7 +80,7 @@ function fmt(n, opts = {}) {
 }
 const round2 = x => Math.round(x * 100) / 100;
 const pctStr = (x, d = 2) => (x * 100).toFixed(d) + '%';
-const sleep = ms => new Promise(r => setTimeout(r, ms * (window.App ? App.speedFactor() : 1)));
+const sleep = ms => new Promise(r => setTimeout(r, ms * (typeof App !== 'undefined' && App.speedFactor ? App.speedFactor() : 1)));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 
 /* Sound: small synthesized effects so the app needs no audio files. */
@@ -91,7 +91,7 @@ const SFX = (() => {
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
   };
-  const on = () => !window.App || !App.state || App.state.settings.sound;
+  const on = () => typeof App === 'undefined' || !App.state || App.state.settings.sound;
   function noise(dur, freq, q, gain) {
     const c = ac(); if (!c || !on()) return;
     const len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);

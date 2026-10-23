@@ -52,6 +52,7 @@ const Router = {
   },
   // navigation away from a table must respect bets in action
   safeGo(screen, arg) {
+    if (Holdem.active() && this.screen === 'pokertable') return UI.toast('Use ← Leave to leave the tournament', 'warn');
     if (this.table) {
       if (this.table.busy) return UI.toast('Finish the round first', 'warn');
       const block = this.game && this.game.canLeave && this.game.canLeave();
@@ -73,7 +74,9 @@ const Router = {
     this.go('table');
     const g = GAMES[gameId];
     const ev = Career.eventAt(st.venue);
-    const ctx = { venue: v, venueId: st.venue, limits: ev && ev.limits ? { ...v.limits, max: v.limits.max * ev.limits } : v.limits, chips: v.chips, rules: (v.rules && v.rules[gameId]) || {} };
+    let limits = ev && ev.limits ? { ...v.limits, max: v.limits.max * ev.limits } : v.limits, chips = v.chips;
+    if (st.ending && st.venue === 'salon') { limits = { ...limits, max: Math.max(limits.max, 1000000) }; chips = [1000, 5000, 25000, 100000, 1000000]; }
+    const ctx = { venue: v, venueId: st.venue, limits, chips, rules: (v.rules && v.rules[gameId]) || {} };
     const main = $('main.screen');
     this.table = new UI.Table(main, g, ctx);
     this.game = g;
@@ -96,7 +99,7 @@ const Router = {
   hud() {
     if (!App.state) return;
     const st = App.state, set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
-    set('hud-bank', fmt(st.bank)); set('hud-day', 'Day ' + st.day); set('hud-clock', World.clockText());
+    set('hud-bank', Math.abs(st.bank) >= 1e7 && innerWidth < 700 ? '$' + (st.bank >= 1e9 ? (st.bank / 1e9).toFixed(2) + 'B' : (st.bank / 1e6).toFixed(1) + 'M') : fmt(st.bank)); set('hud-day', 'Day ' + st.day); set('hud-clock', World.clockText());
     set('hud-debt', fmt(App.debt)); set('hud-swag', '★ ' + Career.swagger());
     const d = document.getElementById('hud-debt'); if (d) d.parentElement.classList.toggle('zero', App.debt === 0);
     for (const [id, v, max] of [['hud-hunger', st.hunger, 100], ['hud-thirst', st.thirst, 100], ['hud-stam', st.stamina, st.staminaMax]]) {
@@ -111,6 +114,8 @@ const Router = {
 const Screens = {
   table() { }, // the Table component fills this screen
   world(main) { World.mount(main); },
+  poker(main) { Holdem.lobby(main); },
+  pokertable(main) { Holdem.table(main); },
   case(main) { Mystery.screen(main); },
   title(main) {
     document.body.dataset.screen = 'title';
@@ -182,6 +187,7 @@ const Screens = {
           h('button.loc', { onclick: () => Router.go('case') }, h('div.loc-i', '🔎'), h('div.loc-t', h('b', 'Case file'), h('span', App.state.ending ? 'Case closed' : `Act ${Mystery.act()} · ${Object.keys(Mystery.st().clues).length} pieces of evidence`))),
           h('button.loc', { onclick: () => Router.go('stats') }, h('div.loc-i', '📊'), h('div.loc-t', h('b', 'Stats'), h('span', `${st.stats.rounds.toLocaleString()} rounds played`))),
           !career ? h('button.loc', { onclick: () => { if (st.bank < 10000) { st.bank = 10000; App.save(); Router.refresh(); UI.toast('Bankroll refilled', 'good'); } else UI.toast('You already have $10,000+', 'warn'); } }, h('div.loc-i', '💵'), h('div.loc-t', h('b', 'Refill bankroll'), h('span', 'Top up to $10,000'))) : null),
+        career ? Screens.legendBoard() : null,
         career ? Screens.rivalBoard() : null,
         career ? Screens.jobBoard() : null,
         h('h3.sec', 'Getting around'),
@@ -201,6 +207,17 @@ const Screens = {
         })))));
   },
 
+  // post-story targets, with progress
+  legendBoard() {
+    const st = App.state; if (!st.ending && st.chapter < 3) return null;
+    const worth = Career.empire(), inc = Career.income();
+    const rows = ACHIEVEMENTS.filter(a => a.legend);
+    const target = { m10: 1e7, m100: 1e8, b1: 1e9, b10: 1e10 };
+    return h('div', h('h3.sec', 'Legend goals'),
+      h('p.small', `Empire value ${fmt(worth, { short: true })} (cash plus businesses at cost) · business income ${fmt(inc, { short: true })} a day`),
+      h('div.legend', rows.map(a => h('div.lg' + (st.achievements[a.id] ? '.done' : ''), h('b', (st.achievements[a.id] ? '🏆 ' : '◻️ ') + a.name), h('span', a.desc),
+        target[a.id] && !st.achievements[a.id] ? h('div.bar', h('i', { style: { width: clamp(worth / target[a.id], 0, 1) * 100 + '%' } })) : null))));
+  },
   // your place in the net-worth race against the rivals (1 = top)
   rivalRank() {
     const st = App.state; Rivals.ensure();
