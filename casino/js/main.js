@@ -110,6 +110,7 @@ const Router = {
 const Screens = {
   table() { }, // the Table component fills this screen
   world(main) { World.mount(main); },
+  case(main) { Mystery.screen(main); },
   title(main) {
     document.body.dataset.screen = 'title';
     const slots = App.listSlots();
@@ -176,6 +177,7 @@ const Screens = {
         h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Back to the map'), h('h2', 'Status')),
         h('div.grid',
           h('button.loc', { onclick: () => Router.go('trophies') }, h('div.loc-i', '🏅'), h('div.loc-t', h('b', 'Trophy Room'), h('span', `${Object.keys(st.achievements).length}/${ACHIEVEMENTS.length} achievements`))),
+          h('button.loc', { onclick: () => Router.go('case') }, h('div.loc-i', '🔎'), h('div.loc-t', h('b', 'Case file'), h('span', 'The Last Hand: ' + (Mystery.st().solved ? 'solved' : Object.keys(Mystery.st().clues).length + ' clues')))),
           h('button.loc', { onclick: () => Router.go('stats') }, h('div.loc-i', '📊'), h('div.loc-t', h('b', 'Stats'), h('span', `${st.stats.rounds.toLocaleString()} rounds played`))),
           !career ? h('button.loc', { onclick: () => { if (st.bank < 10000) { st.bank = 10000; App.save(); Router.refresh(); UI.toast('Bankroll refilled', 'good'); } else UI.toast('You already have $10,000+', 'warn'); } }, h('div.loc-i', '💵'), h('div.loc-t', h('b', 'Refill bankroll'), h('span', 'Top up to $10,000'))) : null),
         career ? Screens.rivalBoard() : null,
@@ -329,6 +331,7 @@ const Screens = {
       h('label.lbl', 'Strategy hints (when you own the guide)'), sel('hints', [[true, 'Show'], [false, 'Hide']]),
       h('div.menu-btns',
         h('button.btn', { onclick: () => { box.close(); Router.safeGo('status'); } }, '📋 Status, story & trophies'),
+        h('button.btn', { onclick: () => { box.close(); Router.safeGo('case'); } }, '🔎 Case file: The Last Hand'),
         h('button.btn', { onclick: () => { box.close(); Chat.settings(); } }, '💬 AI chat with characters'),
         h('button.btn', { onclick: () => { App.save(); UI.toast('Saved to slot ' + App.slot, 'good'); } }, '💾 Save now'),
         h('button.btn', { onclick: () => App.exportSave() }, '⤓ Export save file'),

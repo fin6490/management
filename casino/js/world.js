@@ -353,7 +353,7 @@ const World = (() => {
     const root = h('div.world',
       h('canvas.world-cv'),
       h('div.w-top',
-        h('button.w-goal', { onclick: () => Router.go('status') }),
+        h('div.w-chips', h('button.w-goal', { onclick: () => Router.go('status') }), h('button.w-goal.w-case', { onclick: () => Router.go('case'), title: 'Case file' }, '🔎')),
         h('div.w-area')),
       h('div.w-prompt', { onclick: () => interact() }),
       h('div.pad', ['up', 'left', 'right', 'down'].map(d => h('button.pad-' + d, { 'aria-label': d, 'data-dir': d }, { up: '▲', down: '▼', left: '◀', right: '▶' }[d]))),
@@ -568,6 +568,7 @@ const World = (() => {
       list.append(h('div.menu-row', h('span.mi', L.icon), h('div.mn', h('b', L.name), h('small', L.text)),
         h('button.btn.sm.primary', { disabled: L.cost > st.bank, onclick: async () => { pop.close(); await Career.sleep(id); } }, L.cost ? `Sleep · ${fmt(L.cost)}` : 'Sleep')));
     }
+    if (options.includes('motel')) { const lb = Mystery.lockboxRow(() => pop.close()); if (lb) list.append(lb); }
     if (!any) body.append(h('p.muted.small', 'Nowhere to sleep here yet.'));
     body.append(h('p.muted.small', `Sleeping ends day ${st.day}: loan interest compounds, rent is due, and your players club pays out.`));
     const pop = UI.modal({ title: `🛏️ ${label}`, body });
