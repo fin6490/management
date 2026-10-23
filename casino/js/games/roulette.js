@@ -32,12 +32,12 @@ GAMES.roulette = (() => {
     for (let r = 0; r < 3; r++) for (let c = 0; c < 12; c++) {
       const n = 3 * c + (3 - r);
       const s = mk('n' + n, String(n), [n], 35, 'rl-num ' + colorOf(n), insideMax);
-      s.el.style.gridColumn = c + 1; s.el.style.gridRow = r + 1;
+      s.el.style.gridColumn = c + 1; s.el.style.gridRow = r + 1; s.el.dataset.c = c; s.el.dataset.r = r;
       cells.append(s.el);
     }
     const hot = (key, nums, pays, x, y, title) => {
       const s = mk(key, '', nums, pays, 'rl-hot', insideMax);
-      s.el.style.left = (x / 12 * 100) + '%'; s.el.style.top = (y / 3 * 100) + '%'; s.el.title = title;
+      s.el.style.left = (x / 12 * 100) + '%'; s.el.style.top = (y / 3 * 100) + '%'; s.el.title = title; s.el.dataset.x = x; s.el.dataset.y = y;
       cells.append(s.el);
     };
     const num = (c, r) => 3 * c + (3 - r);
@@ -52,7 +52,7 @@ GAMES.roulette = (() => {
     }
     if (wheel !== 'american') for (let r = 0; r < 3; r++) hot('z' + r, [0, num(0, r)], 17, 0, r + 0.5, `Split 0/${num(0, r)}`);
     const colsEl = h('div.rl-cols');
-    for (let r = 0; r < 3; r++) { const nums = []; for (let c = 0; c < 12; c++) nums.push(num(c, r)); colsEl.append(mk('col' + r, '2 to 1', nums, 2, 'rl-out').el); }
+    for (let r = 0; r < 3; r++) { const nums = []; for (let c = 0; c < 12; c++) nums.push(num(c, r)); const cs = mk('col' + r, '2 to 1', nums, 2, 'rl-out'); cs.el.dataset.r = r; colsEl.append(cs.el); }
     const dz = h('div.rl-dozens');
     ['1st 12', '2nd 12', '3rd 12'].forEach((l, i) => dz.append(mk('dz' + i, l, Array.from({ length: 12 }, (_, k) => i * 12 + k + 1), 2, 'rl-out').el));
     const ev = h('div.rl-even');
@@ -62,11 +62,18 @@ GAMES.roulette = (() => {
       .forEach(([k, l, nums]) => ev.append(mk(k, l, nums, 1, 'rl-out ' + (k === 'red' ? 'redd' : k === 'black' ? 'blackd' : '')).el));
     grid.append(zeros, h('div.rl-main', cells, dz, ev), colsEl);
 
-    t.body.append(h('div.roulette',
+    // phones get the layout turned upright: three columns of numbers, twelve rows, like a mobile table
+    const vert = innerWidth < 640;
+    if (vert) {
+      for (const el of cells.querySelectorAll('.rl-num')) { el.style.gridColumn = 3 - +el.dataset.r; el.style.gridRow = +el.dataset.c + 1; }
+      for (const el of cells.querySelectorAll('.rl-hot')) { el.style.left = ((3 - +el.dataset.y) / 3 * 100) + '%'; el.style.top = (+el.dataset.x / 12 * 100) + '%'; }
+      for (const el of colsEl.children) el.style.order = 2 - +el.dataset.r;
+    }
+    t.body.append(h('div.roulette' + (vert ? '.vert' : ''),
       h('div.rl-top',
         h('div.wheel-wrap', h('div.pointer'), h('div.wheel#rl-wheel', { html: wheelSVG() }), h('div.wheel-center#rl-res', '')),
         h('div.rl-info', h('div.area-l', `${wheel === 'american' ? 'Double-zero' : wheel === 'french' ? 'French single-zero · La Partage: half back on even-money bets when 0 hits' : 'Single-zero'} wheel`),
-          h('div.rl-hist#rl-hist'), h('p.muted.small', 'Click a number for a straight-up bet. Click the lines between numbers for splits, corners, streets (bottom edge) and six lines.'))),
+          h('div.rl-hist#rl-hist'), h('p.muted.small', vert ? 'Tap a number for a straight-up bet. Tap the lines between numbers for splits and corners, the outer edge for streets and six lines. Long-press a bet to take a chip back.' : 'Click a number for a straight-up bet. Click the lines between numbers for splits, corners, streets (bottom edge) and six lines. Right-click a bet to take a chip back.'))),
       grid));
     $('#rl-wheel').style.transform = `rotate(${angle}deg)`;
     drawHist(); idle();

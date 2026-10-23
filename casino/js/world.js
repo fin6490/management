@@ -398,7 +398,7 @@ const World = (() => {
   function savePos() { if (!S) return; Object.assign(App.state.world, { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }); }
 
   function resize() {
-    const r = S.root.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    const r = S.root.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); // pixel art gains nothing past 2x
     S.cv.width = Math.round(r.width * dpr); S.cv.height = Math.round(r.height * dpr);
     S.cv.style.width = r.width + 'px'; S.cv.style.height = r.height + 'px';
     const css = Math.max(2, Math.floor(Math.min(r.width / (16 * 18), r.height / (16 * 12))));

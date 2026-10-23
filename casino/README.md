@@ -143,10 +143,11 @@ when they can afford it. The controls show pot odds, and you can size bets with 
 There's a dartboard on the Rusty Spur's back wall, and Mick "The Arrow" Doyle, Sal's old hustling
 partner, stands beside it. Walk up to the board, or talk to Mick and press **🎯 Play darts**.
 
-- **How to throw**: point at the board, or tap one of the bed buttons (T20, T19, Bull, or the
-  suggested checkout), then throw when the wobbling sight crosses your target. Click to throw with a
-  mouse; press **Space** with the keyboard (the arrow keys fine-tune your aim); on a phone, drag on
-  the board and lift your finger (the sight floats just above your finger so you can see it).
+- **How to throw**: two taps per dart. First a pointer sweeps around the board: tap (or press
+  **Space**) to stop it on the number you want. Then a marker runs along that line in to the bull
+  and back out: tap again to stop it on the ring you want. The thin outer ring is the double, the
+  thin inner ring the treble, and the marker names the bed it's over. A steadier arm slows both
+  sweeps down.
 - **The rules** are regulation: a 451mm board, 501 or 301, double out, bust on 1 or below zero, and a
   bull-up to decide who throws first. The game suggests standard checkouts like T20 · T20 · Bull.
 - **Your arm** steadies as you throw more darts. Custom flights and Sal's tungsten darts help, and
@@ -232,6 +233,20 @@ the mic reopens after each reply so you can just talk back and forth. Tap 🔊 i
 Voice uses your browser's built-in speech features: Chrome, Edge and Safari all work. The microphone
 works best in the installed app; inside claude.ai the browser may block it, but replies can still be
 read aloud.
+
+### At the tables
+
+- The top-right badge shows this sitting's profit and loss, split into **main** bets and **side** bets.
+- After each round a results strip lists every bet you had down and what it did ("21+3 · Flush +$45"),
+  and it stays up until the next round settles, so a side-bet win never flashes past.
+- **×2** next to Rebet doubles every bet on the table (or rebets twice over).
+- Tap a player sitting at your table to talk to them.
+- Craps shows the point, a coaching line that says what to do next, and the pass line's **Odds**
+  bet right behind it (pays true odds, no house edge; it pulses when a point is set). Props and side
+  bets fold away under "Props & side bets". On phones, roulette turns upright: three columns of
+  numbers, twelve rows.
+- The night ends at 4 AM: sleep before then. Dolores has one eight-hour shift a day, and energy
+  drinks lose their kick after the second one.
 
 ## Saving
 

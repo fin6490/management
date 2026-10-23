@@ -191,7 +191,8 @@ GAMES.bj = (() => {
     $$('.hand').forEach((w, i) => w.classList.toggle('active', i === active));
     const { v } = total(hd.cards), two = hd.cards.length === 2;
     if (v >= 21) { hd.done = true; if (v > 21) { markHand(hd, 'BUST', 'bad'); hd.spot.lose('Bust'); } active++; return playTurn(); }
-    const canDbl = two && (!hd.split || R.das) && App.bank >= hd.spot.amount - 1e-9;
+    const canDbl = two && (!hd.split || R.das) && !hd.splitAces && App.bank >= hd.spot.amount - 1e-9;
+    const canHit = !hd.splitAces;
     const canSplit = two && cv(hd.cards[0]) === cv(hd.cards[1]) && hands.length < R.maxHands && App.bank >= hd.spot.amount - 1e-9
       && !(hd.splitAces && !R.rsa);
     const canSur = two && !hd.split && R.surrender && hands.length === 1;
@@ -199,7 +200,7 @@ GAMES.bj = (() => {
     t.msg(hands.length > 1 ? `Hand ${active + 1} of ${hands.length}: ${totalLabel(hd.cards)}` : `You have ${totalLabel(hd.cards)} against a ${rankLabel(dealer.up.r)}.` + (hint ? '' : ''));
     if (hint) t.msg(h('span', `${hands.length > 1 ? `Hand ${active + 1}: ` : ''}${totalLabel(hd.cards)} vs ${rankLabel(dealer.up.r)} · 🃏 Strategy card says `, h('b', { H: 'HIT', S: 'STAND', D: 'DOUBLE', P: 'SPLIT', R: 'SURRENDER' }[hint])));
     t.setActions([
-      { label: 'Hit', key: 'h', cls: 'primary', hint: hint === 'H', on: () => act('H') },
+      { label: 'Hit', key: 'h', cls: 'primary', disabled: !canHit, hint: hint === 'H', on: () => act('H') },
       { label: 'Stand', key: 's', cls: 'primary', hint: hint === 'S', on: () => act('S') },
       { label: 'Double', key: 'd', disabled: !canDbl, hint: hint === 'D', on: () => act('D') },
       { label: 'Split', key: 'p', disabled: !canSplit, hint: hint === 'P', on: () => act('P') },
@@ -233,7 +234,8 @@ GAMES.bj = (() => {
       const c1 = shoe.draw(); await addCard(hd, c1); see(c1);
       const c2 = shoe.draw(); await addCard(nh, c2); see(c2);
       showHandBet(hd); showHandBet(nh);
-      if (aces && !(R.rsa && (c1.r === 14 || c2.r === 14))) { hd.done = nh.done = true; }
+      // split aces get one card each; a hand only stays live if it can resplit another ace
+      if (aces) { hd.done = !(R.rsa && c1.r === 14); nh.done = !(R.rsa && c2.r === 14); }
     } else if (a === 'R') {
       hd.done = true; markHand(hd, 'SURRENDER', 'bad'); hd.spot.refund(round2(hd.spot.amount / 2), 'Surrender: half back'); active++;
     }

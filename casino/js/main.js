@@ -101,7 +101,7 @@ const Router = {
   hud() {
     if (!App.state) return;
     const st = App.state, set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
-    set('hud-bank', Math.abs(st.bank) >= 1e7 && innerWidth < 700 ? '$' + (st.bank >= 1e9 ? (st.bank / 1e9).toFixed(2) + 'B' : (st.bank / 1e6).toFixed(1) + 'M') : fmt(st.bank)); set('hud-day', 'Day ' + st.day); set('hud-clock', World.clockText());
+    set('hud-bank', Math.abs(st.bank) >= 1e5 && innerWidth < 700 ? '$' + (st.bank >= 1e9 ? (st.bank / 1e9).toFixed(2) + 'B' : st.bank >= 995e3 ? (st.bank / 1e6).toFixed(2) + 'M' : (st.bank / 1e3).toFixed(1) + 'K') : fmt(st.bank)); set('hud-day', 'Day ' + st.day); set('hud-clock', World.clockText());
     set('hud-debt', fmt(App.debt)); set('hud-swag', '★ ' + Career.swagger());
     const d = document.getElementById('hud-debt'); if (d) d.parentElement.classList.toggle('zero', App.debt === 0);
     for (const [id, v, max] of [['hud-hunger', st.hunger, 100], ['hud-thirst', st.thirst, 100], ['hud-stam', st.stamina, st.staminaMax]]) {
@@ -384,6 +384,10 @@ document.addEventListener('keydown', e => {
   if (Router.table) Router.table.key(e);
 });
 window.addEventListener('beforeunload', () => { if (Router.table) Router.table.refundAll(); App.save(); });
+// installed iPhone apps rarely fire beforeunload: save whenever the app goes to the background
+const saveQuiet = () => { if (!App.state) return; if (World.savePos) World.savePos(); App.save(); };
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveQuiet(); });
+window.addEventListener('pagehide', saveQuiet);
 window.addEventListener('DOMContentLoaded', () => Router.go('title'));
 // installable/offline when served over http(s); opening the file directly still works without it
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

@@ -16,18 +16,18 @@ GAMES.craps = (() => {
     t.shoe.style.display = 'none';
     const P = PAY.craps;
     sp = {
-      pass: t.spot({ key: 'pass', label: 'PASS LINE', cls: 'cr-pass', max: ctx.limits.max, onLockedClick: () => UI.toast('Pass line is a contract bet once a point is set', 'warn') }),
-      passOdds: t.spot({ key: 'passOdds', label: 'Odds', cls: 'cr-odds', max: () => st.point && sp.pass.amount ? sp.pass.amount * takeMult(st.point) : 0 }),
+      pass: t.spot({ key: 'pass', label: 'PASS LINE', cls: 'cr-pass', max: ctx.limits.max, onChange: () => sync(), onLockedClick: () => UI.toast('Pass line is a contract bet once a point is set', 'warn') }),
+      passOdds: t.spot({ noComp: true, key: 'passOdds', label: 'Odds', sub: 'behind the line', cls: 'cr-odds', onChange: () => sync(), onLockedClick: () => UI.toast(st.point ? 'Put a bet on the pass line first' : 'Odds open once the shooter sets a point', 'warn'), max: () => st.point && sp.pass.amount ? sp.pass.amount * takeMult(st.point) : 0 }),
       dp: t.spot({ key: 'dp', label: "DON'T PASS BAR 12", cls: 'cr-dp', max: ctx.limits.max }),
-      dpOdds: t.spot({ key: 'dpOdds', label: 'Lay', cls: 'cr-odds', max: () => st.point && sp.dp.amount ? round2(sp.dp.amount * takeMult(st.point) / (1 / TRUE_ODDS[st.point])) : 0 }),
+      dpOdds: t.spot({ noComp: true, key: 'dpOdds', label: 'Lay', cls: 'cr-odds', max: () => st.point && sp.dp.amount ? round2(sp.dp.amount * takeMult(st.point) / (1 / TRUE_ODDS[st.point])) : 0 }),
       come: t.spot({ key: 'come', label: 'COME', cls: 'cr-come', max: ctx.limits.max }),
       field: t.spot({ key: 'field', label: 'FIELD', sub: `2·3·4·9·10·11·12 — 2 pays ${R.field2}x, 12 pays ${R.field12}x`, cls: 'cr-field', max: ctx.limits.max }),
-      any7: t.spot({ key: 'any7', label: 'Any 7', sub: PP().any7 + ':1', cls: 'prop', max: sideMax }),
-      anyCraps: t.spot({ key: 'anyCraps', label: 'Any Craps', sub: PP().anyCraps + ':1', cls: 'prop', max: sideMax }),
-      yo: t.spot({ key: 'yo', label: 'Yo 11', sub: PP().yo + ':1', cls: 'prop', max: sideMax }),
-      aceDeuce: t.spot({ key: 'aceDeuce', label: 'Ace-Deuce', sub: PP().aceDeuce + ':1', cls: 'prop', max: sideMax }),
-      aces: t.spot({ key: 'aces', label: 'Aces', sub: PP().aces + ':1', cls: 'prop', max: sideMax }),
-      boxcars: t.spot({ key: 'boxcars', label: 'Boxcars', sub: PP().boxcars + ':1', cls: 'prop', max: sideMax }),
+      any7: t.spot({ noComp: true, key: 'any7', label: 'Any 7', sub: PP().any7 + ':1', cls: 'prop', max: sideMax }),
+      anyCraps: t.spot({ noComp: true, key: 'anyCraps', label: 'Any Craps', sub: PP().anyCraps + ':1', cls: 'prop', max: sideMax }),
+      yo: t.spot({ noComp: true, key: 'yo', label: 'Yo 11', sub: PP().yo + ':1', cls: 'prop', max: sideMax }),
+      aceDeuce: t.spot({ noComp: true, key: 'aceDeuce', label: 'Ace-Deuce', sub: PP().aceDeuce + ':1', cls: 'prop', max: sideMax }),
+      aces: t.spot({ noComp: true, key: 'aces', label: 'Aces', sub: PP().aces + ':1', cls: 'prop', max: sideMax }),
+      boxcars: t.spot({ noComp: true, key: 'boxcars', label: 'Boxcars', sub: PP().boxcars + ':1', cls: 'prop', max: sideMax }),
       fire: t.spot({ key: 'fire', label: '🔥 Fire Bet', sub: 'new shooter only', cls: 'prop fire', max: () => Math.min(sideMax(), 100), onLockedClick: () => UI.toast('Fire Bet only before a new shooter\'s first roll', 'warn') }),
       small: t.spot({ key: 'small', label: 'Small', sub: P.ats.small + ':1', cls: 'prop ats', max: () => Math.min(sideMax(), 100) }),
       tall: t.spot({ key: 'tall', label: 'Tall', sub: P.ats.tall + ':1', cls: 'prop ats', max: () => Math.min(sideMax(), 100) }),
@@ -36,18 +36,23 @@ GAMES.craps = (() => {
     place = {}; come = {}; hard = {};
     for (const n of NUMS) {
       place[n] = t.spot({ key: 'place' + n, label: 'Place', sub: placeLabel(n), cls: 'cr-place', max: ctx.limits.max });
-      come[n] = { flat: t.spot({ key: 'come' + n, label: 'Come', cls: 'cr-cp', passive: true }), odds: t.spot({ key: 'comeOdds' + n, label: 'Odds', cls: 'cr-cpo', max: () => come[n].flat.amount * takeMult(n) }) };
+      come[n] = { flat: t.spot({ key: 'come' + n, label: 'Come', cls: 'cr-cp', passive: true }), odds: t.spot({ noComp: true, key: 'comeOdds' + n, label: 'Odds', cls: 'cr-cpo', max: () => come[n].flat.amount * takeMult(n) }) };
     }
-    for (const n of [4, 6, 8, 10]) hard[n] = t.spot({ key: 'hard' + n, label: `Hard ${n}`, sub: (n === 4 || n === 10 ? PP().hard4 : PP().hard6) + ':1', cls: 'prop', max: sideMax });
+    for (const n of [4, 6, 8, 10]) hard[n] = t.spot({ noComp: true, key: 'hard' + n, label: `Hard ${n}`, sub: (n === 4 || n === 10 ? PP().hard4 : PP().hard6) + ':1', cls: 'prop', max: sideMax });
 
+    const phone = innerWidth < 640;
     t.body.append(h('div.craps',
-      h('div.cr-board',
-        h('div.cr-nums', NUMS.map(n => h('div.cr-num#cr-n' + n, h('div.cr-n', n === 6 ? 'SIX' : n === 9 ? 'NINE' : String(n), h('span.puck')), place[n].el, h('div.cr-cps', come[n].flat.el, come[n].odds.el)))),
-        h('div.cr-mid', sp.come.el, h('div.cr-dpwrap', sp.dp.el, sp.dpOdds.el)),
-        sp.field.el,
-        h('div.cr-passwrap', sp.pass.el, sp.passOdds.el)),
-      h('div.cr-side',
-        h('div.dice-tray', h('div.dice', h('div.die#d1'), h('div.die#d2')), h('div.roll-total#cr-total'), h('div.history#cr-hist')),
+      h('div.cr-status',
+        h('div.dice-tray', h('div.dice', h('div.die#d1'), h('div.die#d2')), h('div.roll-total#cr-total')),
+        h('div.cr-puck#cr-puck', 'OFF'), h('div.history#cr-hist')),
+      h('div.cr-guide#cr-guide'),
+      h('div.cr-line',
+        h('div.cr-passwrap', sp.pass.el, h('div.cr-behind', sp.passOdds.el, h('small#cr-oddsnote', 'Odds go behind the line once a point is set'))),
+        h('div.cr-dpwrap', sp.dp.el, sp.dpOdds.el)),
+      h('div.cr-mid', sp.come.el, sp.field.el),
+      h('div.cr-board', h('div.cr-nums', NUMS.map(n => h('div.cr-num#cr-n' + n, h('div.cr-n', n === 6 ? 'SIX' : n === 9 ? 'NINE' : String(n), h('span.puck')), place[n].el, h('div.cr-cps', come[n].flat.el, come[n].odds.el))))),
+      h('details.cr-more', { open: !phone },
+        h('summary', h('span', 'Props & side bets'), h('span.cr-more-n#cr-more-n')),
         h('div.cr-props', h('div.area-l', 'Hardways & props (true odds)'), h('div.grid4', hard[4].el, hard[6].el, hard[8].el, hard[10].el, sp.any7.el, sp.anyCraps.el, sp.yo.el, sp.aceDeuce.el, sp.aces.el, sp.boxcars.el)),
         h('div.cr-props', h('div.area-l', 'Fire Bet & All/Tall/Small'), h('div.grid4', sp.fire.el, sp.small.el, sp.tall.el, sp.all.el),
           h('div.fire-pts#cr-fire'), h('div.ats-track#cr-ats')))));
@@ -80,6 +85,19 @@ GAMES.craps = (() => {
     $('#cr-ats').innerHTML = '';
     $('#cr-ats').append(h('span.area-l', 'Rolled: '), ...[2, 3, 4, 5, 6, 8, 9, 10, 11, 12].map(n => h('span.fp' + (st.ats.includes(n) ? '.lit' : ''), n)));
     $('#cr-hist').innerHTML = ''; st.history.slice(-14).forEach(r => $('#cr-hist').append(h('span.hr' + (r === 7 ? '.seven' : ''), r)));
+    // puck, coaching line, and a nudge toward the zero-edge odds bet
+    const puck = $('#cr-puck'); puck.textContent = on ? 'ON ' + st.point : 'OFF'; puck.classList.toggle('on', on);
+    const oddsMax = on && sp.pass.amount ? sp.pass.amount * takeMult(st.point) : 0;
+    const invite = on && sp.pass.amount > 0 && sp.passOdds.amount < oddsMax - 1e-9 && !t.busy;
+    sp.passOdds.el.classList.toggle('invite', invite);
+    $('#cr-oddsnote').textContent = on && sp.pass.amount ? `Pays ${({ 4: '2:1', 10: '2:1', 5: '3:2', 9: '3:2', 6: '6:5', 8: '6:5' })[st.point]}, no house edge · up to ${fmt(oddsMax)}` : 'Odds go behind the line once a point is set';
+    const g = $('#cr-guide');
+    g.textContent = !on
+      ? (sp.pass.amount || sp.dp.amount ? 'Come-out roll: 7 or 11 wins the pass line, 2, 3 or 12 loses; anything else becomes the point. Roll!' : 'Come-out roll: put chips on the PASS LINE, then roll.')
+      : invite ? `The point is ${st.point}. Back your pass line with ODDS (tap the Odds spot behind it): it pays true odds, the best bet in the house.`
+      : `The point is ${st.point}: roll ${st.point === 8 ? 'an' : 'a'} ${st.point} before a 7 to win the pass line. Come bets work like a new pass line; place bets pick a number.`;
+    const more = ['any7', 'anyCraps', 'yo', 'aceDeuce', 'aces', 'boxcars', 'fire', 'small', 'tall', 'all'].filter(k => sp[k].amount).length + [4, 6, 8, 10].filter(n => hard[n].amount).length;
+    $('#cr-more-n').textContent = more ? `${more} bet${more > 1 ? 's' : ''} on` : '';
   }
 
   function idle() {
@@ -87,7 +105,7 @@ GAMES.craps = (() => {
     t.msg(st.point ? `Point is ${st.point}. Press your luck: odds, come and place bets are open.` : (st.shooterRolls === 0 ? 'New shooter coming out. Pass line, Fire Bet and All/Tall/Small are open.' : 'Come-out roll. Bet the pass line or don\'t pass.'));
     t.setActions([
       { label: 'Clear', key: 'c', cls: 'ghost', on: () => { for (const k in t.spots) { const s = t.spots[k]; if (!s.locked && !s.o.passive) s.clear(); } sync(); } },
-      { label: 'Rebet', key: 'r', cls: 'ghost', on: () => { t.rebet(); sync(); } },
+      { label: 'Rebet', key: 'r', cls: 'ghost', after: () => sync(), on: () => { t.rebet(); sync(); } },
       { label: '🎲 Roll', key: ' ', cls: 'primary', on: roll },
     ]);
   }
@@ -111,7 +129,7 @@ GAMES.craps = (() => {
     resolve(n, a, b);
     st.shooterRolls++;
     t.finishRound({ stamina: 0.35 });
-    sync(); idle();
+    idle(); sync();
     t.msg(lastMsg);
   }
 

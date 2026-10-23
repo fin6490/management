@@ -253,7 +253,7 @@ const CHAPTERS = [
       { who: 'doc', text: 'Make some real money first. **$25,000**. Then we\'ll talk about Kessler.' },
     ],
     outro: [
-      { who: 'doc', text: 'Twenty-five grand. Sal\'d be proud. Alright: Augustus Kessler. Owns the Monte Royale, owns half the town. He bought Sal\'s note from Vinnie and took the Rusty Spur.' },
+      { who: 'doc', text: 'Twenty-five grand. Sal\'d be proud. Alright: Augustus Kessler. Owns the Monte Royale, owns half the town. He won the Rusty Spur off Sal in a private game at his Salon. Sal never lost a bar in his life before that night.' },
       { who: 'margot', text: 'Talking about Augustus? Darling, everyone is. I\'m Margot. I run the floor at **The Gilded Palace**. You look like someone who could use a bigger table.' },
       { who: 'margot', text: 'Come by. Wear something worth looking at: a **Tailored Tuxedo**, at minimum. And bring a little swagger.' },
     ],
@@ -268,7 +268,7 @@ const CHAPTERS = [
     ],
     outro: [
       { who: 'margot', text: 'Platinum and a quarter million. I made the call. The Salon expects you.' },
-      { who: 'kessler', text: 'So you\'re the nephew. Sal used to sit exactly where you\'re standing, right before he lost everything.' },
+      { who: 'kessler', text: 'So you\'re Sal\'s kid. Sal used to sit exactly where you\'re standing, right before he lost everything.' },
       { who: 'kessler', text: 'I\'ll sell you the Rusty Spur. For **one million dollars**. Or win it from me: I host the **Salon Invitational** on every night that ends in seven. Only the best players are invited.' },
       { who: 'narrator', text: 'Kessler\'s smile doesn\'t reach his eyes. Whatever happened to Sal at that table, the answer is somewhere in this town. (🔎 Case file.)' },
     ],
@@ -400,6 +400,7 @@ const Career = {
   canPlay() {
     if (!this.needsOn()) return null;
     const st = App.state;
+    if ((st.clock || 540) >= 1680) return 'It\'s 4 AM and the night is over. Get some sleep (motel, hotel, home or a park bench).';
     if (st.stamina <= 0) return 'You\'re exhausted. Get some sleep (or an energy drink).';
     if (st.hunger <= 0) return 'You\'re starving. Go get something to eat.';
     if (st.thirst <= 0) return 'You\'re parched. Get a drink first.';
@@ -407,10 +408,12 @@ const Career = {
   },
   // drain the bars. kind = 'round' (k = rounds) or 'step'
   drain(kind, k = 1) {
+    const was = App.state ? (App.state.clock || 540) : 0;
     if (App.state) App.state.clock = (App.state.clock || 540) + (kind === 'round' ? 2 : 0.25) * k;
     if (!this.needsOn()) return;
+    if (was < 1560 && App.state.clock >= 1560) UI.toast('🌙 It\'s 2 AM. The night ends at 4: find a bed before then.', 'warn');
     const st = App.state, starving = st.hunger <= 0 || st.thirst <= 0;
-    const r = kind === 'round' ? { h: 0.8, t: 1.2, e: 1 } : { h: 0.04, t: 0.05, e: 0.02 };
+    const r = kind === 'round' ? { h: 0.45, t: 0.6, e: 0.8 } : { h: 0.04, t: 0.05, e: 0.02 };
     const before = { hunger: st.hunger, thirst: st.thirst, stamina: st.stamina };
     st.hunger = Math.max(0, st.hunger - r.h * k);
     st.thirst = Math.max(0, st.thirst - r.t * k);
@@ -434,7 +437,11 @@ const Career = {
     if (!free && !App.debit(m.price)) { UI.toast('Not enough cash', 'warn'); return false; }
     if (m.hunger) st.hunger = clamp(st.hunger + m.hunger, 0, 100);
     if (m.thirst) st.thirst = clamp(st.thirst + m.thirst, 0, 100);
-    if (m.energy) st.stamina = clamp(st.stamina + m.energy, 0, st.staminaMax + 40);
+    if (m.energy) {
+      let e = m.energy;
+      if (e > 0 && m.energy >= 20) { st.today.boosts = (st.today.boosts || 0) + 1; if (st.today.boosts > 2) { e = Math.round(e / (st.today.boosts - 1)); UI.toast(`⚡ Diminishing returns: only +${e} energy. Your body wants sleep.`, 'warn'); } }
+      st.stamina = clamp(st.stamina + e, 0, st.staminaMax + 40);
+    }
     SFX.cash(); UI.toast(`${m.icon} ${m.name}${free ? ' (comped)' : ''}`, 'good');
     App.save(); Router.hud(); return true;
   },
@@ -559,10 +566,12 @@ const Career = {
   // if you're broke, Dolores always has a shift
   async oddJob() {
     const st = App.state;
+    if (st.today.shift) { UI.toast('Dolores only has one shift a day, sugar. Come back tomorrow.', 'warn'); return; }
     if (st.stamina < 40) { UI.toast('You\'re too tired to work a shift', 'warn'); return; }
+    if ((st.clock || 540) > 1680 - 480) { UI.toast('Too late to start an eight-hour shift tonight', 'warn'); return; }
     const pay = 120 + st.chapter * 80;
     st.stamina -= 40; st.hunger = Math.max(0, st.hunger - 15); st.thirst = Math.max(0, st.thirst - 15);
-    App.credit(pay); App.count('shifts');
+    App.credit(pay); App.count('shifts'); st.today.shift = true; st.clock = (st.clock || 540) + 480;
     await UI.dialog([{ who: 'dolores', text: `Grab an apron, sugar. Eight hours of washing glasses: **${fmt(pay)}** cash, and your feet will hate you.` }]);
     App.save(); Router.hud();
   },

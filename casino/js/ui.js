@@ -18,12 +18,12 @@ const FACE_GLYPH = { 11: '♞', 12: '♛', 13: '♚' };
 UI.card = function (card, faceDown = false) {
   const red = isRed(card.s), sym = SUIT_SYM[card.s], lab = rankLabel(card.r);
   const face = h('div.face');
-  const corner = cls => h('div.corner.' + cls, h('span.cr', lab), h('span.cs', sym));
+  const corner = cls => h('div.corner.' + cls, h('span.cr' + (lab.length > 1 ? '.ten' : ''), lab), h('span.cs', sym));
   face.append(corner('tl'), corner('br'));
   if (card.r === 14) face.append(h('div.ace', sym));
   else if (card.r > 10) face.append(h('div.court', h('div.court-in', h('span.glyph', FACE_GLYPH[card.r]), h('span.court-l', lab), h('span.court-s', sym))));
   else {
-    const pips = h('div.pips');
+    const pips = h('div.pips' + (card.r >= 9 ? '.many.dense' : card.r >= 7 ? '.many' : ''));
     for (const [x, y] of PIP_LAYOUT[card.r]) pips.append(h('span.pip' + (y > 55 ? '.flip' : ''), { style: { left: x + '%', top: y + '%' } }, sym));
     face.append(pips);
   }
@@ -148,7 +148,7 @@ class BetSpot {
   settle(back, cls, text, note) {
     const wager = this.amount;
     if (back > 0) App.credit(back);
-    this.table && this.table.addResult(wager, back);
+    this.table && this.table.addResult(wager, back, this, note);
     this.amount = 0; this.history = [];
     this.flash(cls, text, note, back);
     return back;
@@ -164,9 +164,10 @@ class BetSpot {
       const st = UI.stack(back); st.classList.add('payout'); this.stackEl.append(st);
       setTimeout(() => st.remove(), 1100 * App.speedFactor());
     }
-    clearTimeout(this._mark); this._mark = setTimeout(() => this.el.classList.remove('won', 'lost', 'pushed'), 2600 * App.speedFactor());
+    const slow = Math.max(1, App.speedFactor()); // results stay readable even in turbo
+    clearTimeout(this._mark); this._mark = setTimeout(() => this.el.classList.remove('won', 'lost', 'pushed'), 3200 * slow);
     const f = h('div.float.' + cls, text, note ? h('small', note) : null);
-    this.el.appendChild(f); setTimeout(() => f.remove(), 2200 * App.speedFactor());
+    this.el.appendChild(f); setTimeout(() => f.remove(), 2600 * slow);
   }
 }
 UI.BetSpot = BetSpot;
@@ -175,13 +176,14 @@ UI.BetSpot = BetSpot;
 class Table {
   constructor(root, game, ctx) {
     this.game = game; this.ctx = ctx; this.spots = {}; this.chip = ctx.chips[1] || ctx.chips[0];
-    this.round = { wagered: 0, returned: 0 };
+    this.round = { wagered: 0, returned: 0 }; this.session = { main: 0, side: 0 }; this.roundLog = [];
     const felt = App.state.equipped.felt || 'green';
     this.el = h('div.table-screen',
       h('div.table-top',
         h('button.btn.ghost.sm', { onclick: () => Router.leaveTable() }, '← Leave table'),
         h('div.tt-title', h('b', game.name), h('span', `${ctx.venue.name} · ${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`)),
         h('div.tt-right',
+          this.plEl = h('div.pl'),
           this.extraEl = h('div.tt-extra'),
           h('button.btn.ghost.sm.talk', { onclick: () => Chat.open(Dealers.spec(ctx.venueId, game.id, this)), title: 'Chat with the dealer' }, '💬 ' + Dealers.name(ctx.venueId, game.id)),
           h('button.btn.ghost.sm', { onclick: () => this.showInfo() }, 'Paytables'))),
@@ -192,13 +194,14 @@ class Table {
         this.body = h('div.felt-body'),
         this.banner = h('div.banner')),
       h('div.controls',
+        this.resultsEl = h('div.results'),
         this.msgEl = h('div.msg'),
         h('div.ctl-row',
           this.rack = h('div.rack'),
           this.actionsEl = h('div.actions'))));
     root.appendChild(this.el);
     UI.shoeEl = this.shoe;
-    this.renderRack();
+    this.renderRack(); this.renderPL();
   }
   renderRack() {
     this.rack.innerHTML = '';
@@ -211,6 +214,8 @@ class Table {
   spot(opts) { const s = new BetSpot({ ...opts, table: this }); this.spots[opts.key] = s; return s; }
   msg(t) { this.msgEl.innerHTML = ''; this.msgEl.append(typeof t === 'string' ? document.createTextNode(t) : t); }
   setActions(list) {
+    const rb = list.findIndex(a => a && a.label === 'Rebet');
+    if (rb >= 0 && !list.some(a => a && a.label === '×2')) list = list.slice(0, rb + 1).concat([{ label: '×2', key: 'x', cls: 'ghost', title: 'Double every bet on the table', on: () => { this.doubleBets(); const r = list[rb]; if (r && r.after) r.after(); } }], list.slice(rb + 1));
     this.actions = list;
     this.actionsEl.innerHTML = '';
     for (const a of list) {
@@ -240,18 +245,46 @@ class Table {
     this.banner.className = 'banner show ' + cls; this.banner.textContent = text;
     clearTimeout(this._bt); this._bt = setTimeout(() => this.banner.classList.remove('show'), ms * App.speedFactor());
   }
-  addResult(wager, back) { this.round.wagered += wager; this.round.returned += back; }
+  addResult(wager, back, spot, note) {
+    if (this._roundDone) { this._roundDone = false; this.roundLog = []; this.renderResults(); }
+    this.round.wagered += wager; this.round.returned += back;
+    if (spot && spot.o.noComp) this.round.noComp = (this.round.noComp || 0) + wager; // zero-edge bets earn no comps
+    if (spot && wager > 0) {
+      const side = /\b(side|prog)\b/.test(spot.o.cls || '') || !!spot.o.sideBet;
+      (this.roundLog = this.roundLog || []).push({ label: spot.o.label, note, net: round2(back - wager), side });
+      this.renderResults();
+    }
+  }
+  // what every bet did this round; stays up until the next round's bets settle
+  renderResults() {
+    if (!this.resultsEl) return;
+    this.resultsEl.innerHTML = '';
+    for (const r of this.roundLog || []) {
+      const cls = r.net > 0 ? 'won' : r.net < 0 ? 'lost' : 'push';
+      this.resultsEl.append(h('span.res.' + cls + (r.side ? '.side' : ''), h('b', r.label), r.note && !/^(win|lose|push)$/i.test(r.note) ? h('em', r.note) : null,
+        h('i', r.net > 0 ? '+' + fmt(r.net) : r.net < 0 ? '−' + fmt(-r.net) : 'push')));
+    }
+  }
+  renderPL() {
+    if (!this.plEl) return;
+    const S = this.session, f = v => (v >= 0 ? '+' : '−') + fmt(Math.abs(v), { short: true }), c = v => v > 0 ? '.pos' : v < 0 ? '.neg' : '';
+    this.plEl.innerHTML = '';
+    this.plEl.append(h('span.pl-l', 'Session'), h('span.pl-v' + c(S.main), h('small', 'Main'), f(S.main)), h('span.pl-v' + c(S.side), h('small', 'Side'), f(S.side)),
+      h('span.pl-v.tot' + c(S.main + S.side), h('small', 'Total'), f(S.main + S.side)));
+  }
   // called by games when every bet is settled
   finishRound(extra = {}) {
     const r = this.round; this.round = { wagered: 0, returned: 0 };
     const net = round2(r.returned - r.wagered);
     if (r.wagered > 0) { this.sessionRounds = (this.sessionRounds || 0) + 1; this.sessionNet = round2((this.sessionNet || 0) + net); }
+    for (const x of this.roundLog || []) { if (x.counted) continue; x.counted = true; if (x.side) this.session.side = round2(this.session.side + x.net); else this.session.main = round2(this.session.main + x.net); }
+    this._roundDone = true; this.renderPL();
     if (r.wagered > 0) {
       if (net > 0) { this.showBanner('WIN ' + fmt(net), 'win'); net >= 20 * this.ctx.limits.min ? SFX.big() : SFX.win(); }
       else if (net < 0) { this.showBanner('LOSE ' + fmt(-net), 'lose', 1200); SFX.lose(); }
       else this.showBanner('PUSH', 'push', 1000);
     }
-    App.roundDone(this.game.id, { wagered: r.wagered, returned: r.returned, net, ...extra });
+    App.roundDone(this.game.id, { wagered: r.wagered, returned: r.returned, net, compWagered: round2(r.wagered - (r.noComp || 0)), ...extra });
     Rivals.afterRound(this, { net });
     return net;
   }
@@ -262,6 +295,11 @@ class Table {
   rebet() {
     const b = App.state.lastBets[this.game.id]; if (!b) return UI.toast('No previous bet', 'warn');
     for (const k in b) { const s = this.spots[k]; if (s && !s.locked && !s.amount) { if (!s.force(b[k])) { UI.toast('Not enough for full rebet', 'warn'); break; } s.o.onChange && s.o.onChange(s); } }
+  }
+  doubleBets() {
+    const live = Object.values(this.spots).filter(s => !s.locked && !s.o.passive && !s.o.fixed && s.amount > 0);
+    if (!live.length) { this.rebet(); if (!Object.values(this.spots).some(s => !s.locked && s.amount > 0)) return; return this.doubleBets(); }
+    for (const s of live) { if (!s.place(s.amount)) break; }
   }
   clearBets(keys) { for (const k of keys || Object.keys(this.spots)) this.spots[k] && !this.spots[k].locked && this.spots[k].clear(); }
   totalOn(keys) { return (keys || Object.keys(this.spots)).reduce((a, k) => a + (this.spots[k] ? this.spots[k].amount : 0), 0); }
@@ -317,6 +355,7 @@ UI.meter = function (key, label) {
 };
 
 /* ---------- Toasts and modals ---------- */
+UI.esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 UI.toast = function (msg, type = '') {
   let box = $('#toasts'); if (!box) { box = h('div#toasts'); document.body.append(box); }
   const t = h('div.toast.' + (type || 'info'), msg); box.append(t);
@@ -327,8 +366,8 @@ UI.modal = function ({ title, body, buttons, wide, closable = true, cls }) {
   let closer;
   const p = new Promise(resolve => {
     const close = v => { bg.remove(); document.removeEventListener('keydown', esc); resolve(v); };
-    const esc = e => { if (e.key === 'Escape' && closable) close(null); };
-    const box = h('div.modal' + (wide ? '.wide' : '') + (cls ? '.' + cls : ''),
+    const esc = e => { if (e.key !== 'Escape' || !closable) return; const all = $$('.modal-bg'); if (all[all.length - 1] !== bg) return; e.stopImmediatePropagation(); close(null); }; // only the top modal closes
+    const box = h('div.modal' + (wide ? '.wide' : '') + (cls ? '.' + cls : ''), { role: 'dialog', 'aria-modal': 'true', 'aria-label': typeof title === 'string' ? title : 'Dialog' },
       title ? h('div.modal-h', h('h2', title), closable ? h('button.x', { onclick: () => close(null), 'aria-label': 'Close' }, '×') : null) : null,
       h('div.modal-b', typeof body === 'string' ? h('p', body) : body),
       buttons ? h('div.modal-f', buttons.map(b => h('button.btn' + (b.cls ? '.' + b.cls : ''), { disabled: b.disabled, onclick: () => close(b.value !== undefined ? b.value : b.label) }, b.label))) : null);
@@ -350,7 +389,7 @@ UI.dialog = async function (lines, choices) {
     const text = typeof L.text === 'function' ? L.text() : L.text;
     const body = h('div.dialog',
       h('div.portrait', { style: { background: ch.color } }, ch.face),
-      h('div.d-text', h('div.d-name', ch.name), h('p', { html: text.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') })));
+      h('div.d-text', h('div.d-name', ch.name), h('p', { html: UI.esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') })));
     const btns = last && choices ? choices.map(c => ({ label: c.label, value: c.value, cls: c.cls || 'primary' })) : [{ label: last ? 'Okay' : 'Next ›', cls: 'primary', value: 'next' }];
     const v = await UI.modal({ body, buttons: btns, closable: false, cls: 'dlg' });
     if (last && choices) return v;

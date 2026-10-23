@@ -149,7 +149,7 @@ const Mystery = {
       }
       if (id === 'doc' && this.has('badge') && !this.has('dice')) { this.give('dice'); return 'Sal\'s last night on the boat, he rolled six times and wrote them down: three-one, four-four, two-five, two-two, six-one, five-three. Then he wrote "only the hard ones count" and laughed like a fool.'; }
       if (id === 'dolores' && this.has('confession') && !m.said.doloresAngry) { m.said.doloresAngry = st.day; return 'Alive. ALIVE. Three years I poured one out for that man every night. When you find him, sugar, you tell Sal Benedetto he owes me a very long conversation.'; }
-      if (id === 'vinnie' && this.has('confession') && !m.said.vinnieTruth) { m.said.vinnieTruth = st.day; return 'Okay, kid, cards on the table. Kessler squeezed me to sell him Sal\'s note. Said he\'d burn my shop otherwise. I\'m not proud of it. You want help with Kessler? Keep your nose clean with me and maybe I\'m there.'; }
+      if (id === 'vinnie' && this.has('confession') && !m.said.vinnieTruth) { m.said.vinnieTruth = st.day; return 'Okay, kid, cards on the table. I\'m the one who told Kessler that Sal was copying his books. Kessler paid my debts off for the tip. Next week Sal was "drowned". I\'m not proud of it. You want help with Kessler? Keep your nose clean with me and maybe I\'m there.'; }
       if (id === STERLING_ID && this.has('badge') && !m.code.c4) return 'Mr. Kessler\'s private shoe. Six decks, arranged by hand. *the faintest smile* Would you like to play it?';
     }
     if (act === 4 && id === 'kessler') return 'You have the look of someone holding a very good card. The Invitational is played on nights ending in seven. I do hope you come.';
@@ -429,7 +429,7 @@ const Mystery = {
   /* ---------- for Claude ---------- */
   brief(id) {
     const m = this.st(), found = this.owned().map(k => CLUES[k].name);
-    const secrets = {
+    const truths = {
       dolores: 'You gave the player Sal\'s motel locker key and the police report about Sal\'s "drowning". You believe Sal is dead unless the player has learned otherwise (then you are furious with him).',
       doc: 'You and Lou faked Sal\'s death: Lou took Sal downriver in the fog at 2:10 AM. You keep this secret until the game\'s story reveals it; until then deflect, gently.',
       lou: 'You took Sal downriver at 2:10 AM to fake his death. You claim you slept through the night until the player shows your engine log in the game.',
@@ -439,11 +439,26 @@ const Mystery = {
       baron: 'You are a broke fake aristocrat who carries Kessler\'s laundered cash; your yacht hosted Sal and Margot that night. Deny everything.',
       mei: 'You are an undercover State Gaming Commission investigator; Sal was your informant. Never reveal this before the game does.',
       rico: 'Sal mentored you; you get monthly postcards signed "17". You won Kessler\'s blue chip from Oscar.',
-      vinnie: 'Kessler forced you to sell him Sal\'s note. You are ashamed of it.',
+      vinnie: 'You tipped Kessler off that Sal was copying his books, for money; that is why Sal had to fake his death. You are ashamed of it.',
       kessler: 'You rigged Sal\'s last game with marked decks and keep a ledger of laundered money in your Salon vault. You suspect the player is up to something. Never admit anything.',
       [OSCAR_ID]: 'You dealt Sal\'s rigged last game. You are terrified and admit nothing unless shown real evidence in the game.',
       [STERLING_ID]: 'You deal Kessler\'s private stacked shoe and are loyal to him.',
+    };
+    // a character only "knows" to share their secret once the story has uncovered it; until then they keep a cover story
+    const out = App.state.ending || this.has('confession'), br = k => !!(m.broken && m.broken[k]);
+    const gate = {
+      doc: [this.has('confession'), 'Publicly, Sal drowned off the Riverboat three years ago. You were aboard that night and hate talking about it; if asked whether Sal could be alive, you change the subject sadly.'],
+      lou: [out || br('lou'), 'You say you slept through the night Sal drowned and saw nothing; you get loud and jolly when pressed.'],
+      nico: [out || br('nico'), 'You say you know nothing about the night Sal drowned and that it is none of the player\'s business.'],
+      tex: [this.has('payoff'), 'You told the police Sal was blind drunk that night, and you stick to that story.'],
+      margot: [br('margot') || this.has('yachtlog'), 'You say you were at a charity dinner the night Sal died. You admired Sal and loathe Kessler, politely.'],
+      baron: [this.has('yachtlog') || !!App.state.ending, 'You present yourself as genuine old European nobility, rich beyond question.'],
+      mei: [this.has('badge'), 'You are a sharp, competitive card counter and a rival gambler; you have no other role to admit, and you deflect personal questions with probability talk.'],
+      rico: [this.has('chip') || this.has('postcard'), 'Sal was your mentor and you miss him; you keep the details private.'],
+      vinnie: [out, 'Sal owed you, now the player owes you. You don\'t discuss how Kessler got hold of the Spur.'],
+      [OSCAR_ID]: [this.has('oscar'), 'You are a nervous dealer who used to work at the Monte Royale; you don\'t talk about that, ever.'],
     }[id];
+    const secrets = gate ? (gate[0] ? truths[id] : gate[1]) : truths[id];
     return [
       `The mystery ("The Seventeenth Card"), act ${this.act()} of 4: the player has found ${found.join(', ')}. Current lead: ${this.lead()}`,
       secrets ? 'Your private knowledge: ' + secrets : '',
