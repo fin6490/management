@@ -1,0 +1,13 @@
+{
+  "name": "11% Hunter",
+  "target_odds": 9.0,
+  "odds_tolerance": 1.0,
+  "bankroll": 50,
+  "base": 1.0,
+  "stop_balance_above": 100,
+  "stop_balance_below": null,
+  "rules": [
+    {"on": "loss", "mode": "every", "n": 1, "action": "reset"},
+    {"on": "loss", "mode": "every", "n": 4, "action": "inc", "value": 100}
+  ]
+}
