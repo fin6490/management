@@ -290,7 +290,8 @@ const Screens = {
       }
     };
     main.append(h('div.shop', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'),
-      h('div', h('h2', '🛍️ Lucky Strike Outfitters'), h('p.muted', '"If you look like a high roller, the comps follow." — the sign in the window'))),
+      h('div', h('h2', '🛍️ Lucky Strike Outfitters'), h('p.muted', '"If you look like a high roller, the comps follow." — the sign in the window')),
+      h('button.btn.sm.ghost', { onclick: () => Chat.open(Crowd.staff('rosa')) }, '💬 Talk to Rosa')),
       tabs, grid));
     render();
   },

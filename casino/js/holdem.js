@@ -411,13 +411,24 @@ const Holdem = (() => {
     el = {};
     main.append(h('div.pk',
       h('div.table-top', h('button.btn.ghost.sm', { onclick: async () => { if (await UI.confirm('Leave the tournament?', 'You\'ll be blinded out: you finish in the current last place, and win a prize only if that place is in the money.', 'Leave')) { T.quit = true; T.fast = true; if (resolveMe) resolveMe({ type: 'fold' }); } } }, '← Leave'),
-        el.info = h('div.tt-title'), h('div.pk-ff', h('label.small', { title: 'After you fold, the rest of the hand plays out quickly' }, h('input', { type: 'checkbox', checked: App.state.settings.pkSkip !== false, onchange: e => { App.state.settings.pkSkip = e.target.checked; App.save(); } }), ' Auto-skip after I fold'),
+        el.info = h('div.tt-title'), h('button.btn.ghost.sm', { onclick: tableTalk }, '💬 Table talk'), h('div.pk-ff', h('label.small', { title: 'After you fold, the rest of the hand plays out quickly' }, h('input', { type: 'checkbox', checked: App.state.settings.pkSkip !== false, onchange: e => { App.state.settings.pkSkip = e.target.checked; App.save(); } }), ' Auto-skip after I fold'),
           h('button.btn.ghost.sm', { onclick: () => { if (T) T.fast = true; } }, '⏩ Fast-forward'))),
       h('div.pk-felt', el.seats = h('div.pk-seats'), h('div.pk-center', el.board = h('div.cards.board'), el.pot = h('div.pk-pot'))),
       h('div.controls', h('div.pk-mine', 'Your hand: ', el.myhand = h('b')), el.ctl = h('div.pk-ctl'), el.log = h('div.pk-log'))));
     render(); renderLog();
     log(`Welcome to the ${T.def.name}. ${T.entrants} players, ${fmtc(T.def.stack)} chips each. Shuffle up and deal!`);
     run();
+  }
+  // chat with someone at your table between actions
+  async function tableTalk() {
+    if (!T) return;
+    const others = T.seats.filter(p => p && !p.me && p.stack > 0);
+    let pick = null;
+    const body = h('div.menu-list', others.map(p => h('div.menu-row', h('span.mi', p.face || '🃏'), h('div.mn', h('b', p.name), h('small', `${fmtc(p.stack)} chips${p.styleName ? ' · plays ' + p.styleName : ''}`)),
+      h('button.btn.sm', { onclick: () => { pick = p; dlg.close(); } }, '💬 Talk'))));
+    const dlg = UI.modal({ title: '💬 Who do you want to talk to?', body });
+    await dlg;
+    if (pick && T) Chat.open(Crowd.pokerOpp(pick, T));
   }
   // the Back Room door at the Spur
   function spots(m) {

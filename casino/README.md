@@ -180,14 +180,19 @@ go up to $1,000,000 a hand.
 
 ## AI chat
 
-Every character and dealer can talk back in their own voice, and they know the story so far.
+Everyone in town can talk back in their own voice: story characters, rivals, dealers (the 💬 button
+at any table), the staff behind every counter (Mel, Raj at the Quik-Stop, the bartenders, Darlene at
+the motel, Mr. Pemberton at the Grand, Rosa at the Outfitters), the townsfolk and the regulars by the
+tables, and your darts and poker opponents (💬 Talk and 💬 Table talk). They know the story so far,
+your bankroll and needs, what they sell, and the state of the game you're playing.
 
 - **On claude.ai** (the published artifact): nothing to set up. The first time you chat, Claude asks
   for permission to answer from your account.
 - **The installed app or GitHub Pages version**: you need your own Anthropic API key.
   1. Sign in at console.anthropic.com, add a payment method and buy some credits under Billing.
   2. Create a key under API Keys.
-  3. In the game, open ☰ → AI chat, paste the key and press **Test**.
+  3. In the game, open ☰ → AI chat (or press **Set up AI chat** in any chat window), paste the key
+     and press **Test**. Each phone or browser needs the key once.
 
   Each reply costs roughly 1 to 2 cents. The key stays in that browser and is never saved into save
   files or exports.

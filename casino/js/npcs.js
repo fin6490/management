@@ -493,7 +493,7 @@ const Chat = {
     const note = h('p.muted.small.chat-note');
     const form = h('form.chat-form', input, send);
     const mode = await this.backend();
-    if (!mode) { input.disabled = send.disabled = true; note.textContent = 'To chat freely, add a Claude API key from console.anthropic.com in ☰ → AI chat.'; }
+    if (!mode) { input.disabled = send.disabled = true; note.append('To ask questions in your own words, connect Claude. ', h('button.btn.sm.primary', { type: 'button', onclick: () => { pop.close(); setTimeout(() => this.settings(), 50); } }, '💬 Set up AI chat')); }
     else note.textContent = mode === 'sample' ? 'Replies come from Claude on your account.' : 'Replies come from Claude using your API key.';
     let ctl = null;
     form.addEventListener('submit', async e => {
@@ -559,9 +559,14 @@ const Chat = {
     const body = inSample
       ? h('div', h('p', 'This copy runs inside claude.ai, so characters reply using your Claude account. Claude asks your permission the first time.'))
       : h('div',
-        h('p', 'Talk to anyone in town in your own words. Characters reply with Claude, using an API key from your Anthropic account (console.anthropic.com → API keys).'),
+        h('p', 'Talk to anyone in town in your own words: story characters, rivals, dealers, bar staff, shopkeepers, the regulars at the tables, even your darts and poker opponents. They reply with Claude, using your own Anthropic API key.'),
+        h('ol.steps',
+          h('li', 'Go to ', h('a', { href: 'https://console.anthropic.com', target: '_blank', rel: 'noopener' }, 'console.anthropic.com'), ' and sign in (or sign up).'),
+          h('li', 'Under ', h('b', 'Billing'), ', add a payment method and buy some credits ($5 lasts a long time).'),
+          h('li', 'Under ', h('b', 'API Keys'), ', press ', h('b', 'Create Key'), ' and copy it. It starts with sk-ant-.'),
+          h('li', 'Paste it below and press ', h('b', 'Test'), '. Dolores should answer.')),
         h('label.lbl', { for: 'ai-key' }, 'Claude API key'), key,
-        h('p.muted.small', 'The key stays in this browser only: it is never put in save files or exports. Chat messages are billed to your Anthropic account; each reply is a short message.'),
+        h('p.muted.small', 'The key stays in this browser only: it is never put in save files or exports. Replies are billed to your Anthropic account, roughly 1 to 2 cents each. Each phone or browser needs the key pasted once. Playing inside claude.ai instead needs no key at all.'),
         status);
     const choice = await UI.modal({ title: '💬 AI chat', body, buttons: inSample ? [{ label: 'Done', cls: 'primary' }] : [{ label: 'Remove key', value: 'clear', cls: 'ghost' }, { label: 'Test', value: 'test' }, { label: 'Save', value: 'save', cls: 'primary' }] });
     if (choice === 'clear') { this.setKey(''); UI.toast('API key removed', 'good'); }
@@ -611,5 +616,100 @@ const Dealers = {
         return `You deal ${g.name} at ${v.name}; limits ${fmt(v.limits.min)} to ${fmt(v.limits.max)}. Table rules and paytables: ${info}\n${sitting}\nAs the dealer you may explain rules, payouts and basic strategy, and chat. You never know or reveal hidden cards or what comes next, and you never help anyone cheat.`;
       },
     };
+  },
+};
+
+/* ======================= everyone else in town ======================= */
+// staff behind every counter, the townsfolk, the regulars at the tables, and the people you play
+// darts and poker against: each gets a name and a personality so Claude can speak for them
+const STAFF = {
+  mel: { name: 'Mel', face: '👩‍🍳', color: '#b5651d', role: 'owner and cook at Mel\'s Diner', persona: 'Gruff, big-hearted diner owner in her sixties with a pencil behind her ear. Calls everyone "hon". Fed Sal on credit for years and still makes the best cherry pie in town (Doc on the Riverboat is addicted to it). Gives blunt life advice and refills coffee without asking.' },
+  raj: { name: 'Raj', face: '🧑‍💼', color: '#2e86c1', role: 'night clerk at the Quik-Stop', persona: 'Philosophy grad student working the Quik-Stop register. Deadpan, curious, quotes Stoics at gamblers, and is a genuine expert on which energy drink actually works. Thinks the lottery is a tax on hope but sells tickets anyway.' },
+  philippe: { name: 'Philippe', face: '🤵', color: '#5b2c16', role: 'maître d\' at the Prime Cut Steakhouse', persona: 'Impeccably snobbish maître d\'. Judges guests by their shoes and their watch, thaws instantly for big spenders, and secretly grew up on the same street as the Rusty Spur. Recommends the lobster with total sincerity.' },
+  skip: { name: 'Skip Thibodeaux', face: '🧔', color: '#1f5f8b', role: 'bartender in the Paddlewheel Lounge on Lucky Lou\'s Riverboat', persona: 'Easygoing Cajun bartender with river stories for every occasion. Loves Lucky Lou like an uncle, distrusts anyone in a suit, and knows which craps shooters are hot tonight.' },
+  vivienne: { name: 'Vivienne', face: '💃', color: '#8a6a24', role: 'head bartender at the Chandelier Bar in the Gilded Palace', persona: 'Glamorous, sharp-tongued bartender who hears every secret on the Strip. Adores Margot, can\'t stand the Baron\'s foreign-coin tips, and gossips in a whisper with a wink.' },
+  ash: { name: 'Mr. Ash', face: '🍸', color: '#1d1a14', role: 'bartender at the Monte Royale Salon Privé', persona: 'Silver-haired, utterly discreet bartender in Kessler\'s private salon. Speaks in a low, careful voice, never says Kessler\'s name aloud, and is quietly afraid of him. Notices everything; says little unless trusted.' },
+  darlene: { name: 'Darlene', face: '👩‍🦳', color: '#7d3c98', role: 'night manager at the Starlite Motel', persona: 'Chain-smoking motel manager with a beehive and a heart of gold. Has seen everything twice. Remembers Sal checking in "for one night" that lasted a month, and keeps the buzzing sign on because it reminds her of him.' },
+  pemberton: { name: 'Mr. Pemberton', face: '🎩', color: '#34495e', role: 'head concierge at the Grand Hotel', persona: 'Fastidious English concierge who can get anything: show tickets, a tailor at midnight, a discreet doctor. Unfailingly polite, faintly disapproving of gambling, and delighted by guests who say please.' },
+  rosa: { name: 'Rosa Bianchi', face: '🛍️', color: '#c0392b', role: 'owner of Lucky Strike Outfitters, which sells clothes, cars, gear and even the casino deeds', persona: 'Fast-talking, warm Italian-American shopkeeper who could sell sand in the desert. Proud of her stock, always upselling ("with that suit? You need the watch"), and keeps Kessler\'s deeds in a locked drawer she taps when she mentions them.' },
+};
+// which staff member stands behind which counter
+const STAFF_AT = { diner: 'mel', store: 'raj', steak: 'philippe', bar_riverboat: 'skip', bar_palace: 'vivienne', bar_salon: 'ash', motel: 'darlene', grand: 'pemberton', shop: 'rosa' };
+const TOWNSFOLK = [
+  { name: 'Marge Pettibone', face: '👵', persona: 'Retired schoolteacher who plays the progressive meters on her pension and tracks every jackpot in a spiral notebook. Sweet, sharp and very competitive.' },
+  { name: 'Hector Ruiz', face: '👨‍🍳', persona: 'Line cook at Mel\'s on his smoke break. Funny, tired, and thinks the pie is the only honest thing in town.' },
+  { name: 'Dot Kowalski', face: '🙍‍♀️', persona: 'Nosy neighbour who watches the street from her window and knows exactly who owes Vinnie money. Loves to share, pretends she doesn\'t.' },
+  { name: 'Lonnie "Dice" Price', face: '🎲', persona: 'Craps junkie who blows on dice, talks in systems and has been "one roll away" for fifteen years. Endlessly optimistic.' },
+  { name: 'Old Pete', face: '🧓', persona: 'Homeless philosopher who sleeps in Lucky Park. Once a high roller himself. Gentle, wise, a bit cryptic, and he knows the park benches like hotel rooms.' },
+  { name: 'Wendell Fisk', face: '🧳', persona: 'Hapless tourist from Ohio with a fanny pack and a lucky rabbit\'s foot that has never once worked. Asks the player for tips constantly.' },
+  { name: 'Captain Bo', face: '⚓', persona: 'Retired riverboat deckhand who worked for Lucky Lou for thirty years. Salty, loyal, full of tall tales about the river and the boat\'s heyday.' },
+  { name: 'Priya Shah', face: '👩‍⚕️', persona: 'Night-shift nurse walking home. Has patched up enough Salon regulars to know Kessler\'s place eats people. Kind, tired, no-nonsense.' },
+];
+const REGULARS = {
+  spur: [
+    { name: 'Dusty Rhodes', face: '🤠', persona: 'Long-haul trucker who counts cards badly and loudly. Friendly, superstitious about his hat.' },
+    { name: 'Rhonda Biggs', face: '💅', persona: 'Bingo-hall queen trying table games for the first time. Loud laugh, huge earrings, asks the dealer everything.' },
+    { name: 'Skeeter', face: '🧢', persona: 'College kid gambling his textbook money. Overconfident, says "trust the process" a lot.' },
+    { name: 'Big Al Moretti', face: '🐻', persona: 'Vinnie\'s cousin, a gentle giant who just likes the free peanuts. Warns people off borrowing from his family.' },
+  ],
+  riverboat: [
+    { name: 'Colonel Beauregard', face: '🎖️', persona: 'Courtly Southern gentleman with a white suit and a cane, who has played the Riverboat since 1971 and tells stories about Sal\'s best nights.' },
+    { name: 'Fanny Mae Dupree', face: '👒', persona: 'Widow in a big hat spending her late husband\'s money with great joy. Flirty, generous, lucky.' },
+    { name: 'Tito Vargas', face: '😎', persona: 'Smooth-talking salesman on a "business trip". Always on the phone with his wife saying he\'s at a conference.' },
+    { name: 'Agnes Pruitt', face: '📿', persona: 'Church organist who plays exactly one hour of baccarat every Thursday and prays before every hand.' },
+  ],
+  palace: [
+    { name: 'Chad Whitmore III', face: '🛥️', persona: 'Trust-fund heir who tips with poker chips and calls everyone "bro". Not as dumb as he acts.' },
+    { name: 'Madame Zora', face: '🔮', persona: 'Self-proclaimed psychic who reads the shoe like tea leaves. Theatrical, mysterious, occasionally right.' },
+    { name: 'Barbara Glass', face: '🍸', persona: 'Hard-nosed divorce lawyer celebrating a settlement. Witty, competitive, sizes people up in seconds.' },
+    { name: 'Mr. Tanaka', face: '🧑‍💼', persona: 'Quiet engineer who plays perfect basic strategy and keeps a spreadsheet on his phone. Polite, precise, dry humour.' },
+  ],
+  salon: [
+    { name: 'The Countess', face: '👑', persona: 'Elderly European aristocrat dripping in pearls who has gambled in every salon in the world. Imperious, bored, secretly kind to newcomers.' },
+    { name: 'Mr. Grey', face: '🕴️', persona: 'Silent whale in a grey suit who bets six figures without blinking. Speaks rarely and cryptically. Seems to know Kessler well.' },
+    { name: 'Viktor Orlov', face: '🥃', persona: 'Brash shipping magnate who hates losing and loves vodka. Loud, theatrical, sore loser, generous winner.' },
+    { name: 'Lady Ashcombe', face: '🦢', persona: 'Glamorous former film star who plays only roulette, only on red, and remembers Sal as "a darling scoundrel".' },
+  ],
+};
+const DARTS_PERSONA = {
+  benny: 'Lovable barfly in a stained bowling shirt, permanently three beers in. Talks a huge game and can barely hit the board. Good loser.',
+  sheila: 'Fast-throwing, trash-talking ex-rodeo rider. Cocky, funny, and secretly respects anyone who beats her.',
+  prof: 'Retired maths professor who explains the probability of every dart. Pompous, precise, and mortified when he misses.',
+  'Dutch Joost': 'Kessler\'s ringer: a smug Dutch darts pro flown in every year to win the Golden Arrow. Polite in a needling way. Still claims his 1989 bounce-out against Sal counted.',
+};
+const Crowd = {
+  base(id, name, face, color, role, persona, opener, brief) {
+    return { id, name, face, color: color || '#445', role, subtitle: role.charAt(0).toUpperCase() + role.slice(1), persona, opener: typeof opener === 'function' ? opener : () => opener, brief };
+  },
+  staff(key) {
+    const s = STAFF[key], P = Object.keys(STAFF_AT).find(k => STAFF_AT[k] === key);
+    const brief = () => {
+      const st = App.state, place = PLACES[P];
+      if (place) return `You serve: ${place.items.map(i => `${MENU[i].name} ${fmt(MENU[i].price)}`).join(', ')}.${place.comp ? ' Drinks are comped for players who have been gambling here today.' : ''} You can only talk; to buy, the player uses your menu.`;
+      if (key === 'rosa') return `In stock (name: price): ${Object.keys(ITEMS).filter(k => !st.items[k] && !Career.itemAvailable(k)).slice(0, 40).map(k => `${ITEMS[k].name}: ${fmt(ITEMS[k].price)}`).join('; ')}. The player already owns: ${Object.keys(st.items).filter(k => st.items[k] && ITEMS[k]).map(k => ITEMS[k].name).join(', ') || 'nothing'}. You can recommend things, but the player buys from the shop screen.`;
+      const L = LODGING[P]; return L ? `Rooms here: ${L.name}, ${L.cost ? fmt(L.cost) + ' a night' : 'free'}. ${L.text}` : '';
+    };
+    return this.base('staff:' + key, s.name, s.face, s.color, s.role, s.persona, () => (PLACES[P] && PLACES[P].line) || (LODGING[P] && `Welcome to the ${LODGING[P].name}.`) || 'What can I do for you?', brief);
+  },
+  townsfolk(i, line) {
+    const t = TOWNSFOLK[i % TOWNSFOLK.length];
+    return this.base('town:' + (i % TOWNSFOLK.length), t.name, t.face, '#556b2f', 'a local out on the street', t.persona, line || 'Nice night for it.', () => 'You are out on the street in town. You know local gossip but nothing about the hidden mystery beyond rumours.');
+  },
+  regular(venueId, i, line) {
+    const pool = REGULARS[venueId] || REGULARS.spur, r = pool[i % pool.length];
+    return this.base(`regular:${venueId}:${i % pool.length}`, r.name, r.face, '#4a3b6b', `a regular gambler at ${VENUES[venueId].name}`, r.persona, line || 'Pull up a chair.', () => `You are standing by the tables at ${VENUES[venueId].name}, between hands.`);
+  },
+  dartsOpp(opp, M) {
+    const ctx = () => { const [me, op] = M.players; return `You are mid-match against the player at darts: ${M.title}. Score: player ${me.legs} legs, you ${op.legs} legs; player needs ${me.rem}, you need ${op.rem}. Trash talk, banter and darts tips are all fair game.`; };
+    if (opp.rival) return { ...Chat.spec(opp.rival), brief: ctx };
+    const key = Object.keys(Darts.OPPONENTS).find(k => Darts.OPPONENTS[k].name === opp.name);
+    const persona = DARTS_PERSONA[key] || DARTS_PERSONA[opp.name] || (opp.name.startsWith('Mick') ? NPCS.mick.persona : `A darts player in the Golden Arrow knockout at the Rusty Spur, with a ${opp.sigma < 14 ? 'strong' : opp.sigma < 19 ? 'decent' : 'shaky'} throw.`);
+    return this.base('darts:' + opp.name, opp.name, opp.face, '#2e7d32', 'your darts opponent at the Rusty Spur', persona, (key && Darts.OPPONENTS[key].line) || 'Game on.', ctx);
+  },
+  pokerOpp(p, T) {
+    const style = p.styleName || 'regular';
+    const ctx = () => `You are in ${T.def.name}, a no-limit hold'em tournament, level ${T.level + 1}. Your stack: ${Math.round(p.stack).toLocaleString()} chips; the player's stack: ${Math.round((T.seats.find(q => q && q.me) || {}).stack || 0).toLocaleString()}. You never reveal your hole cards or give the player real information about your hand.`;
+    if (p.rival) return { ...Chat.spec(p.rival), brief: ctx };
+    return this.base('poker:' + p.name, p.name, p.face || '🃏', '#0b4022', `a ${style} poker player in the Back Room tournament`, `Poker tournament grinder with a ${style} style. Chatty at the table in the way poker players are: needling, superstitious, full of bad-beat stories. Never reveals their actual cards.`, 'Shuffle up and deal.', ctx);
   },
 };
