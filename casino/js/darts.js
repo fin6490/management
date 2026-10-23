@@ -139,7 +139,7 @@ const Darts = (() => {
           el.hint = h('div.dt-hint'),
           el.aims = h('div.dt-aims'),
           el.throwBtn = h('button.btn.primary.dt-throw', { onclick: e => { e.currentTarget.blur(); release(); } }, '🎯 Throw', h('kbd', 'Space')),
-          h('p.muted.small.dt-help', 'Point at the board (or tap a bed above), then throw when the wobbling sight crosses your target. On a phone, drag on the board and lift your finger to throw; the sight floats above your finger.'),
+          h('p.muted.small.dt-help', 'Two taps per dart: first stop the sweeping pointer on the number you want, then stop the marker as it runs in to the bull and back out. The outer thin ring is the double, the inner thin ring the treble. Tap the board, press Space, or use the button.'),
           el.arm = h('p.muted.small'),
           el.log = h('div.dt-log'))));
     main.append(wrap);
@@ -165,7 +165,7 @@ const Darts = (() => {
     const [me, op] = M.players;
     if (M.bullUp !== false) {
       say(`Bull up: closest to the bullseye throws first.`);
-      M.aimText = 'Throw one dart at the bull'; setAim('BULL');
+      M.aimText = 'Throw one dart at the bull';
       const a = await myDart(); stop(); stick(a, true); const da = Math.hypot(a.x, a.y);
       await sleep(450);
       M.aimText = `${op.name} throws for the bull`; renderSide();
@@ -250,7 +250,6 @@ const Darts = (() => {
     while (me.target <= 21) {
       M.visit = []; M.stuck = [];
       for (let k = 0; k < 3 && me.target <= 21; k++) {
-        setAim(me.target === 21 ? 'BULL' : 'S' + me.target, true);
         const pos = await myDart(); stop(); stick(pos, true); me.thrown++; st().xp++; st().darts++;
         const sc = score(pos.x, pos.y); M.visit.push(sc);
         const want = me.target === 21 ? 25 : me.target;
@@ -307,41 +306,40 @@ const Darts = (() => {
   }
 
   /* ---------- your throws ---------- */
+  // the sweeps speed up when your arm is shaky and slow down as it steadies
+  const sweep = () => { const k = clamp(wobble() / 22, .6, 1.6); return { deg: 110 * k, mm: 130 * k }; };
   function myDart() {
-    return new Promise(res => { I.waiting = true; I.resolve = res; I.seed = Math.random() * 20; I.t0 = performance.now(); renderSide(); });
+    return new Promise(res => { I.waiting = true; I.resolve = res; I.stage = 'angle'; I.a0 = Math.random() * 360; I.t0 = performance.now(); renderSide(); });
   }
-  function sightNow() {
-    const t = (performance.now() - I.t0) / 1000, a = wobble(), w = sway(t, a, I.seed);
-    return { x: I.aim.x + w.x, y: I.aim.y + w.y };
+  // where the pointer is right now: angle in degrees clockwise from the top, radius in mm from the bull
+  function angleNow() { return (I.a0 + sweep().deg * (performance.now() - I.t0) / 1000) % 360; }
+  function radiusNow() {
+    const span = R.dOut + 8, d = sweep().mm * (performance.now() - I.t0) / 1000 % (2 * span);
+    return d < span ? span - d : d - span; // from the rim in to the bull, then back out
   }
+  const polar = (deg, r) => ({ x: Math.sin(deg * Math.PI / 180) * r, y: -Math.cos(deg * Math.PI / 180) * r });
   function release() {
-    if (!I.waiting || !M || performance.now() - I.t0 < 250) return;
-    const s = sightNow(), n = noise(wobble());
+    if (!I.waiting || !M) return;
+    const now = performance.now();
+    if (I.stage === 'angle') {
+      if (now - I.t0 < 200) return;
+      I.angle = angleNow(); I.stage = 'radius'; I.t0 = now; SFX.click(); renderSide(); return;
+    }
+    if (now - I.t0 < 150) return;
+    const r = radiusNow(), n = noise(wobble()) * .35, p = polar(I.angle, r);
     I.waiting = false; I.touching = false;
     SFX.chip();
-    I.resolve({ x: s.x + gauss() * n, y: s.y + gauss() * n });
+    I.resolve({ x: p.x + gauss() * n, y: p.y + gauss() * n });
   }
-  function setAim(bed, quiet) { const p = spot(bed); I.aim = { x: p.x, y: p.y }; if (!quiet) renderSide(); }
   const bedName = t => t === 'BULL' ? 'the bull' : t === '25' ? 'the 25' : t[0] === 'T' ? 'treble ' + t.slice(1) : t[0] === 'D' ? 'double ' + t.slice(1) : t.slice(1);
 
   function bindInput() {
-    const cv = el.cv;
-    const toMM = (e, lift) => { const r = cv.getBoundingClientRect(), k = r.width / (2 * R.back); return { x: (e.clientX - r.left - r.width / 2) / k, y: (e.clientY - r.top - r.height / 2 - (lift ? 64 : 0)) / k }; };
-    cv.addEventListener('pointermove', e => { if (!I.waiting) return; if (e.pointerType === 'mouse' || I.touching) I.aim = toMM(e, e.pointerType !== 'mouse'); });
-    cv.addEventListener('pointerdown', e => {
-      if (!I.waiting) return;
-      if (e.pointerType === 'mouse') { if (e.button === 0) { I.aim = toMM(e); release(); } return; }
-      I.touching = true; I.aim = toMM(e, true); cv.setPointerCapture(e.pointerId); e.preventDefault();
-    });
-    cv.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse' && I.touching) { I.touching = false; release(); } });
-    cv.addEventListener('pointercancel', () => { I.touching = false; });
+    // a tap or click anywhere on the board stops the sweep
+    el.cv.addEventListener('pointerdown', e => { if (!I.waiting || (e.pointerType === 'mouse' && e.button !== 0)) return; e.preventDefault(); release(); });
   }
   document.addEventListener('keydown', e => {
     if (Router.screen !== 'darts' || !M || !I.waiting || document.querySelector('.modal-bg')) return;
-    const step = e.shiftKey ? 12 : 3;
-    const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
-    if (mv) { I.aim.x += mv[0]; I.aim.y += mv[1]; e.preventDefault(); }
-    else if (e.key === ' ' || e.key === 'Enter') { release(); e.preventDefault(); }
+    if (e.key === ' ' || e.key === 'Enter') { release(); e.preventDefault(); }
   });
 
   /* ---------- drawing ---------- */
@@ -387,12 +385,26 @@ const Darts = (() => {
         c.restore();
       }
       if (I.waiting) {
-        const s = sightNow(), r = 8 * dpr;
-        c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5 * dpr; c.beginPath(); c.arc(X(I.aim.x), X(I.aim.y), 3 * dpr, 0, 7); c.stroke();
-        c.lineWidth = 3.5 * dpr; c.strokeStyle = 'rgba(0,0,0,.7)'; c.beginPath(); c.arc(X(s.x), X(s.y), r, 0, 7); c.stroke();
-        c.lineWidth = 2 * dpr; c.strokeStyle = '#fff'; c.beginPath(); c.arc(X(s.x), X(s.y), r, 0, 7);
-        c.moveTo(X(s.x) - r * 1.7, X(s.y)); c.lineTo(X(s.x) - r * .5, X(s.y)); c.moveTo(X(s.x) + r * .5, X(s.y)); c.lineTo(X(s.x) + r * 1.7, X(s.y));
-        c.moveTo(X(s.x), X(s.y) - r * 1.7); c.lineTo(X(s.x), X(s.y) - r * .5); c.moveTo(X(s.x), X(s.y) + r * .5); c.lineTo(X(s.x), X(s.y) + r * 1.7); c.stroke();
+        const ang = I.stage === 'angle' ? angleNow() : I.angle, rim = polar(ang, R.back - 4), hub = polar(ang, 0);
+        // the aiming line from the bull to the rim, glowing while it sweeps
+        c.lineCap = 'round';
+        c.strokeStyle = I.stage === 'angle' ? 'rgba(255, 233, 168, .95)' : 'rgba(255, 233, 168, .45)'; c.lineWidth = (I.stage === 'angle' ? 3.5 : 2) * dpr;
+        c.shadowColor = 'rgba(255, 210, 90, .9)'; c.shadowBlur = I.stage === 'angle' ? 12 * dpr : 0;
+        c.beginPath(); c.moveTo(X(hub.x), X(hub.y)); c.lineTo(X(rim.x), X(rim.y)); c.stroke(); c.shadowBlur = 0;
+        // an arrowhead riding the rim
+        const tip = polar(ang, R.back - 2), l = polar(ang - 4, R.back - 20), rr = polar(ang + 4, R.back - 20);
+        c.fillStyle = '#ffe9a8'; c.beginPath(); c.moveTo(X(tip.x), X(tip.y)); c.lineTo(X(l.x), X(l.y)); c.lineTo(X(rr.x), X(rr.y)); c.closePath(); c.fill();
+        if (I.stage === 'radius') {
+          const pt = polar(ang, radiusNow()), r = 9 * dpr;
+          c.lineWidth = 3.5 * dpr; c.strokeStyle = 'rgba(0,0,0,.75)'; c.beginPath(); c.arc(X(pt.x), X(pt.y), r, 0, 7); c.stroke();
+          c.lineWidth = 2 * dpr; c.strokeStyle = '#fff'; c.beginPath(); c.arc(X(pt.x), X(pt.y), r, 0, 7);
+          c.moveTo(X(pt.x) - r * 1.6, X(pt.y)); c.lineTo(X(pt.x) + r * 1.6, X(pt.y)); c.moveTo(X(pt.x), X(pt.y) - r * 1.6); c.lineTo(X(pt.x), X(pt.y) + r * 1.6); c.stroke();
+          // name the bed under the marker so doubles and trebles are easy to read
+          const sc = score(pt.x, pt.y);
+          c.font = `800 ${14 * dpr}px system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom';
+          c.lineWidth = 4 * dpr; c.strokeStyle = 'rgba(0,0,0,.85)'; c.strokeText(sc.label, X(pt.x), X(pt.y) - r * 1.8);
+          c.fillStyle = sc.mult === 3 ? '#7dffae' : sc.mult === 2 ? '#ffd34d' : '#fff'; c.fillText(sc.label, X(pt.x), X(pt.y) - r * 1.8);
+        }
       }
     }
     requestAnimationFrame(frame);
@@ -427,14 +439,10 @@ const Darts = (() => {
     }
     if (!hint && M.mode === 'atc') hint = me.target === 21 ? 'Now the bull!' : `Next: ${me.target}`;
     el.hint.textContent = hint || '';
-    el.aims.innerHTML = '';
-    if (I.waiting) {
-      const beds = ['T20', 'T19', 'BULL'];
-      if (M.mode === 'x01') { const co = checkout(me.rem, 3 - M.visit.length); const t = co ? co[0] : setup(me.rem, 3 - M.visit.length); if (!beds.includes(t)) beds.unshift(t); }
-      if (M.mode === 'atc') beds.splice(0, 3, me.target === 21 ? 'BULL' : 'S' + me.target, me.target === 21 ? '25' : 'T' + me.target);
-      for (const b of beds) el.aims.append(h('button.btn.sm.ghost', { onclick: () => setAim(b) }, b === 'BULL' ? 'Bull' : b[0] === 'S' ? 'Big ' + b.slice(1) : b));
-    }
+    el.aims.textContent = !I.waiting ? '' : I.stage === 'angle' ? '① Tap to stop the pointer on your number' : '② Tap to stop the marker: in for the bull, out for the doubles';
+    el.aims.className = 'dt-aims' + (I.waiting ? ' ' + I.stage : '');
     el.throwBtn.disabled = !I.waiting;
+    el.throwBtn.firstChild.textContent = I.waiting && I.stage === 'radius' ? '🎯 Throw ' : '🎯 Lock angle ';
     const a = wobble();
     el.arm.textContent = `Your arm: ${armLabel(a)}${App.state.mode === 'career' && App.state.stamina / (App.state.staminaMax || 100) < .5 ? ' (tired: shakier)' : ''}`;
   }
@@ -560,5 +568,5 @@ const Darts = (() => {
   }
 
   return { ORDER, R, score, spot, value, checkout, setup, aiThrow, sway, gauss, OPPONENTS, RIVAL_SIGMA, BRACKET_NAMES, st, wobble, armLabel, noise, simLeg,
-    match, screen, lobby, spots, active, goldenArrow, _M: () => M, _I: I, _release: release };
+    match, screen, lobby, spots, active, goldenArrow, _M: () => M, _I: I, _release: release, _aim: () => ({ stage: I.stage, angle: I.waiting && I.stage === 'angle' ? angleNow() : I.angle, radius: I.waiting && I.stage === 'radius' ? radiusNow() : null }) };
 })();

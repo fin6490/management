@@ -176,9 +176,10 @@ const Slots = (() => {
       const m = SLOT_MACHINES[venueId], ms = meters(venueId), vol = m.b * 1500 * (.5 + RNG.float());
       for (const t of MYSTERY) {
         const x = ms[t.key]; x.v += t.rate * vol;
-        if (x.v >= x.trig) {
+        // strangers hit it as often as the night's play carries it past a trigger; never leave a meter parked just under one
+        for (let guard = 0; x.v >= x.trig && guard < 20; guard++) {
           const amt = Math.round(x.trig * 100) / 100, over = x.v - x.trig;
-          Object.assign(x, fresh(t, m.b)); x.v = Math.min(x.trig - .01, x.v + over * .5);
+          Object.assign(x, fresh(t, m.b)); x.v += over * .5;
           if (t.key !== 'copper') App.news(`🎰 Overnight, a ${RNG.pick(['retired dentist', 'bus-tour grandma', 'lucky tourist', 'off-duty dealer', 'honeymooner'])} hit ${m.name}'s ${t.name} jackpot at ${VENUES[venueId].name} for ${fmt(amt)}.`);
         }
       }
@@ -188,7 +189,7 @@ const Slots = (() => {
   function heat(venueId, bet) {
     const m = SLOT_MACHINES[venueId], ms = meters(venueId);
     let ev = SLOT_RTP;
-    for (const t of MYSTERY) { const x = ms[t.key], room = t.cap * m.b - x.v, inc = t.rate * bet; const p = Math.min(1, inc / Math.max(room, 1e-9)); ev += p * (x.v + inc / 2) / bet; }
+    for (const t of MYSTERY) { const x = ms[t.key], room = t.cap * m.b - x.v, inc = t.rate * bet; const p = Math.min(1, inc / Math.max(room, 1e-9)); ev += p * (p >= 1 ? (x.v + t.cap * m.b) / 2 : x.v + inc / 2) / bet; }
     return ev;
   }
 
@@ -300,7 +301,7 @@ const Slots = (() => {
       let win = b.ev.total * B;
       if (b.ev.sc >= 3) b.ev.wins.scat = true;
       highlight(b.grid, b.ev.wins);
-      if (win > 0) { await countUp(win, B); App.credit(win); paid += win; }
+      if (win > 0) { App.credit(win); paid += win; await countUp(win, B); }
       else el.msg.textContent = '';
       if (b.ev.sc >= 3) { feature = true; paid += await freeSpins(M.FS_AWARD[Math.min(5, b.ev.sc)], B); }
       if (b.ev.orbs >= 6) { feature = true; paid += await holdSpin(b.grid, B); }
@@ -331,11 +332,14 @@ const Slots = (() => {
   async function freeSpins(n, B) {
     const s = st(); s.fs++; App.count('slotFS');
     banner(`⭐ ${n} FREE SPINS! ⭐`, 'fs', 2200); SFX.big(); await sleep(2000);
+    // resolve every free spin up front and bank the result, so closing the app mid-feature can't lose it
+    const plays = []; let owed = 0;
+    for (let k = n; k > 0 && plays.length < 300; k--) { const f = M.spinFree(Math.random); plays.push(f); owed += f.ev.total * B; if (f.ev.sc >= 3) k += 8; }
+    owed = Math.min(owed, M.CAP * B); App.credit(owed); App.save(); Router.hud();
     let total = 0, i = 0;
-    while (n > 0 && i < 300) {
+    for (const f of plays) {
       i++; n--;
-      el.msg.textContent = `FREE SPIN ${i} · ${n} left · won ${money(total)}`;
-      const f = M.spinFree(Math.random);
+      el.msg.textContent = `FREE SPIN ${i} · ${Math.max(0, n)} left · won ${money(total)}`;
       await animate(f.grid, f.mults);
       if (f.ev.sc >= 3) f.ev.wins.scat = true;
       highlight(f.grid, f.ev.wins);
@@ -344,16 +348,17 @@ const Slots = (() => {
       if (f.ev.sc >= 3) { n += 8; banner('⭐ +8 FREE SPINS! ⭐', 'fs', 1800); await sleep(1500); }
       await sleep(350);
     }
-    total = Math.min(total, M.CAP * B);
+    total = owed;
     await countUp(total, B);
     banner(`Free spins paid ${money(total)}`, 'fs', 2200);
-    App.credit(total); await sleep(900);
+    await sleep(900);
     return total;
   }
   async function holdSpin(grid, B) {
     const s = st(); s.hs++; App.count('slotHS');
     banner('🪙 HOLD & SPIN! 🪙', 'hs', 2000); SFX.big(); await sleep(1800);
     const res = M.holdAndSpin(Math.random, grid);
+    App.credit(res.total * B); App.save(); Router.hud(); // banked before the show
     // replay: start with the triggering orbs, then each respin round
     const shown = grid.map(col => col.map(g => g === M.O));
     const paint = () => { for (let r = 0; r < 5; r++) for (let k = 0; k < 3; k++) { const c = el.cells[r][k], v = res.cells[r][k]; c.className = 'sl-cell ' + (shown[r][k] ? 'orb' : 'empty'); c.innerHTML = ''; if (shown[r][k]) c.append(h('span.g', SLOT_MACHINES[V].orb), h('b.ov' + (typeof v === 'string' ? '.jpv' : ''), typeof v === 'string' ? v : money(v * B))); } };
@@ -370,7 +375,7 @@ const Slots = (() => {
     if (res.full) { s.grand++; App.count('slotGrand'); banner(`👑 GRAND JACKPOT! ${money(M.JP.GRAND * B)}`, 'jackpot', 3500); SFX.big(); await sleep(2500); Quests.bump('slots4'); }
     const total = res.total * B;
     await countUp(total, B);
-    App.credit(total); await sleep(900);
+    await sleep(900);
     return total;
   }
 
@@ -389,10 +394,10 @@ const Slots = (() => {
       const choice = await UI.modal({ title: '🃏 Double or nothing', body: h('div', h('p', `Stake: ${money(amount)}. Guess the colour of the next card: right doubles it, wrong loses it.`), h('p.muted.small', 'A fair 50/50: this doesn\'t change the machine\'s return.')),
         buttons: [{ label: `Collect ${money(amount)}`, value: 'take', cls: 'ghost' }, { label: '♥ Red', value: 'red' }, { label: '♠ Black', value: 'black', cls: 'primary' }] });
       if (choice !== 'red' && choice !== 'black') break;
-      App.debit(amount);
+      if (!App.debit(amount)) break;
       const red = Math.random() < .5, card = (red ? ['♥', '♦'] : ['♠', '♣'])[RNG.int(2)];
-      if ((choice === 'red') === red) { amount *= 2; App.credit(amount); UI.toast(`${card} ${red ? 'Red' : 'Black'}! Now ${money(amount)}`, 'good'); SFX.chip(); }
-      else { UI.toast(`${card} ${red ? 'Red' : 'Black'}. Gone.`, 'warn'); amount = 0; break; }
+      if ((choice === 'red') === red) { st().won += amount; amount *= 2; App.credit(amount); UI.toast(`${card} ${red ? 'Red' : 'Black'}! Now ${money(amount)}`, 'good'); SFX.chip(); }
+      else { st().won -= amount; UI.toast(`${card} ${red ? 'Red' : 'Black'}. Gone.`, 'warn'); amount = 0; break; }
     }
     if (el) el.msg.textContent = amount ? `COLLECTED ${money(amount)}` : 'Lost the gamble.';
     App.save(); Router.hud();

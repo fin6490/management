@@ -98,7 +98,9 @@ const App = {
   },
   deleteSlot(i) { try { localStorage.removeItem(this.slotKey(i)); } catch (e) { } },
   exportSave() {
-    const blob = new Blob([JSON.stringify(this.state, null, 1)], { type: 'application/json' });
+    // conversations can quote your personal details, so they stay in this browser and out of exports
+    const out = { ...this.state, chats: {} };
+    const blob = new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' });
     const a = h('a', { href: URL.createObjectURL(blob), download: `high-roller-${this.state.name.replace(/\W+/g, '_')}-day${this.state.day}.json` });
     document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   },
@@ -139,8 +141,9 @@ const App = {
     s.rounds++; s.wagered = round2(s.wagered + r.wagered); s.returned = round2(s.returned + r.returned);
     const g = s.perGame[gameId] || (s.perGame[gameId] = { rounds: 0, wagered: 0, net: 0 });
     g.rounds++; g.wagered = round2(g.wagered + r.wagered); g.net = round2(g.net + r.net);
-    st.today.wagered = round2(st.today.wagered + r.wagered); st.today.net = round2(st.today.net + r.net); st.today.rounds++;
-    st.today.byVenue = st.today.byVenue || {}; st.today.byVenue[st.venue] = round2((st.today.byVenue[st.venue] || 0) + r.wagered);
+    const cw = r.compWagered != null ? r.compWagered : r.wagered; // what the players club rates
+    st.today.wagered = round2(st.today.wagered + cw); st.today.net = round2(st.today.net + r.net); st.today.rounds++;
+    st.today.byVenue = st.today.byVenue || {}; st.today.byVenue[st.venue] = round2((st.today.byVenue[st.venue] || 0) + cw);
     if (r.net > s.biggestWin) s.biggestWin = r.net;
     if (r.wagered > 0) {
       if (r.net > 0) { s.streak = Math.max(0, s.streak) + 1; s.bestStreak = Math.max(s.bestStreak, s.streak); }

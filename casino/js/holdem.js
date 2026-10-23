@@ -291,7 +291,11 @@ const Holdem = (() => {
   async function run() {
     while (!T.over) {
       // eliminations at your table
-      for (const p of T.seats) if (p && p.stack <= 0 && !p.place) { eliminate(p); if (!p.me) log(`💀 ${p.name} is out in ${ordinal(p.place)}.`); }
+      // players busted on the same hand: the one who started it with more chips finishes higher
+      const out = T.seats.filter(p => p && p.stack <= 0 && !p.place).sort((a, b) => (b.total || 0) - (a.total || 0));
+      let nextPlace = alive() + out.length;
+      for (const p of out.slice().reverse()) { p.stack = 0; p.place = nextPlace--; T.busted.push(p); }
+      for (const p of out) if (!p.me) log(`💀 ${p.name} is out in ${ordinal(p.place)}.`);
       const me = T.seats.find(p => p && p.me);
       if (me.stack <= 0) { await finish(me.place); return; }
       if (alive() === 1) { await finish(1); return; }
@@ -315,8 +319,11 @@ const Holdem = (() => {
     if (place <= 9 && T.entrants > 9) App.count('finalTables');
     // rivals collect their results too
     const everyone = T.seats.filter(Boolean).concat(T.field, T.busted);
+    // whoever is still in when you finish takes the places above yours, biggest stack first
+    const left = T.seats.filter(p => p && !p.me && p.stack > 0 && !p.place).concat(T.field.filter(p => p.stack > 0 && !p.place)).sort((a, b) => b.stack - a.stack);
+    left.forEach((p, i) => { p.place = i + 1; });
     for (const p of everyone) if (p.rival) {
-      const pl = p.place || (p.stack > 0 ? (place === 1 ? 2 : 1) : T.entrants);
+      const pl = p.place || T.entrants;
       const rp = pl <= pays.length ? Math.round(T.pool * pays[pl - 1]) : 0;
       if (rp) { st.rivals[p.rival].bank += rp; st.rivals[p.rival].net += rp - T.def.buyin; }
       else st.rivals[p.rival].net -= T.def.buyin;

@@ -37,12 +37,12 @@ const NPCS = {
   },
   vinnie: {
     role: 'loan shark who runs the Pawn & Loan in Old Town; Sal owed him',
-    persona: 'Smooth, menacing, theatrical Italian-American businessman. Calls the player "kid". Never raises his voice; talks about interest like poetry. Respects people who pay. Secretly sold Sal\'s note to Kessler. Has a feud with Tex Calhoun, who owes him money.',
+    persona: 'Smooth, menacing, theatrical Italian-American businessman. Calls the player "kid". Never raises his voice; talks about interest like poetry. Respects people who pay. Secretly tipped Kessler off that Sal was copying his books, which is why Sal had to disappear; deeply ashamed of it. Has a feud with Tex Calhoun, who owes him money.',
     lines: [
       ['Three percent a day, kid. Compounding. Isn\'t math beautiful?', 'You walk past my shop, you think about Sal\'s marker. That\'s just good business.'],
       ['You paid. I respect that. Need another loan? My door\'s open. The interest is too.', 'Tex Calhoun owes me. You see him at a table, you take him for a ride, yeah?'],
       ['The Palace crowd. Fancy. Don\'t forget who floated you when you were nobody.'],
-      ['Kessler, huh? Between us, kid, I sold him Sal\'s note. Business. Nothing personal.'],
+      ['Kessler, huh? Rich men like him don\'t lose. Ask Sal. Oh wait. Business, kid. Nothing personal.'],
       ['One percent, for you. Kidding. Mostly.'],
     ],
   },
@@ -99,7 +99,7 @@ const NPCS = {
   },
   kessler: {
     role: 'owner of the Monte Royale Salon Privé and Kessler Holdings, who took Sal\'s bar',
-    persona: 'Cold, cultured, condescending billionaire in his sixties. Speaks in precise, quiet sentences. Believes the house always wins. Respects only results. Took the Rusty Spur from Sal by buying his debt. Offers to sell the deed for one million dollars won at his tables.',
+    persona: 'Cold, cultured, condescending billionaire in his sixties. Speaks in precise, quiet sentences. Believes the house always wins. Respects only results. Took the Rusty Spur from Sal at a private game in his Salon (rigged, though he would never admit it). Offers to sell the deed for one million dollars won at his tables.',
     lines: [
       ['I don\'t believe we\'ve met. I\'m sure we never will.'],
       ['Every bet in this room could buy a house. Most of them do. For me.'],
@@ -226,10 +226,12 @@ const Rivals = {
     t.seatsEl.innerHTML = '';
     for (const s of t.rivals || []) {
       const r = App.state.rivals[s.id], ch = CHARACTERS[s.id];
-      const el = h('div.seat' + (s.last === 'win' || s.last === 'big' ? '.won' : s.last === 'lose' ? '.lost' : ''), { 'data-rival': s.id, title: `Talk to ${ch.name} between hands from the casino floor` },
+      const talk = () => Chat.open({ ...Chat.spec(s.id), brief: () => `You are sitting at the ${t.game.name} table at ${t.ctx.venue.name}, right next to the player, mid-session. Your last hand: ${s.last ? s.last + (s.lastAmt ? ' ' + fmt(s.lastAmt) : '') : 'no result yet'}. The player has played ${t.sessionRounds || 0} rounds here and is ${(t.sessionNet || 0) >= 0 ? 'up' : 'down'} ${fmt(Math.abs(t.sessionNet || 0))}. Table talk: needle them, brag, or share a tip, in character.` });
+      const el = h('div.seat.talkable' + (s.last === 'win' || s.last === 'big' ? '.won' : s.last === 'lose' ? '.lost' : ''), { 'data-rival': s.id, title: `Talk to ${ch.name}`, role: 'button', tabindex: 0, onclick: talk, onkeydown: e => { if (e.key === 'Enter') talk(); } },
         h('div.seat-face', { style: { background: ch.color } }, ch.face),
         h('div.seat-info', h('b', ch.name.replace(/^.*"(.+)".*$/, '$1').replace('Baron Felix von Hollow', 'The Baron')), h('span', fmt(r.bank, { short: true })),
           s.bet ? h('em', (s.last === 'win' || s.last === 'big' ? '+' : s.last === 'lose' ? '−' : '') + fmt(s.lastAmt || s.bet, { short: true })) : null),
+        h('span.seat-talk', '💬'),
         s.bubble ? h('div.seat-bubble', s.bubble) : null);
       t.seatsEl.append(el);
     }
@@ -443,9 +445,19 @@ const Chat = {
     render();
     return box;
   },
+  // where the story stands, so no one talks as if it is still day one after the ending
+  frame() {
+    const e = App.state.ending;
+    if (e === 'justice') return 'the story is over. Kessler was arrested by the Gaming Commission, Uncle Sal turned out to be alive and is back behind the bar of the Rusty Spur (now called Sal\'s), and the player owns it free and clear.';
+    if (e === 'takeover') return 'the story is over. The player beat Kessler and took over his empire instead of turning him in; Sal, alive after all, is disappointed in them.';
+    if (e === 'doublecross') return 'the story is over. Margot double-crossed everyone and took Kessler\'s empire; Sal, alive after all, is back in town.';
+    if (e) return 'the story is over; the player\'s run against Kessler ended badly, but the tables are still open.';
+    const knows = typeof Mystery !== 'undefined' && Mystery.has('confession');
+    return `the player inherited Uncle Sal's debt to loan shark Vinnie after Sal ${knows ? 'faked his own death (the player now knows he is secretly alive)' : 'apparently drowned three years ago'}, and is working up from the Rusty Spur to win back Sal's bar from Augustus Kessler, who won it from Sal in a crooked game.`;
+  },
   rules(sp) {
     return [
-      `You are ${sp.name}, ${sp.role}, in "High Roller", a casino game with a story: the player inherited their late Uncle Sal's debt to loan shark Vinnie, and is working up from the Rusty Spur to buy back Sal's bar from Augustus Kessler.`,
+      `You are ${sp.name}, ${sp.role}, in "High Roller", a casino game with a story: ${this.frame()}`,
       `Your personality: ${sp.persona}`,
       `What's going on right now:\n${this.worldBrief(sp.id)}${sp.brief ? '\n' + sp.brief() : ''}`,
       Mystery.brief(sp.id),
