@@ -148,6 +148,7 @@ const PLACES = {
   diner: { name: "Mel's Diner", icon: '🍳', who: 'Mel', line: 'Sit anywhere, hon. Coffee\'s fresh-ish.', items: ['coffee', 'breakfast', 'burger', 'pie', 'shake'] },
   store: { name: 'Quik-Stop', icon: '🏪', who: 'Clerk', line: 'Lottery tickets are behind the counter. Kidding. We\'re sold out.', items: ['water', 'soda', 'energy', 'candy', 'sandwich'] },
   steak: { name: 'Prime Cut Steakhouse', icon: '🥩', who: 'Maître d\'', line: 'Your table is ready. It has been ready since you walked in looking like money.', items: ['steak', 'lobster', 'wine', 'water'] },
+  vending: { name: 'Vending machine', icon: '🥤', line: 'It hums. It accepts crumpled dollars, eventually.', items: ['soda', 'candy', 'water'] },
   bar_spur: { name: 'Spur Bar', icon: '🍺', npc: 'dolores', usual: true, venue: 'spur', comp: true, job: true, line: 'What\'ll it be, sugar?', items: ['beer', 'whiskey', 'soda', 'nachos', 'water'] },
   bar_riverboat: { name: 'Paddlewheel Lounge', icon: '🍹', venue: 'riverboat', comp: true, line: 'Welcome aboard. Drinks are on the house for players.', items: ['cocktail', 'beer', 'coffee', 'shrimp', 'water'] },
   bar_palace: { name: 'Chandelier Bar', icon: '🥂', venue: 'palace', comp: true, line: 'Champagne, darling?', items: ['champagne', 'espresso', 'buffet', 'water'] },

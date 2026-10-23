@@ -342,12 +342,13 @@ const Cast = {
     const ch = st.chapter;
     const person = (who, x, y, look, extra = {}) => out.push({ x, y, dir: 'down', who, name: CHARACTERS[who].name, look, dyn: true, story: !RIVALS[who], rival: !!RIVALS[who], ...extra });
     if (m.id === 'town') {
-      person('vinnie', 14, 30, { shirt: '#1d1d1d', pants: '#1d1d1d', skin: '#e0ac69', hair: '#111', shades: true, chain: true });
       if (career && ((App.debt > 0 && st.loans.some(l => l.strikes > 0 || (l.due && l.due - st.day <= 3))) || (Mystery.act() === 2 && Mystery.has('report')))) person('nico', 9, 30, { shirt: '#555', pants: '#333', skin: '#c68863', hair: '#222' }, { wander: true, home: [9, 30] });
       person('lou', 45, 21, { shirt: '#1f5f8b', pants: '#f4f4f4', skin: '#f0c19a', hair: '#ddd', hat: true });
       const spots = [[22, 17], [33, 33], [8, 33], [40, 20]];
       Object.keys(RIVALS).forEach((id, i) => { if (career && st.rivals && Rivals.where(id) === 'town') person(id, spots[i][0], spots[i][1], RIVALS[id].look, { wander: true, home: spots[i] }); });
     }
+    // Vinnie leans on the safe at the end of his own counter
+    if (m.id === 'r:pawn') person('vinnie', 11, 3, { shirt: '#1d1d1d', pants: '#1d1d1d', skin: '#e0ac69', hair: '#111', shades: true, chain: true }, { dir: 'down' });
     if (m.venue === 'spur') person('sparky', 22, 14, { shirt: '#d35400', pants: '#2c3e50', skin: '#e0ac69', hair: '#5a3a22', hat: true }, { dir: 'right' });
     if (m.venue === 'spur') person('mick', 19, 2, { shirt: '#2e7d32', pants: '#3b3b3b', skin: '#f0c19a', hair: '#ccc' }, { dir: 'left' });
     if (m.venue === 'spur' && st.ending === 'justice') person('sal', 4, 11, { shirt: '#6b4a12', pants: '#222', skin: '#e8b58f', hair: '#bbb', hat: true });
@@ -398,7 +399,7 @@ const Chat = {
     const rivals = st.rivals ? Object.keys(RIVALS).map(id => `${CHARACTERS[id].name}: bankroll ${fmt(st.rivals[id].bank)}, today ${Rivals.whereText(id)}`).join('; ') : '';
     const jobs = Object.keys(QUESTS).map(id => `${QUESTS[id].title} (${this.jobState(id)})`).join('; ');
     const where = World.where();
-    const place = where && where.map !== 'town' ? VENUES[where.map.slice(2)].name : 'out on the street in town';
+    const place = !where || where.map === 'town' ? 'out on the street in town' : where.map.startsWith('r:') ? World.roomName(where.map.slice(2)) : VENUES[where.map.slice(2)].name;
     const meters = Progressives.KEYS.map(k => `${PAY[k].prog.name} ${fmt(Math.floor(st.progressives[k]))} (${pctStr(Progressives.rtp(k), 1)} return)`).join('; ');
     return [
       `The player is "${st.name}", day ${st.day}. Story chapter ${st.chapter + 1}: "${ch.title}". Current goal: ${ch.goalText || 'free roam'}.`,

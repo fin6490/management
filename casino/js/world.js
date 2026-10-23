@@ -3,7 +3,7 @@
    Everything is drawn procedurally on a canvas, so there are no image files. */
 const World = (() => {
   const T = 16; // tile size in art pixels
-  const G = { GRASS: 0, FLOWERS: 1, TREE: 2, ROAD: 3, WALK: 4, WATER: 5, PLANK: 6, WOOD: 7, CARPET: 8, WALL: 9, HEDGE: 10, SAND: 11, VOID: 12 };
+  const G = { GRASS: 0, FLOWERS: 1, TREE: 2, ROAD: 3, WALK: 4, WATER: 5, PLANK: 6, WOOD: 7, CARPET: 8, WALL: 9, HEDGE: 10, SAND: 11, VOID: 12, TILE: 13 };
   const SOLID = new Set([G.TREE, G.WATER, G.WALL, G.HEDGE, G.VOID]);
   const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   const hash = (x, y, s = 0) => { let n = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return ((n ^ (n >>> 16)) >>> 0) / 4294967296; };
@@ -50,16 +50,16 @@ const World = (() => {
       m.doors[dx + ',' + dy] = { ...action, out: [dx, dy + 1], label: name };
     };
     B('spur', 'The Rusty Spur', 2, 10, 8, 7, 3, 'spur', { venue: 'spur' });
-    B('diner', "Mel's Diner", 11, 12, 6, 5, 2, 'diner', { place: 'diner' });
-    B('store', 'Quik-Stop', 18, 12, 6, 5, 2, 'store', { place: 'store' });
+    B('diner', "Mel's Diner", 11, 12, 6, 5, 2, 'diner', { room: 'diner' });
+    B('store', 'Quik-Stop', 18, 12, 6, 5, 2, 'store', { room: 'store' });
     B('palace', 'The Gilded Palace', 31, 7, 10, 10, 4, 'palace', { venue: 'palace' });
     B('salon', 'Monte Royale', 42, 9, 5, 8, 2, 'salon', { venue: 'salon' });
-    B('motel', 'Starlite Motel', 2, 23, 7, 7, 3, 'motel', { sleep: ['motel'] });
-    B('pawn', "Vinnie's Pawn & Loan", 10, 24, 6, 6, 2, 'pawn', { screen: 'loans' });
-    B('shop', 'Lucky Strike Outfitters', 17, 23, 8, 7, 3, 'shop', { screen: 'shop' });
-    B('grand', 'Grand Hotel', 31, 22, 7, 8, 3, 'grand', { sleep: ['grand', 'penthouse'] });
-    B('apts', 'Downtown Apartments', 39, 23, 5, 7, 2, 'apts', { sleep: ['apartment'] });
-    B('steak', 'Prime Cut', 31, 35, 6, 5, 2, 'steak', { place: 'steak' });
+    B('motel', 'Starlite Motel', 2, 23, 7, 7, 3, 'motel', { room: 'motel' });
+    B('pawn', "Vinnie's Pawn & Loan", 10, 24, 6, 6, 2, 'pawn', { room: 'pawn' });
+    B('shop', 'Lucky Strike Outfitters', 17, 23, 8, 7, 3, 'shop', { room: 'shop' });
+    B('grand', 'Grand Hotel', 31, 22, 7, 8, 3, 'grand', { room: 'grand' });
+    B('apts', 'Downtown Apartments', 39, 23, 5, 7, 2, 'apts', { room: 'apts' });
+    B('steak', 'Prime Cut', 31, 35, 6, 5, 2, 'steak', { room: 'steak' });
     // the riverboat moored at the dock; the gangplank is its door
     m.props.push({ type: 'boat', x: 48, y: 14, w: 7, h: 10 });
     m.doors['47,19'] = { venue: 'riverboat', out: [46, 19], label: "Lucky Lou's Riverboat" };
@@ -68,6 +68,16 @@ const World = (() => {
     m.rect(13, 36, 1, 3, G.GRASS);
     [[6, 36], [19, 36], [6, 38], [19, 38]].forEach(([x, y]) => { m.props.push({ type: 'bench', x, y }); m.blockRect(x, y, 1, 1); m.act(x, y, { sleep: ['bench'], label: 'Park bench' }); });
     for (let x = 3; x < 46; x += 6) { m.props.push({ type: 'lamp', x, y: 17 }); m.props.push({ type: 'lamp', x, y: 30 }); }
+    // street furniture
+    const furn = (kind, x, y, w, hh, act) => { m.props.push({ type: 'furn', kind, x, y, w, h: hh }); m.blockRect(x, y, w, hh); if (act) for (let j = 0; j < hh; j++) for (let i = 0; i < w; i++) m.act(x + i, y + j, act); };
+    furn('rack', 24, 16, 1, 1, { fn: 'paper', label: 'Newsstand: the morning paper' });
+    furn('machine', 16, 29, 1, 1, { fn: 'atm', label: 'ATM' });
+    furn('phone', 9, 29, 1, 1, { fn: 'phone', label: 'Phone booth' });
+    furn('car', 44, 25, 2, 2, { talk: 'A dusty sedan with a parking ticket from three weeks ago. The plate reads LUCKY7.', label: 'Parked car' });
+    // a duck pond in Lucky Park
+    m.rect(20, 39, 3, 2, G.WATER);
+    m.act(19, 39, { talk: 'Three ducks paddle over, hoping you have bread. You do not. They seem to know.', label: 'Duck pond' });
+    m.labels.push({ x: 14, y: 18.5, text: 'MAIN STREET', street: true }, { x: 14, y: 31.5, text: 'RIVER ROAD', street: true });
     // signposts
     m.props.push({ type: 'sign', x: 25, y: 16, text: 'OLD TOWN' }); m.blockRect(25, 16, 1, 1);
     m.act(25, 16, { talk: 'Old Town: the Spur, Mel\'s, the motel, and Vinnie. The Strip is north-east, the Riverboat is at the east dock.', label: 'Signpost' });
@@ -133,6 +143,145 @@ const World = (() => {
     return m;
   }
 
+  /* ======================= the other buildings: walk-in rooms ======================= */
+  // every shop, restaurant and hotel has an inside: staff behind the counter, people to talk to,
+  // and things to look at or use. f: furniture [kind, x, y, w, h, act]
+  const ROOMS = {
+    diner: { name: "Mel's Diner", W: 16, H: 11, floor: 'tile', theme: { wall: '#c94f4f', trim: '#7a1d1d', tileA: '#f3efe6', tileB: '#2b2b2b' }, staff: ['mel', 5, 3],
+      f: [['hcounter', 2, 4, 9, 1, { place: 'diner', label: 'Counter: order food (Mel)' }], ['shelf', 2, 2, 9, 1], ['case', 11, 4, 2, 1, { talk: 'The pie case. Cherry, apple, pecan. The cherry is Doc\'s favourite: Mel says he used to send Sal to fetch it.', label: 'Pie case' }],
+        ['jukebox', 14, 2, 1, 1, { fn: 'jukebox', label: 'Jukebox' }], ['photo', 7, 1, 2, 1, { talk: 'A faded photo by the register: Sal and Mel in 1984, Sal holding a golden dart. "Golden Arrow champ," it says in marker. "Paid his tab in full that week."', label: 'Old photo' }],
+        ['booth', 2, 7, 2, 2], ['booth', 6, 7, 2, 2], ['booth', 11, 7, 2, 2], ['plant', 14, 8, 1, 1]],
+      folk: [[4, 8, 0], [13, 6, 1]] },
+    store: { name: 'Quik-Stop', W: 14, H: 10, floor: 'tile', theme: { wall: '#2e86c1', trim: '#154360', tileA: '#e8eef2', tileB: '#c9d6df' }, staff: ['raj', 3, 3],
+      f: [['hcounter', 1, 4, 5, 1, { place: 'store', label: 'Register: snacks and drinks (Raj)' }], ['fridge', 8, 2, 5, 1, { place: 'store', label: 'Drinks cooler' }], ['rack', 1, 7, 2, 1, { fn: 'paper', label: 'Newspaper rack: today\'s paper' }],
+        ['machine', 11, 6, 1, 1, { fn: 'scratch', label: 'Scratch-card machine ($5)' }], ['shelf', 5, 7, 5, 1, { talk: 'Aisle 3: chips, jerky, aspirin, playing cards. Somebody has stacked the decks of cards in perfect suit order. Raj swears it wasn\'t him.', label: 'Shelves' }]],
+      folk: [[10, 8, 2]] },
+    motel: { name: 'Starlite Motel', W: 14, H: 10, floor: 'carpet', theme: { wall: '#6c3483', trim: '#2e1338', carpet: '#5b4a3a' }, staff: ['darlene', 3, 3],
+      f: [['hcounter', 1, 4, 5, 1, { sleep: ['motel'], label: 'Front desk: a room for the night (Darlene)' }], ['door', 8, 1, 1, 1, { talk: 'Room 7. Sal\'s room, Darlene says. She still won\'t rent it to anyone else.', label: 'Room 7' }],
+        ['door', 10, 1, 1, 1, { talk: 'Room 8. A Do Not Disturb sign and a lot of snoring.', label: 'Room 8' }], ['machine', 12, 3, 1, 1, { fn: 'ice', label: 'Ice machine' }], ['machine', 12, 6, 1, 1, { place: 'vending', label: 'Vending machine' }],
+        ['plant', 1, 7, 1, 1], ['tv', 6, 7, 2, 1, { talk: 'The lobby TV is showing the late news: "Gaming Commission denies probe into Monte Royale." Darlene snorts.', label: 'Lobby TV' }]],
+      folk: [] },
+    pawn: { name: "Vinnie's Pawn & Loan", W: 14, H: 10, floor: 'wood', theme: { wall: '#3d3d3d', trim: '#1d1d1d' }, staff: null,
+      f: [['hcounter', 3, 4, 8, 1, { screen: 'loans', label: 'Loan counter: borrow or repay' }], ['case', 1, 6, 3, 1, { talk: 'A glass case of pawned treasures: a saxophone, three wedding rings, and a gold watch engraved "S. — 17". The tag says NOT FOR SALE.', label: 'Display case' }],
+        ['case', 10, 6, 3, 1, { talk: 'Guitars, a taxidermied armadillo, a slot-machine handle. Everything in town ends up here eventually, kid.', label: 'Display case' }], ['safe', 12, 2, 1, 1, { talk: 'A huge old safe. Vinnie leans on it whenever he talks numbers.', label: 'Safe' }],
+        ['door', 2, 1, 1, 1, { talk: 'The back office. A sign reads: KNOCK. THEN LEAVE.', label: 'Back office' }]],
+      folk: [] },
+    shop: { name: 'Lucky Strike Outfitters', W: 16, H: 11, floor: 'carpet', theme: { wall: '#b03a2e', trim: '#5a1a14', carpet: '#3b2a40' }, staff: ['rosa', 7, 3],
+      f: [['hcounter', 5, 4, 6, 1, { screen: 'shop', label: 'Counter: shop with Rosa' }], ['rack', 1, 3, 3, 1, { screen: 'shop', label: 'Suits and hats' }], ['mirror', 13, 2, 1, 1, { fn: 'mirror', label: 'Full-length mirror' }],
+        ['car', 1, 7, 4, 2, { talk: 'A cherry-red convertible on a rotating stand. A tag on the mirror says SOLD... SOON?', label: 'Showroom car' }], ['case', 11, 7, 3, 1, { screen: 'shop', label: 'Watches, rings and gear' }], ['plant', 14, 8, 1, 1]],
+      folk: [] },
+    grand: { name: 'Grand Hotel', W: 18, H: 12, floor: 'carpet', theme: { wall: '#d8c38a', trim: '#8a6a24', carpet: '#7a1d2a' }, staff: ['pemberton', 4, 3],
+      f: [['hcounter', 2, 4, 6, 1, { sleep: ['grand', 'penthouse'], label: 'Reception: rooms and suites (Mr. Pemberton)' }], ['piano', 12, 3, 3, 2, { fn: 'piano', label: 'Grand piano' }], ['elevator', 16, 2, 1, 1, { sleep: ['penthouse'], label: 'Elevator to the penthouse' }],
+        ['fountain2', 8, 7, 2, 2, { talk: 'A marble fountain full of coins. Somebody has thrown in a casino chip from the Salon. Bold.', label: 'Lobby fountain' }], ['plant', 1, 8, 1, 1], ['plant', 16, 8, 1, 1], ['rug', 5, 6, 8, 4]],
+      folk: [[13, 8, 3]] },
+    apts: { name: 'Downtown Apartments', W: 12, H: 10, floor: 'wood', theme: { wall: '#7f8c8d', trim: '#34495e' }, staff: null,
+      f: [['mailbox', 1, 3, 2, 1, { fn: 'mail', label: 'Mailboxes' }], ['door', 5, 1, 1, 1, { sleep: ['apartment'], label: 'Your apartment' }], ['door', 8, 1, 1, 1, { talk: 'Apartment 2B. Someone inside is practising the trumpet. Badly.', label: 'Apartment 2B' }],
+        ['elevator', 10, 2, 1, 1, { sleep: ['penthouse'], label: 'Elevator' }], ['plant', 1, 7, 1, 1]],
+      folk: [] },
+    steak: { name: 'Prime Cut Steakhouse', W: 16, H: 11, floor: 'carpet', theme: { wall: '#3e2723', trim: '#c9a14a', carpet: '#4a1c1c' }, staff: ['philippe', 3, 7],
+      f: [['desk', 2, 8, 3, 1, { place: 'steak', label: 'Maître d\': a table for one (Philippe)' }], ['table', 6, 3, 2, 2], ['table', 10, 3, 2, 2], ['table', 10, 7, 2, 2], ['tank', 13, 2, 2, 1, { talk: 'A lobster tank. One of them is wearing a tiny rubber band and an expression of deep resignation.', label: 'Lobster tank' }],
+        ['door', 2, 1, 1, 1, { talk: 'The wine cellar. Philippe guards the key like a state secret.', label: 'Wine cellar' }], ['plant', 14, 8, 1, 1]],
+      folk: [[8, 3, 4], [12, 7, 5]] },
+  };
+  function buildRoom(key) {
+    const R = ROOMS[key], W = R.W, H = R.H;
+    const floor = R.floor === 'tile' ? G.TILE : R.floor === 'carpet' ? G.CARPET : G.WOOD;
+    const m = blank('r:' + key, W, H, floor);
+    m.room = key; m.theme = { carpet: '#5b4a3a', ...R.theme };
+    m.rect(0, 0, W, 2, G.WALL); m.rect(0, 0, 1, H, G.WALL); m.rect(W - 1, 0, 1, H, G.WALL); m.rect(0, H - 1, W, 1, G.WALL);
+    const doorX = Math.floor(W / 2); m.set(doorX, H - 1, floor);
+    m.doors[doorX + ',' + (H - 1)] = { exit: key, label: 'Back to the street' };
+    for (const [kind, x, y, w, hh, act] of R.f) {
+      m.props.push({ type: 'furn', kind, x, y, w, h: hh });
+      if (kind !== 'rug' && kind !== 'photo') m.blockRect(x, y, w, hh);
+      if (act) for (let j = 0; j < hh; j++) for (let i = 0; i < w; i++) m.act(x + i, y + j, act);
+    }
+    if (R.staff && STAFF[R.staff[0]]) {
+      const s = STAFF[R.staff[0]], k = R.staff[0];
+      m.npcs.push({ x: R.staff[1], y: R.staff[2], dir: 'down', name: s.name, look: { shirt: s.color, pants: '#2d2d2d', skin: ['#f0c19a', '#c68863', '#8d5524', '#e0ac69'][k.length % 4], hair: ['#3a2a1e', '#111', '#a0522d', '#ccc'][k.length % 4] }, crowd: () => Crowd.staff(k) });
+    }
+    for (const [x, y, i] of R.folk) m.npcs.push({ x, y, dir: 'down', name: TOWNSFOLK[i % TOWNSFOLK.length].name, look: { shirt: ['#2980b9', '#8e44ad', '#16a085', '#d35400', '#c0392b', '#7f8c8d'][i % 6], pants: '#2d3436', skin: ['#f0c19a', '#c68863', '#8d5524', '#e0ac69'][i % 4], hair: ['#3a2a1e', '#111', '#a0522d', '#ddd'][i % 4] }, line: 'Nice to see a friendly face.', crowd: () => Crowd.townsfolk(i, 'Nice to see a friendly face in here.') });
+    m.labels.push({ x: W / 2, y: 0.9, text: R.name.toUpperCase(), neon: false });
+    m.start = [doorX, H - 2];
+    return m;
+  }
+  // furniture, drawn in the same chunky pixel style as the rest of the town
+  function paintFurn(c, p) {
+    const px = p.x * T, py = p.y * T, w = p.w * T, hh = p.h * T, R = (x, y, ww, h2, col) => { c.fillStyle = col; c.fillRect(px + x, py + y, ww, h2); };
+    switch (p.kind) {
+      case 'hcounter': R(0, 2, w, hh - 2, '#5a3418'); R(0, 0, w, 5, '#8a5a33'); R(0, 4, w, 1, '#c9a14a'); for (let i = 0; i < p.w; i += 2) R(i * T + 5, 7, 6, 6, '#3a2010'); break;
+      case 'desk': R(0, 2, w, hh - 2, '#3e2723'); R(0, 0, w, 4, '#c9a14a'); R(w / 2 - 3, 6, 6, 4, '#f5f5f5'); break;
+      case 'case': R(0, 4, w, hh - 4, '#4a3020'); R(1, 1, w - 2, 9, 'rgba(180, 220, 255, .55)'); R(1, 1, w - 2, 1, '#fff'); for (let i = 0; i < p.w * 2; i++) R(4 + i * 7, 5, 4, 3, ['#f1c40f', '#e74c3c', '#ecf0f1', '#27ae60'][i % 4]); break;
+      case 'jukebox': R(1, 0, 14, 16, '#7a1d2a'); R(3, 2, 10, 6, '#ffe066'); R(4, 3, 8, 4, '#ff7043'); for (let i = 0; i < 3; i++) R(3 + i * 4, 10, 2, 4, ['#4fc3f7', '#ab47bc', '#66bb6a'][i]); break;
+      case 'photo': R(4, 3, w - 8, 9, '#8a6a24'); R(6, 5, w - 12, 5, '#d7ccc8'); R(9, 6, 3, 3, '#5d4037'); R(w - 13, 6, 3, 3, '#5d4037'); break;
+      case 'booth': R(0, 0, w, 5, '#b71c1c'); R(0, hh - 5, w, 5, '#b71c1c'); R(4, 6, w - 8, hh - 12, '#eceff1'); R(w / 2 - 2, hh / 2 - 2, 4, 4, '#ff7043'); break;
+      case 'plant': R(5, 10, 6, 6, '#8d6e63'); c.fillStyle = '#2e7d32'; c.beginPath(); c.arc(px + 8, py + 7, 6, 0, 7); c.fill(); c.fillStyle = '#43a047'; c.beginPath(); c.arc(px + 6, py + 5, 3, 0, 7); c.fill(); break;
+      case 'shelf': R(0, 10, w, 4, '#5d4037'); for (let i = 0; i < p.w * 4; i++) R(2 + i * 4, 3 + (i % 2), 2, 7, ['#27ae60', '#c0392b', '#f1c40f', '#8e44ad', '#ecf0f1'][i % 5]); break;
+      case 'fridge': R(0, 0, w, hh, '#cfd8dc'); for (let i = 0; i < p.w; i++) { R(i * T + 1, 1, T - 2, hh - 2, 'rgba(130, 200, 255, .6)'); for (let k = 0; k < 3; k++) R(i * T + 3 + k * 4, 6, 2, 6, ['#e53935', '#43a047', '#fdd835'][k]); } break;
+      case 'rack': R(0, 6, w, 8, '#6d4c41'); for (let i = 0; i < p.w * 3; i++) R(2 + i * 5, 1, 4, 8, ['#eceff1', '#ffe082', '#b3e5fc'][i % 3]); break;
+      case 'machine': R(2, 0, 12, 16, '#455a64'); R(4, 2, 8, 6, '#80deea'); R(4, 10, 8, 2, '#ffd54f'); R(6, 13, 4, 2, '#212121'); break;
+      case 'door': R(3, 1, 10, 15, '#5d4037'); R(4, 2, 8, 13, '#795548'); R(10, 8, 2, 2, '#ffd54f'); break;
+      case 'tv': R(0, 2, w, 10, '#212121'); R(2, 4, w - 4, 6, '#4fc3f7'); R(w / 2 - 2, 12, 4, 3, '#424242'); break;
+      case 'safe': R(1, 1, 14, 15, '#37474f'); R(3, 3, 10, 11, '#546e7a'); c.fillStyle = '#ffd54f'; c.beginPath(); c.arc(px + 8, py + 8, 3, 0, 7); c.fill(); break;
+      case 'mirror': R(3, 0, 10, 16, '#c9a14a'); R(4, 1, 8, 14, '#b3e5fc'); R(5, 2, 2, 8, 'rgba(255,255,255,.7)'); break;
+      case 'car': c.fillStyle = 'rgba(0,0,0,.3)'; c.fillRect(px + 2, py + hh - 6, w - 4, 5); R(2, 8, w - 4, 14, '#c62828'); R(10, 2, w - 20, 9, '#e53935'); R(12, 4, w - 24, 5, '#b3e5fc'); R(6, 20, 8, 8, '#212121'); R(w - 14, 20, 8, 8, '#212121'); break;
+      case 'piano': R(0, 4, w, hh - 6, '#111'); R(2, 0, w - 4, 6, '#222'); for (let i = 0; i < 12; i++) R(4 + i * 3.4, hh - 10, 2, 5, i % 3 === 1 ? '#111' : '#fafafa'); break;
+      case 'elevator': R(1, 0, 14, 16, '#9e9e9e'); R(3, 2, 4, 14, '#cfd8dc'); R(9, 2, 4, 14, '#cfd8dc'); R(6, 0, 4, 2, '#ffd54f'); break;
+      case 'fountain2': c.fillStyle = '#eceff1'; c.beginPath(); c.arc(px + w / 2, py + hh / 2, w / 2, 0, 7); c.fill(); c.fillStyle = '#4fc3f7'; c.beginPath(); c.arc(px + w / 2, py + hh / 2, w / 2 - 4, 0, 7); c.fill(); R(w / 2 - 2, 4, 4, hh / 2, '#cfd8dc'); break;
+      case 'phone': R(2, -6, 12, 22, '#c62828'); R(4, -3, 8, 9, '#b3e5fc'); R(4, 8, 8, 6, '#b3e5fc'); R(5, -5, 6, 1, '#ffeb3b'); break;
+      case 'rug': c.fillStyle = 'rgba(201, 161, 74, .35)'; c.fillRect(px, py, w, hh); c.strokeStyle = 'rgba(201, 161, 74, .8)'; c.lineWidth = 2; c.strokeRect(px + 3, py + 3, w - 6, hh - 6); break;
+      case 'table': c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(px + w / 2 + 2, py + hh / 2 + 3, w / 2 - 2, hh / 2 - 4, 0, 0, 7); c.fill(); c.fillStyle = '#f5f5f5'; c.beginPath(); c.ellipse(px + w / 2, py + hh / 2, w / 2 - 2, hh / 2 - 4, 0, 0, 7); c.fill(); R(w / 2 - 1, hh / 2 - 6, 2, 6, '#ffd54f'); break;
+      case 'tank': R(0, 2, w, hh - 2, '#263238'); R(2, 3, w - 4, hh - 6, 'rgba(79, 195, 247, .7)'); R(8, 8, 5, 3, '#e53935'); R(18, 6, 5, 3, '#e53935'); break;
+      case 'mailbox': for (let i = 0; i < p.w * 3; i++) R(1 + i * 5, 2, 4, 5, '#b0bec5'), R(1 + i * 5, 8, 4, 5, '#b0bec5'); break;
+      default: R(0, 0, w, hh, '#666');
+    }
+  }
+  // the things you can do with furniture that isn't just a menu
+  async function roomFx(fn) {
+    const st = App.state;
+    if (fn === 'paper') return Chat.newspaper();
+    if (fn === 'jukebox') {
+      const song = RNG.pick(['"Luck Be a Lady"', '"The Gambler"', '"Viva Las Vegas"', '"Ace of Spades"', '"Seventeen"', '"Money (That\'s What I Want)"']);
+      SFX.win(); UI.toast(`🎵 The jukebox plays ${song}.${song === '"Seventeen"' ? ' Mel smiles. "That was his song."' : ''}`, 'good'); return;
+    }
+    if (fn === 'piano') { SFX.win(); UI.toast(RNG.pick(['🎹 You play the only song you know. Mr. Pemberton applauds, politely.', '🎹 A few bars of something jazzy. A guest tips you a dollar.', '🎹 "Chopsticks," with feeling.']), 'good'); return; }
+    if (fn === 'ice') {
+      if (st.flags.iceDay === st.day) return UI.toast('The ice machine coughs. Come back tomorrow.', 'warn');
+      st.flags.iceDay = st.day; st.thirst = Math.min(100, st.thirst + 15); Router.hud(); App.save(); UI.toast('🧊 A cup of ice water. 💧+15', 'good'); return;
+    }
+    if (fn === 'mirror') { if (typeof Looks !== 'undefined') return Looks.edit(); UI.toast('Looking sharp.'); return; }
+    if (fn === 'mail') {
+      const me = typeof Me !== 'undefined' ? Me.first() : '';
+      const letters = [`A postcard with no stamp, just a big "17" on the front. On the back: "${me ? me + ', k' : 'K'}eep your chin up and your bets small. The house always wins, until it doesn't. — S."`,
+        'Junk mail: "YOU MAY ALREADY BE A WINNER!" You may not.', `A bill from Vinnie, with a handwritten note: "Just a reminder, kid. Love, V."`];
+      await UI.dialog([{ who: 'narrator', text: '📬 ' + (st.flags.mailDay === st.day ? 'Nothing new today.' : RNG.pick(letters)) }]); st.flags.mailDay = st.day; return;
+    }
+    if (fn === 'scratch') return scratchCard();
+    if (fn === 'atm') return UI.modal({ title: '🏧 ATM', body: h('div', h('p', `Balance: ${fmt(st.bank)}`), App.debt > 0 ? h('p.muted', `Owed to Vinnie: ${fmt(App.debt)}`) : h('p.muted', 'No debts. The machine seems impressed.'), h('p.muted.small', `Net worth with your businesses: ${fmt(Career.empire ? Career.empire() : st.bank)}`)) });
+    if (fn === 'phone') { await UI.dialog([{ who: 'narrator', text: RNG.pick(['You lift the receiver. A dial tone, and faint jazz from somewhere down the line.', 'Someone has scratched "17" into the coin slot.', 'A sticker reads: NEED CASH FAST? CALL VINNIE. The number has been crossed out and rewritten in a neater hand.']) }]); return; }
+  }
+  // Quik-Stop scratch cards: $5, honest odds printed on the back
+  async function scratchCard() {
+    const price = 5;
+    if (!App.debit(price)) return UI.toast('A scratch card costs $5', 'warn');
+    App.count('scratchCards');
+    const prizes = [[1000, 1 / 5000], [100, 1 / 300], [20, 1 / 30], [10, 1 / 12], [5, 1 / 6]];
+    let r = Math.random(), win = 0; for (const [v, p] of prizes) { if ((r -= p) < 0) { win = v; break; } }
+    const syms = ['🍒', '💰', '🍀', '⭐', '🔔', '7️⃣'], pick = win ? syms[[1000, 100, 20, 10, 5].indexOf(win) + 1] : null;
+    // lay out nine symbols: three of the prize symbol if it won, never three of anything otherwise
+    const cells = []; if (pick) cells.push(pick, pick, pick);
+    while (cells.length < 9) { const s = RNG.pick(syms); if (cells.filter(x => x === s).length < 2 && s !== pick) cells.push(s); }
+    for (let i = cells.length - 1; i > 0; i--) { const j = RNG.int(i + 1); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+    if (win) App.credit(win);
+    const names = { '💰': '$1,000', '🍀': '$100', '⭐': '$20', '🔔': '$10', '7️⃣': '$5' };
+    let left = 9; const grid = h('div.scratch'), status = h('p.small', 'Scratch all nine. Match three to win.');
+    const tiles = cells.map(s => { const b = h('button.sc', { onclick: () => { if (b.classList.contains('open')) return; b.classList.add('open'); b.textContent = s; if (--left === 0) status.textContent = win ? `Three ${s === pick ? s : pick}: you win ${fmt(win)}!` : 'No match. Raj shrugs: "A tax on hope."'; } }, '?'); grid.append(b); return b; });
+    await UI.modal({ title: '🎟️ Lucky Strike scratch card', body: h('div', grid, status, h('p.muted.small', `Prizes: three 💰 ${names['💰']}, 🍀 ${names['🍀']}, ⭐ ${names['⭐']}, 🔔 ${names['🔔']}, 7️⃣ ${names['7️⃣']}. Returns about 57% of what you spend (printed on the back, in very small type).`)),
+      buttons: [{ label: 'Scratch all', value: 'all' }, { label: 'Done', cls: 'primary' }] }).then(v => { if (v === 'all') tiles.forEach(t => t.click()); });
+    if (win) UI.toast(`🎟️ Scratch card win: ${fmt(win)}`, 'good');
+    Router.hud(); App.save();
+  }
+
   /* ======================= static art ======================= */
   function paintTile(c, m, x, y) {
     const t = m.at(x, y), px = x * T, py = y * T, r = (s) => hash(x, y, s);
@@ -164,6 +313,7 @@ const World = (() => {
       case G.SAND: fill('#d8c28c'); for (let i = 0; i < 3; i++) fill('#c9b07a', Math.floor(r(i) * 15), Math.floor(r(i + 3) * 15), 1, 1); break;
       case G.WATER: fill('#2d6aa8'); for (let i = 0; i < 2; i++) fill('#3b7ec0', Math.floor(r(i) * 12), Math.floor(r(i + 4) * 15), 4, 1); break;
       case G.PLANK: fill('#8a6038'); for (let i = 0; i < 4; i++) fill('#6e4a2a', 0, i * 4 + 3, 16, 1); fill('#5a3a1f', (y % 2) * 8 + 3, 0, 1, 16); break;
+      case G.TILE: fill((x + y) % 2 ? theme.tileA : theme.tileB); fill('rgba(0,0,0,.08)', 0, 15, 16, 1); break;
       case G.WOOD: fill('#8a5a33'); for (let i = 0; i < 4; i++) fill('#77492a', 0, i * 4 + 3, 16, 1); fill('#6a3f22', ((y * 5) % 16), 0, 1, 16); break;
       case G.CARPET: {
         fill(theme ? theme.carpet : '#7a1d2a');
@@ -301,8 +451,11 @@ const World = (() => {
     for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) paintTile(c, m, x, y);
     // draw trees again so canopies overlap neighbouring tiles nicely
     m.buildings.forEach(b => paintBuilding(c, b));
-    m.props.forEach(p => p.type === 'boat' ? paintBoat(c, p) : paintProp(c, p));
+    m.props.forEach(p => p.type === 'boat' ? paintBoat(c, p) : p.type === 'furn' ? paintFurn(c, p) : paintProp(c, p));
     m.tables.forEach(tb => paintTable(c, tb));
+    // street names are painted on the road itself so people walk over them
+    c.font = `bold ${T * .55}px "Trebuchet MS", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(255, 255, 255, .4)';
+    m.labels.filter(L => L.street).forEach(L => c.fillText(L.text, L.x * T, L.y * T));
     m.canvas = cv;
   }
 
@@ -345,7 +498,7 @@ const World = (() => {
   /* ======================= runtime ======================= */
   const maps = {};
   function getMap(id) {
-    if (!maps[id]) { maps[id] = id === 'town' ? buildTown() : buildInterior(id.slice(2)); prerender(maps[id]); }
+    if (!maps[id]) { maps[id] = id === 'town' ? buildTown() : id.startsWith('r:') ? buildRoom(id.slice(2)) : buildInterior(id.slice(2)); prerender(maps[id]); }
     return maps[id];
   }
   let S = null; // live state while the world screen is up
@@ -355,7 +508,7 @@ const World = (() => {
     const root = h('div.world',
       h('canvas.world-cv'),
       h('div.w-top',
-        h('div.w-chips', h('button.w-goal', { onclick: () => Router.go('status') }), h('button.w-goal.w-case', { onclick: () => Router.go('case'), title: 'Case file' }, '🔎')),
+        h('div.w-chips', h('button.w-goal', { onclick: () => Router.go('status') }), h('button.w-goal.w-case', { onclick: () => Router.go('case'), title: 'Case file' }, '🔎'), h('button.w-goal.w-case', { onclick: () => townMap(), title: 'Town map', 'aria-label': 'Town map' }, '🗺️')),
         h('div.w-right', h('div.w-area'), h('div.w-event'))),
       h('div.w-prompt', { onclick: () => interact() }),
       h('div.pad', ['up', 'left', 'right', 'down'].map(d => h('button.pad-' + d, { 'aria-label': d, 'data-dir': d }, { up: '▲', down: '▼', left: '◀', right: '▶' }[d]))),
@@ -412,6 +565,7 @@ const World = (() => {
       if (map[e.key]) { S.keys.add(map[e.key]); S.lastDir = map[e.key]; e.preventDefault(); }
       else if ([' ', 'Enter', 'e', 'E', 'z', 'Z'].includes(e.key)) { e.preventDefault(); if (!e.repeat) interact(); }
       else if (e.key === 'Shift' || e.key === 'x' || e.key === 'X') S.run = true;
+      else if (e.key === 'm' || e.key === 'M') townMap();
     };
     S.ku = e => { if (map[e.key]) S.keys.delete(map[e.key]); if (e.key === 'Shift' || e.key === 'x' || e.key === 'X') S.run = false; };
     S.rs = () => resize();
@@ -485,9 +639,10 @@ const World = (() => {
         await Career.enterVenue(id);
         return;
       }
+      if (door.room) { App.state.world.returnTo = door.out; await go('r:' + door.room); return; }
       if (door.exit) {
         const town = getMap('town');
-        const back = App.state.world.returnTo || Object.values(town.doors).find(d => d.venue === door.exit).out;
+        const back = App.state.world.returnTo || Object.values(town.doors).find(d => d.venue === door.exit || d.room === door.exit).out;
         await go('town', back[0], back[1], 'down');
         return;
       }
@@ -545,6 +700,8 @@ const World = (() => {
         return;
       }
       if (f.slots) { const why = Career.canPlay(); if (why) { UI.toast(why, 'warn'); return; } savePos(); App.save(); Router.go('slots', f.slots); return; }
+      if (f.screen) { savePos(); App.save(); Router.go(f.screen); return; }
+      if (f.fn) { await roomFx(f.fn); return; }
       if (f.place) await foodMenu(f.place);
       else if (f.sleep) await sleepMenu(f.sleep, f.label);
       else if (f.talk) await UI.dialog([{ who: 'narrator', text: f.talk }]);
@@ -681,7 +838,7 @@ const World = (() => {
   function draw(now) {
     const { c, cv, m, p, u } = S, TS = T * u;
     c.imageSmoothingEnabled = false;
-    c.fillStyle = m.venue ? '#000' : '#2d6aa8'; c.fillRect(0, 0, cv.width, cv.height);
+    c.fillStyle = m.id === 'town' ? '#2d6aa8' : '#000'; c.fillRect(0, 0, cv.width, cv.height);
     // camera centred on the player, clamped to the map
     const vw = cv.width / TS, vh = cv.height / TS;
     let cx = p.fx + 0.5 - vw / 2, cy = p.fy + 0.5 - vh / 2;
@@ -761,15 +918,34 @@ const World = (() => {
       c.fillStyle = '#ffe9a8'; c.fillText(label, sx(tb.x + tb.w / 2), sy(tb.y + tb.h) + 1 * u + fs * .72);
     }
     for (const L of m.labels) {
+      if (L.street) continue;
+      const acc = (m.theme && m.theme.accent) || '#ffe9a8';
       c.font = `bold ${fs * 1.5}px Georgia, serif`;
-      c.shadowColor = m.theme.accent; c.shadowBlur = 8 * S.dpr * (blink ? 1 : .6);
-      c.fillStyle = m.theme.accent; c.fillText(L.text, sx(L.x), sy(L.y));
+      c.shadowColor = acc; c.shadowBlur = L.neon === false ? 0 : 8 * S.dpr * (blink ? 1 : .6);
+      c.fillStyle = acc; c.fillText(L.text, sx(L.x), sy(L.y));
       c.shadowBlur = 0;
     }
   }
 
+  // the whole town at a glance, with a you-are-here marker
+  function townMap() {
+    const m = getMap('town'), wpx = Math.min(innerWidth - 48, 640), k = wpx / (m.w * T);
+    const cv = h('canvas.town-map'); cv.width = Math.round(m.w * T * k * 2); cv.height = Math.round(m.h * T * k * 2); cv.style.width = wpx + 'px';
+    const c = cv.getContext('2d'), z = k * 2;
+    c.imageSmoothingEnabled = false; c.drawImage(m.canvas, 0, 0, cv.width, cv.height);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    const tag = (text, x, y) => { c.font = `bold ${Math.max(10, 7.5 * z)}px "Trebuchet MS", sans-serif`; const tw = c.measureText(text).width + 8; c.fillStyle = 'rgba(0,0,0,.7)'; c.fillRect(x - tw / 2, y - 9 * Math.max(1, z / 2), tw, 18 * Math.max(1, z / 2)); c.fillStyle = '#ffe9a8'; c.fillText(text, x, y); };
+    for (const b of m.buildings) tag(b.name.replace("Lucky Strike Outfitters", 'Outfitters').replace("Vinnie's Pawn & Loan", "Vinnie's").replace('Downtown Apartments', 'Apartments'), (b.x + b.w / 2) * T * z, (b.y + b.h / 2) * T * z);
+    tag('Riverboat', 51.5 * T * z, 19 * T * z); tag('Lucky Park', 8 * T * z, 39.5 * T * z);
+    // where you are: here in town, or the door of the building you're inside
+    let px = null, py = null;
+    if (S && S.m.id === 'town') { px = S.p.x; py = S.p.y; }
+    else if (App.state.world.returnTo) [px, py] = App.state.world.returnTo;
+    if (px != null) { c.fillStyle = '#ff5252'; c.strokeStyle = '#fff'; c.lineWidth = 3; c.beginPath(); c.arc((px + .5) * T * z, (py + .5) * T * z, 7 * Math.max(1, z / 1.5), 0, 7); c.fill(); c.stroke(); }
+    UI.modal({ title: '🗺️ Town map', wide: true, body: h('div.town-map-wrap', cv, h('p.muted.small', '🔴 You are here. Walk through any door to go inside: every building has people to meet and things to find.')) });
+  }
   function clock() { return App.state.clock || 540; }
   function isNight() { const t = clock() % 1440; return t >= 1200 || t < 360; }
   function clockText() { const t = Math.floor(clock()) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); }
-  return { mount, unmount, refreshGoal: () => updateGoal(), savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
+  return { mount, unmount, townMap, refreshGoal: () => updateGoal(), roomName: k => (ROOMS[k] || {}).name || 'indoors', savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
 })();

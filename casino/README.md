@@ -66,6 +66,24 @@ phone), **Space / A** to talk, sit down or buy, and hold **Shift / B** to run.
 Walk through a door to go in. Inside a casino, walk up to a dealer and press A to sit down at that
 table; the bar is on the left wall, and the story characters are on the floor.
 
+Every other building has an inside too, each with its own staff, locals and things to poke at:
+
+- **Mel's Diner**: order at the counter, eye the pie case, play the jukebox and look at the old photo on the wall.
+- **Quik-Stop**: snacks and drinks at the register or the cooler, today's paper and $5 scratch cards
+  (three matching symbols wins).
+- **Starlite Motel**: the front desk rents a room for the night; the lobby has an ice machine,
+  vending machine and Sal's old Room 7.
+- **Vinnie's Pawn & Loan**: the loan counter, cases of pawned treasures, and Vinnie himself leaning
+  on the safe.
+- **Lucky Strike Outfitters**: Rosa's counter, the racks, the showroom car and a full-length mirror.
+- **Grand Hotel**: reception (a suite for the night), the lobby fountain, piano and elevator.
+- **Downtown Apartments**: the mailboxes, your own front door once you rent a place, and the elevator.
+- **Prime Cut Steakhouse**: the maître d', the lobster tank and the wine cellar.
+
+Out on the street there's a newsstand, an ATM, a phone booth and the Lucky Park duck pond, and the
+main roads are signposted. Tap 🗺️ (or press **M**, or ☰ → Town map) for a map of the whole town
+with everywhere labelled and a marker where you're standing.
+
 ### Hunger, thirst and energy
 
 Three bars drain as you walk and play. If any of them is empty you can't deal a new hand, and if
@@ -80,7 +98,7 @@ energy runs out while walking you pass out on the street (and someone goes throu
 ### People in town
 
 - **Story characters** follow the chapters: Dolores (the Spur's bar), Doc (the Riverboat), Lucky Lou
-  (the dock), Vinnie (outside his pawn shop), Nico (only when you're behind on a payment), Margot
+  (the dock), Vinnie (inside his pawn shop), Nico (only when you're behind on a payment), Margot
   (the Palace) and Kessler (the Salon). A gold **!** marks them. Some offer side jobs for cash and
   swagger.
 - **Rival gamblers** (red **♦**): Tex Calhoun, Mei "The Calculator" Lin, Baron von Hollow and Rico
