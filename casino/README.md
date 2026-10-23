@@ -162,25 +162,32 @@ partner, stands beside it. Walk up to the board, or talk to Mick and press **�
 
 ### Slots
 
-Every casino has a bank of slot machines on its right-hand wall, each with its own theme and bets:
-Dusty Dollars at the Spur ($0.25 to $10), Paddlewheel Gold on the Riverboat ($1 to $50), Gilded
-Dragon at the Palace ($5 to $250) and Kessler's Vault in the Salon ($25 to $2,500).
+Every casino has a bank of slot machines on its right-hand wall, each with its own theme, art, bets
+and bonus:
+
+| Machine | Where | Bets | Bonuses |
+| --- | --- | --- | --- |
+| Dusty Dollars | Rusty Spur | $0.25–$10 | Gold Rush Hold & Spin coins; Wanted poster pick-em; free spins with ×2/×3 wilds |
+| Paddlewheel Gold | Riverboat | $1–$50 | The Paddlewheel wheel bonus (cash, 8 free spins, MAJOR, GRAND); free spins with a multiplier that grows with every win |
+| Gilded Dragon | Palace | $5–$250 | Free spins with sticky expanding wild reels; Dragon Pearl Hold & Spin |
+| Kessler's Vault | Salon | $25–$2,500 | Crack the Vault: open safes until three jackpots match; free spins with ×2/×3 wilds |
 
 - **243 ways**: symbols pay left to right on adjacent reels, in any row. Wilds on reels 2 to 4.
-- **Free spins**: 3, 4 or 5 scatters award 8, 12 or 20 spins on reels with extra wilds, each ×2 or ×3
-  (multiplying across a way), and 3 more scatters add 8 spins.
-- **Hold & Spin**: 6 or more coins lock in with cash values and give you 3 respins, reset whenever a
-  coin lands. Coins can carry the MINI (20× bet), MINOR (50×) or MAJOR (250×); fill all 15 for the
-  GRAND (1,000×).
+- **Bonus symbols** on each of reels 1, 2 and 3 start the machine's bonus game. Each outcome is
+  decided (and paid) the moment it triggers, so closing the app mid-bonus never costs you.
+- **Hold & Spin**: 6 or more coins or pearls lock in with cash values and give you 3 respins, reset
+  whenever one lands. They can carry the MINI (20× bet), MINOR (50×) or MAJOR (250×); fill all 15 for
+  the GRAND (1,000×).
 - **Sal's Lucky 17**: at random, one or two middle reels turn completely wild.
 - **Gamble** ordinary wins on red or black (a fair 50/50), and **autoplay** 10 to 100 spins.
 - **Mystery jackpots to target**: each casino has four must-hit-by meters (Copper, Silver, Gold,
   Diamond). Every spin by anyone feeds them, and each must hit before its cap, so a meter close to
   its cap is worth more than it costs to chase. Other players feed them overnight (and sometimes hit
   them); ☰ → Status shows each casino's hottest meter.
-- **Return**: 97.3% from the reels and features (`node tools/slots-sim.js` simulates it; 10 million
-  spins: free spins about 1 in 110, Hold & Spin about 1 in 140), plus about 2.6% from the mystery
-  jackpots on average. That's roughly 100% overall, and more when you play a meter near its cap.
+- **Return**: about 97–98% from the reels and features on every machine (`node tools/slots-sim.js`
+  simulates them all: free spins about 1 in 100–120, Hold & Spin about 1 in 175, bonus games about 1
+  in 420–510), plus about 2.6% from the mystery jackpots on average. That's roughly 100% overall, and
+  more when you play a meter near its cap.
 - **Sparky's side jobs**: Ignatius "Sparky" Vance, the fired slot tech by the Spur's slot row, secretly
   reflashed every machine in town. Play 100 spins, win a mystery jackpot, then buy the **Meter
   Reader** (it shows exactly what the next spin is worth), and finally hit a Gold or Diamond (or the

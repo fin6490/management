@@ -192,6 +192,8 @@ const ACHIEVEMENTS = [
   { id: 'sDiamond', name: 'Diamond Strike', desc: 'Win a Diamond mystery jackpot', test: () => App.counter('slotMystery_diamond') >= 1, reward: 0, swagger: 6 },
   { id: 'sEpic', name: 'Epic Win', desc: 'Win 100× your bet or more on one spin', test: () => App.counter('slotEpic') >= 1, reward: 500, swagger: 2 },
   { id: 'sGrand', name: 'Fill the Screen', desc: 'Fill all 15 spots in Hold & Spin for the GRAND', test: () => App.counter('slotGrand') >= 1, reward: 0, swagger: 8 },
+  { id: 'sBonus', name: 'Bonus Round', desc: 'Trigger a slot bonus game (posters, wheel or vault)', test: () => App.counter('slotBonus') >= 1, reward: 150 },
+  { id: 'sVault', name: 'Safecracker', desc: 'Crack the GRAND in Kessler\'s Vault', test: () => App.counter('slotVaultGrand') >= 1, reward: 0, swagger: 5 },
   { id: 's1000', name: 'Iron Butt', desc: 'Spin a slot machine 1,000 times', test: () => App.counter('slotSpins') >= 1000, reward: 300, swagger: 1 },
   // darts
   { id: 'dWin', name: 'On the Oche', desc: 'Win a darts match', test: () => App.counter('dartWins') >= 1, reward: 100, swagger: 1 },
