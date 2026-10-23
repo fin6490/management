@@ -134,7 +134,7 @@ const PLACES = {
   diner: { name: "Mel's Diner", icon: '🍳', who: 'Mel', line: 'Sit anywhere, hon. Coffee\'s fresh-ish.', items: ['coffee', 'breakfast', 'burger', 'pie', 'shake'] },
   store: { name: 'Quik-Stop', icon: '🏪', who: 'Clerk', line: 'Lottery tickets are behind the counter. Kidding. We\'re sold out.', items: ['water', 'soda', 'energy', 'candy', 'sandwich'] },
   steak: { name: 'Prime Cut Steakhouse', icon: '🥩', who: 'Maître d\'', line: 'Your table is ready. It has been ready since you walked in looking like money.', items: ['steak', 'lobster', 'wine', 'water'] },
-  bar_spur: { name: 'Spur Bar', icon: '🍺', npc: 'dolores', venue: 'spur', comp: true, job: true, line: 'What\'ll it be, sugar?', items: ['beer', 'whiskey', 'soda', 'nachos', 'water'] },
+  bar_spur: { name: 'Spur Bar', icon: '🍺', npc: 'dolores', usual: true, venue: 'spur', comp: true, job: true, line: 'What\'ll it be, sugar?', items: ['beer', 'whiskey', 'soda', 'nachos', 'water'] },
   bar_riverboat: { name: 'Paddlewheel Lounge', icon: '🍹', venue: 'riverboat', comp: true, line: 'Welcome aboard. Drinks are on the house for players.', items: ['cocktail', 'beer', 'coffee', 'shrimp', 'water'] },
   bar_palace: { name: 'Chandelier Bar', icon: '🥂', venue: 'palace', comp: true, line: 'Champagne, darling?', items: ['champagne', 'espresso', 'buffet', 'water'] },
   bar_salon: { name: 'Salon Privé Bar', icon: '🍸', venue: 'salon', comp: true, line: 'Mr. Kessler insists you want for nothing. Within reason.', items: ['martini', 'espresso', 'wagyu', 'caviar', 'water'] },
@@ -148,6 +148,11 @@ const LODGING = {
   bench: { name: 'Park Bench', icon: '🪑', cost: 0, energy: 0.6, risky: true, text: 'Free. Cold. Somebody might lift your wallet while you sleep.' },
 };
 
+const EVENTS = {
+  doubleComps: { name: 'Double Comp Night', desc: 'Cash-back on wagers there counts double tonight.', comps: true },
+  highLimit: { name: 'High-Limit Night', desc: 'Table maximums are doubled.', limits: 2 },
+  meterNight: { name: 'Jackpot Fever', desc: 'Every progressive meter in town jumped 40% this morning.', meters: true },
+};
 const ACHIEVEMENTS = [
   { id: 'first', name: 'First Hand', desc: 'Play your first round', test: () => App.state.stats.rounds >= 1, reward: 25 },
   { id: 'bj', name: 'Natural', desc: 'Get a blackjack', test: () => App.counter('blackjacks') >= 1, reward: 50 },
@@ -215,24 +220,20 @@ const CHAPTERS = [
     outro: [
       { who: 'margot', text: 'Platinum and a quarter million. I made the call. The Salon expects you.' },
       { who: 'kessler', text: 'So you\'re the nephew. Sal used to sit exactly where you\'re standing, right before he lost everything.' },
-      { who: 'kessler', text: 'I\'ll sell you the Rusty Spur. For **one million dollars**. Earned at my tables. If you can manage it.' },
+      { who: 'kessler', text: 'I\'ll sell you the Rusty Spur. For **one million dollars**. Or win it from me: I host the **Salon Invitational** on every night that ends in seven. Only the best players are invited.' },
+      { who: 'narrator', text: 'Kessler\'s smile doesn\'t reach his eyes. Whatever happened to Sal at that table, the answer is somewhere in this town. (🔎 Case file.)' },
     ],
   },
   {
-    title: 'The Salon Privé', goalText: 'Buy back the deed to The Rusty Spur from the shop: $1,000,000, or half that if you can prove what Kessler did to Sal.',
-    goal: () => App.has('spurDeed'),
+    title: 'The Salon Privé', goalText: 'End Kessler\'s reign: solve The Seventeenth Card (🔎 Case file) and survive the Salon Invitational. Buying the deed for $1,000,000 gets you the bar, but not the truth.',
+    goal: () => !!App.state.ending,
     intro: [
       { who: 'narrator', text: 'No windows. No clocks. Every bet in the room could buy a house.' },
-      { who: 'kessler', text: 'One million. Not a dollar of it borrowed from Vinnie, I hope. Interest is such a vulgar way to lose.' },
+      { who: 'kessler', text: 'Welcome to my Salon. The Invitational is played on nights ending in seven. Do try to be... worthy.' },
     ],
-    outro: [
-      { who: 'kessler', text: 'Well. A deal is a deal. Sal would be... insufferable about this.' },
-      { who: 'dolores', text: 'They\'re hanging the new sign now, sugar. "SAL\'S". First round\'s on you.' },
-      { who: 'vinnie', text: 'For the record, kid, I always liked you. Interest-free loans for life. Kidding. 1%.' },
-      { who: 'narrator', text: '🏆 **You beat the story!** Keep playing: the Salon is open, the meters keep climbing, and a stake in the Gilded Palace is still for sale...' },
-    ],
+    outro: [],
   },
-  { title: 'Legend', goalText: 'Free roam. Buy a controlling stake in The Gilded Palace if you dare.', goal: () => false, intro: [], outro: [] },
+  { title: 'Legend', goalText: 'The story is yours. Climb the rival standings, chase the meters, and see the other endings in a new career.', goal: () => false, intro: [], outro: [] },
 ];
 
 /* ---------- Career logic ---------- */
@@ -334,7 +335,10 @@ const Career = {
     amount = Math.min(amount, l.balance, App.state.bank);
     if (amount <= 0) return;
     App.debit(amount); l.balance = round2(l.balance - amount);
-    if (l.balance <= 0.005) App.state.loans = App.state.loans.filter(x => x !== l);
+    if (l.balance <= 0.005) {
+      App.state.loans = App.state.loans.filter(x => x !== l);
+      if (l.id === 'sal' && l.due && App.state.day <= l.due - 5) App.state.flags.paidEarly = App.state.day;
+    }
     App.save(); this.afterRound();
   },
 
@@ -351,6 +355,7 @@ const Career = {
   },
   // drain the bars. kind = 'round' (k = rounds) or 'step'
   drain(kind, k = 1) {
+    if (App.state) App.state.clock = (App.state.clock || 540) + (kind === 'round' ? 2 : 0.25) * k;
     if (!this.needsOn()) return;
     const st = App.state, starving = st.hunger <= 0 || st.thirst <= 0;
     const r = kind === 'round' ? { h: 0.8, t: 1.2, e: 1 } : { h: 0.04, t: 0.05, e: 0.02 };
@@ -404,7 +409,11 @@ const Career = {
   async endDay(L = LODGING.motel, robbed = 0) {
     const st = App.state, lines = [];
     lines.push(['Today\'s result', fmt(st.today.net, { sign: true })]);
-    const comp = round2(st.today.wagered * this.compRate());
+    const byV = st.today.byVenue || {}, ev = st.event && EVENTS[st.event.id];
+    let comp = round2(Object.keys(byV).reduce((a, v) => a + byV[v] * (ev && ev.comps && st.event.venue === v ? 2 : 1), 0) * this.compRate());
+    if (!Object.keys(byV).length) comp = round2(st.today.wagered * this.compRate());
+    const cap = 50 * Math.max(...Object.keys(VENUES).filter(v => this.venueOpen(v)).map(v => VENUES[v].limits.min));
+    if (comp > cap) { lines.push(['(Cash-back is capped at ' + fmt(cap) + ' a night)', '']); comp = cap; }
     if (comp > 0) { App.credit(comp); lines.push(['Players club cash-back', fmt(comp, { sign: true })]); }
     if (L.cost) lines.push([L.name, fmt(-L.cost)]);
     const rent = this.upkeep();
@@ -413,23 +422,35 @@ const Career = {
     let interest = 0;
     for (const l of st.loans) { const i = round2(l.balance * l.rate); l.balance = round2(l.balance + i); interest += i; }
     if (interest) lines.push(['Loan interest', fmt(-interest)]);
-    st.day++; st.staminaMax = this.staminaMax(); st.stamina = Math.round(st.staminaMax * (L.energy || 1));
+    st.day++; st.clock = 540; st.staminaMax = this.staminaMax(); st.stamina = Math.round(st.staminaMax * (L.energy || 1));
     st.hunger = clamp(st.hunger - 20 + (L.hunger || 0), 0, 100);
     st.thirst = clamp(st.thirst - 25 + (L.thirst || 0), 0, 100);
     st.today = { wagered: 0, net: 0, rounds: 0 };
     Progressives.dailyGrowth();
     Rivals.newDay();
+    this.rollEvent();
     this.randomNews();
     App.save(); Router.hud();
     await UI.modal({
       title: `🌙 Night ${st.day - 1} · ${L.name}`, buttons: [{ label: `Wake up: Day ${st.day}`, cls: 'primary' }],
       body: h('div', h('table.paytable', lines.map(r => h('tr', h('td', r[0]), h('td.num', r[1])))),
-        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${st.staminaMax}. You wake up a little hungry and thirsty. Progressive meters grew overnight.`)),
+        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${st.staminaMax}. You wake up a little hungry and thirsty. Progressive meters grew overnight.`),
+        h('button.btn.sm', { onclick: () => Chat.newspaper() }, '📰 Read the morning paper')),
     });
     await this.collections();
     Router.refresh();
   },
 
+  // one special night somewhere in town, announced each morning
+  rollEvent() {
+    const st = App.state, ids = Object.keys(EVENTS);
+    const open = Object.keys(VENUES).filter(v => this.venueOpen(v));
+    const id = RNG.pick(ids), venue = RNG.pick(open);
+    st.event = { id, venue, day: st.day };
+    if (EVENTS[id].meters) for (const k of Progressives.KEYS) st.progressives[k] *= 1.4;
+    App.news(`🎉 Tonight: ${EVENTS[id].name} at ${VENUES[venue].name}. ${EVENTS[id].desc}`);
+  },
+  eventAt(venue) { const e = App.state.event; return e && e.day === App.state.day && e.venue === venue ? EVENTS[e.id] : null; },
   randomNews() {
     const st = App.state;
     const hot = Progressives.KEYS.filter(k => Progressives.rtp(k) >= 1);
@@ -456,7 +477,7 @@ const Career = {
       return;
     }
     const target = overdue || vin;
-    target.strikes = (target.strikes || 0) + 1;
+    target.strikes = (target.strikes || 0) + 1; st.flags.everStruck = st.day;
     if (target.strikes >= 3) {
       await UI.dialog([
         { who: 'nico', text: 'Vinnie says this is the third time. Vinnie says there won\'t be a fourth.' },

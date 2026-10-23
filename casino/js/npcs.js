@@ -73,6 +73,11 @@ const NPCS = {
       ['You beat him. I may need a moment. Champagne?'],
     ],
   },
+  sal: {
+    role: 'the player\'s uncle, who faked his own death three years ago and is now back behind the bar of Sal\'s',
+    persona: 'Warm, mischievous old gambler with a gravel voice, endless stories and zero regrets except the funeral. Calls the player "kid". Fiercely proud of them. Still bets on 17.',
+    lines: [['Hey, kid. Coffee? It\'s on the house. Everything\'s on the house. Don\'t tell Dolores.', 'Seventeen. Always seventeen.', 'I watched you from postcards for three years. You were worth it.']],
+  },
   kessler: {
     role: 'owner of the Monte Royale Salon Privé and Kessler Holdings, who took Sal\'s bar',
     persona: 'Cold, cultured, condescending billionaire in his sixties. Speaks in precise, quiet sentences. Believes the house always wins. Respects only results. Took the Rusty Spur from Sal by buying his debt. Offers to sell the deed for one million dollars won at his tables.',
@@ -166,10 +171,21 @@ const Rivals = {
       // a night of action elsewhere
       const swing = (RNG.float() - 0.52) * 0.16;
       const d = Math.round(r.bank * swing); r.bank = Math.max(0, r.bank + d); r.net += d;
-      r.where = RNG.chance(0.2) ? 'town' : RNG.pick(R.venues);
+      if (r.where !== 'jail') r.where = RNG.chance(0.2) ? 'town' : RNG.pick(R.venues);
     }
   },
-  at(venueId) { this.ensure(); return Object.keys(RIVALS).filter(id => App.state.rivals[id].where === venueId); },
+  // where a rival is today; the mystery keeps the people it needs easy to find
+  where(id) {
+    const st = App.state, r = st.rivals[id];
+    if (r.where === 'jail' || st.mode !== 'career' || typeof Mystery === 'undefined') return r.where;
+    const m = Mystery.st(), act = Mystery.act();
+    if (act === 2 && id === 'tex' && !m.said.tex) return 'spur';
+    if ((act === 2 || act === 3) && id === 'rico' && Mystery.has('oscar') && !Mystery.has('chip')) return 'spur';
+    if (id === 'mei' && Mystery.has('confession') && !Mystery.has('badge')) return 'riverboat';
+    return r.where;
+  },
+  whereText(id) { const w = this.where(id); return w === 'town' ? 'walking around town' : w === 'jail' ? 'in jail' : VENUES[w].name; },
+  at(venueId) { this.ensure(); return Object.keys(RIVALS).filter(id => this.where(id) === venueId); },
   netWorth(id) { return App.state.rivals[id].bank; },
 
   /* ---------- seats at the table ---------- */
@@ -294,11 +310,13 @@ const Cast = {
     const person = (who, x, y, look, extra = {}) => out.push({ x, y, dir: 'down', who, name: CHARACTERS[who].name, look, dyn: true, story: !RIVALS[who], rival: !!RIVALS[who], ...extra });
     if (m.id === 'town') {
       person('vinnie', 14, 30, { shirt: '#1d1d1d', pants: '#1d1d1d', skin: '#e0ac69', hair: '#111', shades: true, chain: true });
-      if (career && (App.debt > 0) && st.loans.some(l => l.strikes > 0 || (l.due && l.due - st.day <= 3))) person('nico', 9, 30, { shirt: '#555', pants: '#333', skin: '#c68863', hair: '#222' }, { wander: true, home: [9, 30] });
+      if (career && ((App.debt > 0 && st.loans.some(l => l.strikes > 0 || (l.due && l.due - st.day <= 3))) || (Mystery.act() === 2 && Mystery.has('report')))) person('nico', 9, 30, { shirt: '#555', pants: '#333', skin: '#c68863', hair: '#222' }, { wander: true, home: [9, 30] });
       person('lou', 45, 21, { shirt: '#1f5f8b', pants: '#f4f4f4', skin: '#f0c19a', hair: '#ddd', hat: true });
       const spots = [[22, 17], [33, 33], [8, 33], [40, 20]];
-      Object.keys(RIVALS).forEach((id, i) => { if (career && st.rivals && st.rivals[id].where === 'town') person(id, spots[i][0], spots[i][1], RIVALS[id].look, { wander: true, home: spots[i] }); });
-    } else if (m.venue && career && st.rivals) {
+      Object.keys(RIVALS).forEach((id, i) => { if (career && st.rivals && Rivals.where(id) === 'town') person(id, spots[i][0], spots[i][1], RIVALS[id].look, { wander: true, home: spots[i] }); });
+    }
+    if (m.venue === 'spur' && st.ending === 'justice') person('sal', 4, 11, { shirt: '#6b4a12', pants: '#222', skin: '#e8b58f', hair: '#bbb', hat: true });
+    if (m.venue && m.id !== 'town' && career && st.rivals) {
       let i = 0;
       for (const id of Rivals.at(m.venue)) {
         const fav = m.tables.find(tb => RIVALS[id].games.includes(tb.game)) || m.tables[i % m.tables.length];
@@ -342,7 +360,7 @@ const Chat = {
   worldBrief(who) {
     const st = App.state, ch = CHAPTERS[st.chapter] || {};
     const owned = Object.keys(st.items).filter(k => st.items[k] && ITEMS[k]).map(k => ITEMS[k].name);
-    const rivals = st.rivals ? Object.keys(RIVALS).map(id => `${CHARACTERS[id].name}: bankroll ${fmt(st.rivals[id].bank)}, today at ${st.rivals[id].where === 'town' ? 'walking around town' : VENUES[st.rivals[id].where].name}`).join('; ') : '';
+    const rivals = st.rivals ? Object.keys(RIVALS).map(id => `${CHARACTERS[id].name}: bankroll ${fmt(st.rivals[id].bank)}, today ${Rivals.whereText(id)}`).join('; ') : '';
     const jobs = Object.keys(QUESTS).map(id => `${QUESTS[id].title} (${this.jobState(id)})`).join('; ');
     const where = World.where();
     const place = where && where.map !== 'town' ? VENUES[where.map.slice(2)].name : 'out on the street in town';
@@ -374,7 +392,12 @@ const Chat = {
     const box = h('div.job');
     const render = () => {
       box.innerHTML = '';
-      if (isRival) { const r = App.state.rivals[who]; box.append(h('p.muted.small', `Bankroll ${fmt(r.bank)} · ${r.net >= 0 ? 'up' : 'down'} ${fmt(Math.abs(r.net))} lifetime.`)); return; }
+      if (isRival) {
+        const r = App.state.rivals[who];
+        box.append(h('div.ev-row', h('span.muted.small', `Bankroll ${fmt(r.bank)} · ${r.net >= 0 ? 'up' : 'down'} ${fmt(Math.abs(r.net))} lifetime.`),
+          App.state.mode === 'career' && r.where !== 'jail' ? h('button.btn.sm', { onclick: () => { api.close(); Duel.challenge(who); } }, '⚔️ Challenge heads-up') : null));
+        return;
+      }
       const offer = Quests.offerFor(who), active = Quests.activeFor(who);
       if (offer) box.append(h('div.job-card', h('b', '📝 Side job: ' + QUESTS[offer].title), h('p', QUESTS[offer].offer), h('p.muted.small', `${QUESTS[offer].desc} Reward ${fmt(QUESTS[offer].reward.cash)} and ★ ${QUESTS[offer].reward.swagger}.`),
         h('button.btn.sm.primary', { onclick: () => { Quests.accept(offer); api.say('Good. Don\'t make me wait.'); render(); } }, 'Take the job')));
@@ -477,6 +500,34 @@ const Chat = {
     await pop;
     if (ctl) ctl.abort();
     App.save();
+  },
+
+  /* ---------- the morning paper ---------- */
+  async newspaper() {
+    const st = App.state, mode = await this.backend();
+    const out = h('div.paper-body', mode ? h('p.muted', 'The paper boy is running late…') : null);
+    const scripted = () => { out.innerHTML = ''; st.news.slice(0, 6).forEach(n => out.append(h('p', n.text))); };
+    const pop = UI.modal({ title: `📰 The Lucky Ledger · Day ${st.day}`, body: h('div.paper', out), wide: true });
+    if (!mode) { scripted(); return pop; }
+    const prompt = [
+      'Write the front page of "The Lucky Ledger", the gossip-hungry daily paper of the casino town in the game High Roller.',
+      `Use these facts about the town (don't contradict them):\n${this.worldBrief('paper')}\nRecent events: ${st.news.slice(0, 8).map(n => n.text).join(' | ')}`,
+      Mystery.brief('paper'),
+      'Write exactly four short items. Each item is one line: a punchy headline in capitals, then " — ", then one or two sentences. Mix casino gossip, rival gamblers, the progressive meters and one strange rumour about Sal. Plain text only, no markdown, no numbering.',
+    ].join('\n\n');
+    try {
+      let text;
+      if (mode === 'sample') ({ text } = await this._sample(prompt, { modelTier: 'quick', cache: { gcTime: 6 * 3600 * 1000 } }));
+      else {
+        const { client } = await this.client();
+        const msg = await client.beta.messages.create({ model: 'claude-opus-5-5', max_tokens: 1024, messages: [{ role: 'user', content: prompt }], output_config: { effort: 'low' }, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' });
+        if (msg.stop_reason === 'refusal') throw { code: 'refused' };
+        text = msg.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      }
+      out.innerHTML = '';
+      text.split('\n').map(l => l.trim()).filter(Boolean).forEach(l => { const [hd, ...rest] = l.split(' — '); out.append(h('div.paper-item', h('b', hd), rest.length ? h('p', rest.join(' — ')) : null)); });
+    } catch (e) { scripted(); }
+    return pop;
   },
 
   /* ---------- settings ---------- */
