@@ -615,3 +615,41 @@ ul.timeline b { font-variant-numeric: tabular-nums; color: var(--gold); margin-r
   .card.pk-card { --cw: 24px; --ch: 34px; } .pk-seat.me .card.pk-card { --cw: 40px; --ch: 56px; }
   .pk-center .card { --cw: 38px; --ch: 53px; }
 }
+
+/* ---------- darts ---------- */
+.dt { display: flex; flex-direction: column; gap: .6rem; }
+.dt-score { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; }
+.dt-p { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: .5rem .8rem; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 .6rem; transition: box-shadow .2s, border-color .2s; }
+.dt-p.on { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(233, 194, 90, .35); }
+.dt-who { display: flex; align-items: center; gap: .4rem; min-width: 0; } .dt-who b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dt-face { font-size: 1.3rem; }
+.dt-rem { grid-row: span 2; font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--gold); text-align: right; line-height: 1; }
+.dt-rem small { display: block; font-size: .65rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.dt-meta { font-size: .75rem; color: var(--muted); }
+.dt-main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1rem; align-items: start; }
+.dt-boardwrap { min-width: 0; position: relative; display: flex; justify-content: center; background: radial-gradient(circle at 50% 45%, #3a2a1c, #1a120b 70%); border-radius: 18px; padding: .6rem; }
+.dt-board { width: 100%; max-width: 520px; aspect-ratio: 1; height: auto; touch-action: none; cursor: crosshair; display: block; border-radius: 50%; box-shadow: 0 12px 30px rgba(0, 0, 0, .6); }
+.dt-call { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%) scale(.8); pointer-events: none; opacity: 0; font-weight: 900; font-size: clamp(1.1rem, 4.5vw, 1.8rem); color: #ffe9a8; text-align: center; text-shadow: 0 2px 0 #000, 0 0 18px rgba(0, 0, 0, .9); background: rgba(0, 0, 0, .55); padding: .35rem .9rem; border-radius: 12px; white-space: nowrap; }
+.dt-call.show { animation: dtcall 1.7s ease forwards; }
+@keyframes dtcall { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.7); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+.dt-side { display: flex; flex-direction: column; gap: .55rem; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: .7rem .8rem; }
+.dt-visit { display: flex; gap: .35rem; align-items: center; }
+.dt-dart { min-width: 3.2rem; text-align: center; padding: .25rem .4rem; border-radius: 8px; background: #fbf8f1; color: #1a1a1a; font-weight: 800; font-size: .9rem; }
+.dt-dart.empty { background: rgba(255, 255, 255, .08); color: var(--muted); }
+.dt-tot { margin-left: auto; font-size: 1.4rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.dt-hint { font-size: .9rem; min-height: 1.3em; }
+.dt-aims { display: flex; gap: .35rem; flex-wrap: wrap; min-height: 2rem; }
+.dt-throw { font-size: 1.1rem; padding: .7rem; display: flex; align-items: center; justify-content: center; gap: .5rem; }
+.dt-throw kbd { font-size: .65rem; opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 .3rem; }
+.dt-help { margin: 0; }
+.dt-log { font-size: .78rem; color: var(--muted); display: grid; gap: 1px; max-height: 7.5em; overflow: hidden; }
+.dt-log div:first-child { color: var(--ink); }
+.dt-lobby { display: flex; flex-direction: column; gap: .5rem; }
+.dt-row { display: flex; gap: .8rem; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; }
+.dt-row p { margin: .15rem 0 0; } .dt-row .btn { flex: none; }
+@media (max-width: 760px) {
+  .dt-main { grid-template-columns: 1fr; }
+  .dt-boardwrap { padding: .3rem; }
+  .dt-rem { font-size: 1.8rem; }
+  .dt-row { flex-direction: column; align-items: stretch; }
+}

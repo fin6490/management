@@ -73,6 +73,15 @@ const NPCS = {
       ['You beat him. I may need a moment. Champagne?'],
     ],
   },
+  mick: {
+    role: 'retired darts pro who runs the dartboard at the Rusty Spur, Sal\'s old hustling partner',
+    persona: 'Dubliner in his sixties, ex-county darts champion, cardigan and reading glasses on a chain. Chatty, superstitious, full of tall tales about the 1980s pub circuit and hustling tourists with Sal. Talks darts constantly: checkouts, doubles, "game shot". Calls the player "friend". Hates Dutch Joost, the ringer Kessler flies in for the Golden Arrow, who beat Sal in the \'89 final with a bounce-out that somehow counted.',
+    lines: [
+      ['Sal could hit double sixteen with his eyes shut. Actually did, once, for a bet.', 'Three in the bed, friend. That\'s all darts is. Three in the bed.', 'The board doesn\'t care who you are. That\'s why I love it.'],
+      ['Mind your doubles. Everyone can score; the money\'s on the finish.', 'Benny\'s been practising. He hit the board twice last night. Twice!'],
+      ['Big casinos, big money. Still nothing like a good leg of 501 in a smoky bar.'],
+    ],
+  },
   sal: {
     role: 'the player\'s uncle, who faked his own death three years ago and is now back behind the bar of Sal\'s',
     persona: 'Warm, mischievous old gambler with a gravel voice, endless stories and zero regrets except the funeral. Calls the player "kid". Fiercely proud of them. Still bets on 17.',
@@ -266,13 +275,17 @@ const QUESTS = {
   texDebt: { giver: 'vinnie', chapter: 1, title: 'Tex owes Vinnie', desc: 'Win a round at any table while Tex Calhoun is sitting with you. He drinks at the Spur and the Riverboat.', reward: { cash: 750, swagger: 2 }, offer: 'Tex Calhoun owes me and he\'s been ducking my calls. Beat him at a table while he watches. Humiliation is a down payment.' },
   baron: { giver: 'margot', chapter: 2, title: 'Humble the Baron', desc: 'Win 3 rounds at tables where Baron von Hollow is sitting. He plays the Palace and the Salon.', need: 3, reward: { cash: 5000, swagger: 5 }, offer: 'The Baron sneers at my staff and tips in foreign coins. Beat him three times at his own tables, darling. I\'ll be very grateful.' },
   pokerRoom: { giver: 'dolores', chapter: 1, title: 'The Back Room', desc: 'Kessler shut the Spur\'s back poker room years ago. Buy the Back Room Refit at Lucky Strike Outfitters ($15,000), then tell Dolores.', reward: { cash: 0, swagger: 3 }, offer: 'See that door behind the jukebox? Best poker room in the state, once. Kessler had it shut after Sal started winning too much. Fix it up, sugar, and I\'ll run the tournaments.' },
+  darts1: { giver: 'mick', chapter: 0, title: 'Oche Hours', desc: 'Beat Mick Doyle in one leg of 301 at the Spur dartboard. He\'s throwing left-handed.', reward: { cash: 250, swagger: 2 }, offer: 'You\'re Sal\'s kid? Then you\'ll play. One leg of 301, double out. I\'ll even throw with my wrong hand. Beat me and the regulars will play you for money.' },
+  darts2: { giver: 'mick', chapter: 0, after: 'darts1', title: 'Pub Hustle', desc: 'Win 3 money matches at the Spur dartboard, against the regulars or a rival who\'s in.', need: 3, reward: { cash: 1000, swagger: 3 }, offer: 'Sal and I paid our rent hustling tourists on that board. Win three money games and I\'ll believe you\'ve got his arm.' },
+  darts3: { giver: 'mick', chapter: 1, after: 'darts2', title: 'Sal\'s Arrows', desc: 'Sal\'s tungsten darts ended up in the Lucky Strike Outfitters curio case. Buy them ($3,000) and show Mick.', reward: { cash: 0, swagger: 3 }, offer: 'When Sal "died", Vinnie sold everything. Including his darts: twenty-three grams of tungsten, sitting in a glass case at the Outfitters. Get them back. Then we talk about the Golden Arrow.' },
+  darts4: { giver: 'mick', chapter: 1, after: 'darts3', title: 'The Golden Arrow', desc: 'Win the Golden Arrow, an eight-player knockout at the Spur dartboard ($2,000 entry). Dutch Joost, Kessler\'s ringer, is the favourite.', reward: { cash: 5000, swagger: 6 }, offer: 'Every year Kessler flies in Dutch Joost to win the Golden Arrow and laugh at us. He beat Sal in the \'89 final with a dart that bounced out. Win it back, friend. Sign up at the board.' },
   louDice: { giver: 'lou', chapter: 1, title: 'Hot shooter', desc: 'Make 3 points on a single craps shooter (watch the Fire Bet tracker), anywhere in town.', reward: { cash: 1000, swagger: 3 }, offer: 'Haven\'t seen a real hot hand on my boat since the eighties. Make three points in one roll of the dice and I\'ll put your picture on the wall!' },
 };
 const Quests = {
   state() { const st = App.state; if (!st.quests) st.quests = {}; return st.quests; },
   status(id) { return (this.state()[id] || {}).s || null; },
   offerFor(who) {
-    return Object.keys(QUESTS).find(id => QUESTS[id].giver === who && App.state.chapter >= QUESTS[id].chapter && !this.status(id));
+    return Object.keys(QUESTS).find(id => QUESTS[id].giver === who && App.state.chapter >= QUESTS[id].chapter && !this.status(id) && (!QUESTS[id].after || this.status(QUESTS[id].after) === 'done'));
   },
   activeFor(who) { return Object.keys(QUESTS).find(id => QUESTS[id].giver === who && this.status(id) === 'active'); },
   accept(id) { this.state()[id] = { s: 'active', n: 0 }; App.news(`📝 Side job: ${QUESTS[id].title}`); App.save(); },
@@ -298,6 +311,7 @@ const Quests = {
   handIn(who) {
     const id = this.activeFor(who);
     if (id === 'pokerRoom' && App.has('backroom')) { App.state.flags.pokerRoom = App.state.day; this.complete(id); return 'New felt, a jukebox that plays something besides Patsy Cline... Sal would cry. The Back Room is OPEN. Tournaments every night, sugar: the door\'s behind the jukebox.'; }
+    if (id === 'darts3' && App.has('salDarts')) { App.state.flags.goldenArrow = App.state.day; this.complete(id); return 'Ah... look at that. The grip\'s worn right where he held them. They\'re yours now, friend: they\'ll steady you. And that means you\'re ready. The Golden Arrow.'; }
     if (id === 'docPie' && App.state.flags.hasPie) { App.state.flags.hasPie = false; this.complete(id); return 'Cherry! Mel still makes it right. Here: for your trouble, and a tip. The meters run hottest after a quiet night.'; }
     return null;
   },
@@ -317,6 +331,7 @@ const Cast = {
       const spots = [[22, 17], [33, 33], [8, 33], [40, 20]];
       Object.keys(RIVALS).forEach((id, i) => { if (career && st.rivals && Rivals.where(id) === 'town') person(id, spots[i][0], spots[i][1], RIVALS[id].look, { wander: true, home: spots[i] }); });
     }
+    if (m.venue === 'spur') person('mick', 19, 2, { shirt: '#2e7d32', pants: '#3b3b3b', skin: '#f0c19a', hair: '#ccc' }, { dir: 'left' });
     if (m.venue === 'spur' && st.ending === 'justice') person('sal', 4, 11, { shirt: '#6b4a12', pants: '#222', skin: '#e8b58f', hair: '#bbb', hat: true });
     if (m.venue && m.id !== 'town' && career && st.rivals) {
       let i = 0;
@@ -389,6 +404,7 @@ const Chat = {
       handIn: () => !isRival && Quests.handIn(who),
       opener: () => Cast.line(who),
       panel: api => Chat.jobPanel(who, isRival, api),
+      brief: who === 'mick' ? () => { const d = Darts.st(); return `The player's darts: arm "${Darts.armLabel(Darts.wobble())}", ${d.darts} darts thrown, ${d.wins}/${d.matches} matches won, best 3-dart average ${d.best || 'none yet'}, highest checkout ${d.hiOut || 'none yet'}, ${d.t80} maximum 180s. ${App.counter('dartGAwin') ? 'They have won the Golden Arrow ' + App.counter('dartGAwin') + ' time(s).' : 'They have not won the Golden Arrow yet.'} Money games: Benny $50, Sheila $250, the Professor $1,000, you (Mick) $5,000 once they've won three.`; } : undefined,
     };
   },
   jobPanel(who, isRival, api) {
@@ -402,9 +418,11 @@ const Chat = {
         return;
       }
       const offer = Quests.offerFor(who), active = Quests.activeFor(who);
-      if (offer) box.append(h('div.job-card', h('b', '📝 Side job: ' + QUESTS[offer].title), h('p', QUESTS[offer].offer), h('p.muted.small', `${QUESTS[offer].desc} Reward ${fmt(QUESTS[offer].reward.cash)} and ★ ${QUESTS[offer].reward.swagger}.`),
+      if (offer) box.append(h('div.job-card', h('b', '📝 Side job: ' + QUESTS[offer].title), h('p', QUESTS[offer].offer), h('p.muted.small', `${QUESTS[offer].desc} Reward ${QUESTS[offer].reward.cash ? fmt(QUESTS[offer].reward.cash) + ' and ' : ''}★ ${QUESTS[offer].reward.swagger}.`),
         h('button.btn.sm.primary', { onclick: () => { Quests.accept(offer); api.say('Good. Don\'t make me wait.'); render(); } }, 'Take the job')));
       else if (active) { const q = Quests.state()[active]; box.append(h('p.muted.small', `📝 ${QUESTS[active].title}: ${QUESTS[active].desc}${QUESTS[active].need ? ` (${q.n || 0}/${QUESTS[active].need})` : ''}`)); }
+      if (who === 'mick') App.state.flags.metMick = 1;
+      if (who === 'mick') box.append(h('div.ev-row', h('span.muted.small', `Your arm: ${Darts.armLabel(Darts.wobble())}.`), h('button.btn.sm', { onclick: () => { api.close(); setTimeout(() => Darts.lobby(), 50); } }, '🎯 Play darts')));
     };
     render();
     return box;

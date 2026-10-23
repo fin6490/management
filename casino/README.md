@@ -138,6 +138,27 @@ rules. Opponents play differently (nits, tight-aggressive regulars, calling stat
 when they can afford it. The controls show pot odds, and you can size bets with the slider or the
 ½ pot, pot and all-in buttons. By default, once you fold, the rest of the hand plays out quickly.
 
+### Darts at the Spur
+
+There's a dartboard on the Rusty Spur's back wall, and Mick "The Arrow" Doyle, Sal's old hustling
+partner, stands beside it. Walk up to the board, or talk to Mick and press **🎯 Play darts**.
+
+- **How to throw**: point at the board, or tap one of the bed buttons (T20, T19, Bull, or the
+  suggested checkout), then throw when the wobbling sight crosses your target. Click to throw with a
+  mouse; press **Space** with the keyboard (the arrow keys fine-tune your aim); on a phone, drag on
+  the board and lift your finger (the sight floats just above your finger so you can see it).
+- **The rules** are regulation: a 451mm board, 501 or 301, double out, bust on 1 or below zero, and a
+  bull-up to decide who throws first. The game suggests standard checkouts like T20 · T20 · Bull.
+- **Your arm** steadies as you throw more darts. Custom flights and Sal's tungsten darts help, and
+  being tired makes it shakier. **Around the Clock** is free practice.
+- **Mick's side jobs**: beat Mick at 301 (he throws left-handed), win three money matches against
+  the regulars (Benny the Barfly at $50, Shotgun Sheila at $250, the Professor at $1,000, and
+  eventually Mick himself at $5,000) or any rival drinking at the Spur. Then buy back Sal's
+  tungsten darts and win **the Golden Arrow**, an eight-player knockout ($2,000 entry, $18,000 to
+  the winner) where Kessler's ringer, Dutch Joost, is the favourite. After that it runs every
+  seventh day.
+- Achievements include a 180, a 170 checkout ("The Big Fish") and a bullseye finish.
+
 ### Legend goals
 
 When the story ends, the game keeps going. ☰ → Status shows your legend goals: be worth $10M,

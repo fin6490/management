@@ -53,6 +53,7 @@ const Router = {
   // navigation away from a table must respect bets in action
   safeGo(screen, arg) {
     if (Holdem.active() && this.screen === 'pokertable') return UI.toast('Use ← Leave to leave the tournament', 'warn');
+    if (Darts.active() && this.screen === 'darts') return UI.toast('Finish the match first (or concede)', 'warn');
     if (this.table) {
       if (this.table.busy) return UI.toast('Finish the round first', 'warn');
       const block = this.game && this.game.canLeave && this.game.canLeave();
@@ -116,6 +117,7 @@ const Screens = {
   world(main) { World.mount(main); },
   poker(main) { Holdem.lobby(main); },
   pokertable(main) { Holdem.table(main); },
+  darts(main) { Darts.screen(main); },
   case(main) { Mystery.screen(main); },
   title(main) {
     document.body.dataset.screen = 'title';
