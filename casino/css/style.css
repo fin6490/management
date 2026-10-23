@@ -422,3 +422,46 @@ body[data-back="gold"] { --card-back: repeating-linear-gradient(45deg, #c9a14a 0
   .meter { min-width: 110px; }
   .card.third { margin-left: 8px !important; margin-right: 8px; }
 }
+
+/* ---------- overworld ---------- */
+body[data-screen="world"] main.screen { max-width: none; padding: 0; }
+body[data-screen="world"] { overflow: hidden; }
+.world { position: relative; height: calc(100dvh - 58px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 320px; overflow: hidden; background: #000; touch-action: none; user-select: none; -webkit-user-select: none; }
+.world-cv { position: absolute; inset: 0; display: block; image-rendering: pixelated; }
+.w-top { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; pointer-events: none; }
+.w-goal { pointer-events: auto; background: rgba(15, 12, 9, .82); border: 1px solid var(--gold2); color: var(--ink); border-radius: 999px; padding: .4rem .8rem; font-size: .82rem; font-weight: 700; cursor: pointer; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.w-area { font: 700 1rem var(--serif); color: #fff; background: rgba(0, 0, 0, .6); border-radius: 8px; padding: .35rem .8rem; opacity: 0; }
+.w-area.show { animation: areaIn 2.6s ease forwards; }
+@keyframes areaIn { 0% { opacity: 0; transform: translateY(-6px); } 12%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.w-prompt { position: absolute; left: 50%; bottom: 18px; transform: translate(-50%, 10px); background: rgba(15, 12, 9, .9); border: 2px solid var(--gold); border-radius: 12px; padding: .55rem 1rem;
+  font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.w-prompt.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.w-prompt kbd { opacity: .8; }
+.w-fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .18s; }
+.w-fade.on { opacity: 1; }
+.pad, .ab { position: absolute; bottom: 16px; display: none; }
+.pad { left: 16px; width: 150px; height: 150px; }
+.pad button, .ab button { position: absolute; border: 2px solid rgba(255, 255, 255, .35); background: rgba(15, 12, 9, .55); color: #fff; font-weight: 800; touch-action: none; -webkit-user-select: none; user-select: none; }
+.pad button { width: 50px; height: 50px; border-radius: 12px; font-size: 1.1rem; }
+.pad button.on, .ab button.on, .ab button:active { background: rgba(227, 184, 90, .55); }
+.pad-up { left: 50px; top: 0; } .pad-down { left: 50px; bottom: 0; } .pad-left { left: 0; top: 50px; } .pad-right { right: 0; top: 50px; }
+.ab { right: 16px; width: 140px; height: 110px; }
+.ab button { width: 62px; height: 62px; border-radius: 50%; font-size: 1.2rem; }
+.ab-a { right: 0; top: 0; background: rgba(179, 18, 43, .7) !important; }
+.ab-b { left: 0; bottom: 0; }
+@media (pointer: coarse), (max-width: 760px) {
+  .pad, .ab { display: block; }
+  .w-prompt { bottom: 180px; }
+}
+.needs { display: grid; gap: .35rem; margin: .5rem 0 .8rem; }
+.need { display: grid; grid-template-columns: 1.4rem 1fr 2.2rem; gap: .5rem; align-items: center; font-size: .85rem; }
+.need .bar { margin: 0; height: 9px; } .need em { font-style: normal; color: var(--muted); text-align: right; }
+.menu-list { display: grid; gap: .4rem; }
+.menu-row { display: grid; grid-template-columns: 2rem 1fr auto; gap: .6rem; align-items: center; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: .5rem .6rem; }
+.menu-row.dim { opacity: .6; grid-template-columns: 2rem 1fr; }
+.mi { font-size: 1.5rem; text-align: center; } .mn { display: flex; flex-direction: column; min-width: 0; } .mn small { color: var(--muted); }
+.hs.needs-h { display: grid; gap: 3px; width: 92px; }
+.nb { display: grid; grid-template-columns: 1rem 1fr; gap: 4px; align-items: center; font-size: .62rem; }
+.nb .bar { margin: 0; height: 6px; }
+ul.howto { color: var(--muted); font-size: .9rem; line-height: 1.5; padding-left: 1.2rem; }
+@media (max-width: 640px) { .hs.swag { display: none; } .hs.needs-h { width: 72px; } }

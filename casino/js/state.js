@@ -53,7 +53,8 @@ const App = {
     return {
       version: 1, mode, name: name || 'Lucky', created: Date.now(), saved: Date.now(),
       bank: career ? 500 : 10000, day: 1,
-      stamina: 100, staminaMax: 100,
+      stamina: 100, staminaMax: 100, hunger: 80, thirst: 80,
+      world: { map: 'town', x: 5, y: 30, dir: 'down' },
       loans: career ? [{ id: 'sal', label: "Uncle Sal's marker", balance: 2500, rate: 0.03, due: 15, strikes: 0 }] : [],
       items: {}, consumables: {}, equipped: { felt: 'green', back: 'red' },
       chapter: 0, flags: {}, achievements: {},
@@ -85,6 +86,7 @@ const App = {
     for (const k in d) if (s[k] === undefined) s[k] = d[k];
     for (const k in d.stats) if (s.stats[k] === undefined) s.stats[k] = d.stats[k];
     for (const k in d.settings) if (s.settings[k] === undefined) s.settings[k] = d.settings[k];
+    if (!s.world || !s.world.map) s.world = d.world;
     for (const k of Progressives.KEYS) if (!(s.progressives[k] > 0)) s.progressives[k] = PAY[k].prog.seed;
     return s;
   },
@@ -145,7 +147,7 @@ const App = {
     }
     if (st.bank > s.peakBank) s.peakBank = st.bank;
     Progressives.networkTick();
-    if (st.mode === 'career' && (r.wagered > 0 || r.stamina)) st.stamina = Math.max(0, st.stamina - (r.stamina != null ? r.stamina : 1));
+    if (r.wagered > 0 || r.stamina) Career.drain('round', r.stamina != null ? r.stamina : 1);
     Career.afterRound(gameId, r);
     this.save(); Router.hud();
   },

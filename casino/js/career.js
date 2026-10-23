@@ -102,9 +102,50 @@ const ITEMS = {
   spurDeed: { cat: 'Deeds', name: 'Deed to The Rusty Spur', icon: '📜', price: 1000000, swagger: 40, requiresChapter: 3, desc: 'Buy back the bar Sal lost. Rename it. Finish the story.' },
   palaceDeed: { cat: 'Deeds', name: 'Controlling Stake: The Gilded Palace', icon: '🏰', price: 25000000, swagger: 100, requires: 'spurDeed', desc: 'The final flex. Margot will want a word.' },
 };
-const CONSUMABLES = {
-  coffee: { name: 'Diner Coffee', icon: '☕', price: 15, stamina: 15, desc: '+15 stamina right now.' },
-  energy: { name: 'Lightning Energy Drink', icon: '⚡', price: 60, stamina: 40, desc: '+40 stamina. Your heart will forgive you. Probably.' },
+/* Food and drink. hunger/thirst/energy are how much each bar refills (bars run 0-100). */
+const MENU = {
+  coffee: { name: 'Coffee', icon: '☕', price: 3, thirst: 20, energy: 12, drink: true },
+  water: { name: 'Bottled Water', icon: '💧', price: 2, thirst: 35, drink: true },
+  soda: { name: 'Soda', icon: '🥤', price: 3, thirst: 30, energy: 4, drink: true },
+  energy: { name: 'Lightning Energy Drink', icon: '⚡', price: 6, thirst: 15, energy: 35, drink: true },
+  candy: { name: 'Candy Bar', icon: '🍫', price: 2, hunger: 12, energy: 4 },
+  sandwich: { name: 'Gas-Station Sandwich', icon: '🥪', price: 7, hunger: 35 },
+  breakfast: { name: 'Lumberjack Breakfast', icon: '🍳', price: 9, hunger: 45, thirst: 10, energy: 8 },
+  burger: { name: 'Double Cheeseburger & Fries', icon: '🍔', price: 12, hunger: 60 },
+  pie: { name: 'Slice of Cherry Pie', icon: '🥧', price: 5, hunger: 20 },
+  shake: { name: 'Chocolate Milkshake', icon: '🥛', price: 6, hunger: 10, thirst: 25 },
+  beer: { name: 'Draft Beer', icon: '🍺', price: 5, thirst: 30, energy: -3, drink: true },
+  whiskey: { name: 'Whiskey, Neat', icon: '🥃', price: 9, thirst: 15, energy: -2, drink: true },
+  nachos: { name: 'Loaded Nachos', icon: '🧀', price: 8, hunger: 35 },
+  cocktail: { name: 'Riverboat Old Fashioned', icon: '🍹', price: 12, thirst: 30, drink: true },
+  shrimp: { name: 'Shrimp Basket', icon: '🍤', price: 16, hunger: 45 },
+  champagne: { name: 'Champagne', icon: '🥂', price: 35, thirst: 30, energy: 3, drink: true },
+  espresso: { name: 'Double Espresso', icon: '☕', price: 8, thirst: 10, energy: 25, drink: true },
+  buffet: { name: 'Palace Buffet', icon: '🍽️', price: 55, hunger: 100, thirst: 20 },
+  martini: { name: 'Vesper Martini', icon: '🍸', price: 60, thirst: 30, drink: true },
+  caviar: { name: 'Caviar Service', icon: '🥄', price: 400, hunger: 35, energy: 10 },
+  wagyu: { name: 'Wagyu Sliders', icon: '🍔', price: 150, hunger: 75 },
+  steak: { name: '32oz Tomahawk Steak', icon: '🥩', price: 120, hunger: 100, energy: 15 },
+  lobster: { name: 'Lobster Thermidor', icon: '🦞', price: 95, hunger: 70 },
+  wine: { name: 'Glass of Bordeaux', icon: '🍷', price: 30, thirst: 25, drink: true },
+};
+// places you can eat/drink. comp: drinks are free once you've wagered 20x the venue minimum today.
+const PLACES = {
+  diner: { name: "Mel's Diner", icon: '🍳', who: 'Mel', line: 'Sit anywhere, hon. Coffee\'s fresh-ish.', items: ['coffee', 'breakfast', 'burger', 'pie', 'shake'] },
+  store: { name: 'Quik-Stop', icon: '🏪', who: 'Clerk', line: 'Lottery tickets are behind the counter. Kidding. We\'re sold out.', items: ['water', 'soda', 'energy', 'candy', 'sandwich'] },
+  steak: { name: 'Prime Cut Steakhouse', icon: '🥩', who: 'Maître d\'', line: 'Your table is ready. It has been ready since you walked in looking like money.', items: ['steak', 'lobster', 'wine', 'water'] },
+  bar_spur: { name: 'Spur Bar', icon: '🍺', npc: 'dolores', venue: 'spur', comp: true, job: true, line: 'What\'ll it be, sugar?', items: ['beer', 'whiskey', 'soda', 'nachos', 'water'] },
+  bar_riverboat: { name: 'Paddlewheel Lounge', icon: '🍹', venue: 'riverboat', comp: true, line: 'Welcome aboard. Drinks are on the house for players.', items: ['cocktail', 'beer', 'coffee', 'shrimp', 'water'] },
+  bar_palace: { name: 'Chandelier Bar', icon: '🥂', venue: 'palace', comp: true, line: 'Champagne, darling?', items: ['champagne', 'espresso', 'buffet', 'water'] },
+  bar_salon: { name: 'Salon Privé Bar', icon: '🍸', venue: 'salon', comp: true, line: 'Mr. Kessler insists you want for nothing. Within reason.', items: ['martini', 'espresso', 'wagyu', 'caviar', 'water'] },
+};
+// where you can sleep. energy: fraction of max restored. cost is per night.
+const LODGING = {
+  motel: { name: 'Starlite Motel', icon: '🛏️', cost: 25, energy: 1, text: 'A bed, a buzzing sign, and a lock that mostly works.' },
+  grand: { name: 'Grand Hotel Suite', icon: '🏨', cost: 350, energy: 1.25, hunger: 25, thirst: 25, text: 'Feather pillows and room-service breakfast. Wake up with extra energy.' },
+  apartment: { name: 'Your Apartment', icon: '🏢', cost: 0, energy: 1.1, item: 'apartment', text: 'Your own place. Rent is paid daily.' },
+  penthouse: { name: 'Your Penthouse', icon: '🌆', cost: 0, energy: 1.35, hunger: 20, thirst: 20, item: 'penthouse', text: 'The whole city glittering below. Wake up unstoppable.' },
+  bench: { name: 'Park Bench', icon: '🪑', cost: 0, energy: 0.6, risky: true, text: 'Free. Cold. Somebody might lift your wallet while you sleep.' },
 };
 
 const ACHIEVEMENTS = [
@@ -211,7 +252,7 @@ const Career = {
     let c = 0.001; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].comp) c = Math.max(c, ITEMS[k].comp);
     return c;
   },
-  upkeep() { let u = 25; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].upkeep) u += ITEMS[k].upkeep; return u; },
+  upkeep() { let u = 0; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].upkeep) u += ITEMS[k].upkeep; return u; },
   creditLimit() { return 1000 + Career.swagger() * 400 + App.state.chapter * 5000; },
   vinnieRate() { return App.state.chapter >= 4 ? 0.01 : 0.04; },
 
@@ -251,10 +292,6 @@ const Career = {
     this.checkAchievements();
     if (App.state.mode !== 'career') return;
     this.checkChapter();
-    if (App.state.stamina <= 0 && !this._tiredShown) {
-      this._tiredShown = true;
-      UI.toast('😴 You\'re exhausted. Drink a coffee or head home to sleep.', 'warn');
-    }
   },
 
   async checkChapter() {
@@ -302,25 +339,86 @@ const Career = {
   },
 
   /* ---------- the day cycle ---------- */
-  async endDay() {
+  /* ---------- needs: hunger, thirst and energy (energy is state.stamina) ---------- */
+  needsOn() { return App.state && App.state.mode === 'career'; },
+  canPlay() {
+    if (!this.needsOn()) return null;
+    const st = App.state;
+    if (st.stamina <= 0) return 'You\'re exhausted. Get some sleep (or an energy drink).';
+    if (st.hunger <= 0) return 'You\'re starving. Go get something to eat.';
+    if (st.thirst <= 0) return 'You\'re parched. Get a drink first.';
+    return null;
+  },
+  // drain the bars. kind = 'round' (k = rounds) or 'step'
+  drain(kind, k = 1) {
+    if (!this.needsOn()) return;
+    const st = App.state, starving = st.hunger <= 0 || st.thirst <= 0;
+    const r = kind === 'round' ? { h: 0.8, t: 1.2, e: 1 } : { h: 0.04, t: 0.05, e: 0.02 };
+    const before = { hunger: st.hunger, thirst: st.thirst, stamina: st.stamina };
+    st.hunger = Math.max(0, st.hunger - r.h * k);
+    st.thirst = Math.max(0, st.thirst - r.t * k);
+    st.stamina = Math.max(0, st.stamina - r.e * k * (starving ? 3 : 1));
+    const warn = { hunger: '🍔 You\'re getting hungry.', thirst: '💧 You\'re getting thirsty.', stamina: '⚡ You\'re getting tired.' };
+    for (const key in warn) {
+      const lim = key === 'stamina' ? st.staminaMax * 0.2 : 20;
+      if (before[key] > lim && st[key] <= lim) UI.toast(warn[key], 'warn');
+      if (before[key] > 0 && st[key] <= 0) UI.toast({ hunger: '🍔 Starving! You can\'t play until you eat.', thirst: '💧 Parched! You can\'t play until you drink.', stamina: '😴 Exhausted! Sleep or grab an energy drink.' }[key], 'warn');
+    }
+    Router.hud();
+  },
+  consume(id, placeId) {
+    const m = MENU[id], st = App.state, place = PLACES[placeId];
+    const free = this.isComped(place, m);
+    if (!free && !App.debit(m.price)) { UI.toast('Not enough cash', 'warn'); return false; }
+    if (m.hunger) st.hunger = clamp(st.hunger + m.hunger, 0, 100);
+    if (m.thirst) st.thirst = clamp(st.thirst + m.thirst, 0, 100);
+    if (m.energy) st.stamina = clamp(st.stamina + m.energy, 0, st.staminaMax + 40);
+    SFX.cash(); UI.toast(`${m.icon} ${m.name}${free ? ' (comped)' : ''}`, 'good');
+    App.save(); Router.hud(); return true;
+  },
+  isComped(place, m) {
+    if (!place || !place.comp || !m.drink || !place.venue) return false;
+    return App.state.today.wagered >= VENUES[place.venue].limits.min * 20;
+  },
+
+  /* ---------- the day cycle ---------- */
+  async sleep(lodgingId) {
+    const L = LODGING[lodgingId], st = App.state;
+    if (L.cost && !App.debit(L.cost)) { UI.toast(`A night here costs ${fmt(L.cost)}`, 'warn'); return; }
+    let robbed = 0;
+    if (L.risky && st.bank > 20 && RNG.chance(0.3)) { robbed = round2(Math.min(st.bank * 0.15, 5000)); st.bank = round2(st.bank - robbed); }
+    await this.endDay(L, robbed);
+  },
+  async passOut() {
+    const st = App.state;
+    const robbed = st.bank > 20 ? round2(Math.min(st.bank * 0.2, 10000)) : 0;
+    st.bank = round2(st.bank - robbed);
+    await UI.dialog([{ who: 'narrator', text: `You collapse on the sidewalk and sleep where you fall.${robbed ? ` When you wake up, **${fmt(robbed)}** is missing from your wallet.` : ''} Next time, find a bed before you hit empty.` }]);
+    await this.endDay({ name: 'The sidewalk', energy: 0.5 }, 0);
+  },
+  async endDay(L = LODGING.motel, robbed = 0) {
     const st = App.state, lines = [];
+    lines.push(['Today\'s result', fmt(st.today.net, { sign: true })]);
     const comp = round2(st.today.wagered * this.compRate());
     if (comp > 0) { App.credit(comp); lines.push(['Players club cash-back', fmt(comp, { sign: true })]); }
+    if (L.cost) lines.push([L.name, fmt(-L.cost)]);
     const rent = this.upkeep();
-    st.bank = round2(st.bank - Math.min(rent, st.bank)); lines.push(['Rent & living costs', fmt(-rent)]);
+    if (rent) { st.bank = round2(st.bank - Math.min(rent, st.bank)); lines.push(['Rent & staff', fmt(-rent)]); }
+    if (robbed) lines.push(['Wallet lifted in your sleep', fmt(-robbed)]);
     let interest = 0;
     for (const l of st.loans) { const i = round2(l.balance * l.rate); l.balance = round2(l.balance + i); interest += i; }
     if (interest) lines.push(['Loan interest', fmt(-interest)]);
-    lines.unshift(['Today\'s result', fmt(st.today.net, { sign: true })]);
-    st.day++; st.staminaMax = this.staminaMax(); st.stamina = st.staminaMax; this._tiredShown = false;
+    st.day++; st.staminaMax = this.staminaMax(); st.stamina = Math.round(st.staminaMax * (L.energy || 1));
+    st.hunger = clamp(st.hunger - 20 + (L.hunger || 0), 0, 100);
+    st.thirst = clamp(st.thirst - 25 + (L.thirst || 0), 0, 100);
     st.today = { wagered: 0, net: 0, rounds: 0 };
     Progressives.dailyGrowth();
     this.randomNews();
     App.save(); Router.hud();
     await UI.modal({
-      title: `🌙 Day ${st.day - 1} is over`, buttons: [{ label: `Wake up: Day ${st.day}`, cls: 'primary' }],
+      title: `🌙 Night ${st.day - 1} · ${L.name}`, buttons: [{ label: `Wake up: Day ${st.day}`, cls: 'primary' }],
       body: h('div', h('table.paytable', lines.map(r => h('tr', h('td', r[0]), h('td.num', r[1])))),
-        h('p.muted.small', 'Stamina restored. Progressive meters grew overnight.')),
+        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${st.staminaMax}. You wake up a little hungry and thirsty. Progressive meters grew overnight.`)),
     });
     await this.collections();
     Router.refresh();
@@ -379,11 +477,12 @@ const Career = {
   // if you're broke, Dolores always has a shift
   async oddJob() {
     const st = App.state;
+    if (st.stamina < 40) { UI.toast('You\'re too tired to work a shift', 'warn'); return; }
     const pay = 120 + st.chapter * 80;
-    st.stamina = Math.max(0, st.stamina - 50);
+    st.stamina -= 40; st.hunger = Math.max(0, st.hunger - 15); st.thirst = Math.max(0, st.thirst - 15);
     App.credit(pay); App.count('shifts');
     await UI.dialog([{ who: 'dolores', text: `Grab an apron, sugar. Eight hours of washing glasses: **${fmt(pay)}** cash, and your feet will hate you.` }]);
-    App.save(); Router.refresh();
+    App.save(); Router.hud();
   },
 
   buy(id) {
@@ -396,13 +495,6 @@ const Career = {
     st.staminaMax = this.staminaMax();
     SFX.cash(); UI.toast(`${it.icon} Bought ${it.name}`, 'good');
     App.save(); this.afterRound();
-  },
-  buyConsumable(id) {
-    const c = CONSUMABLES[id];
-    if (!App.debit(c.price)) { UI.toast('Not enough bankroll', 'warn'); return; }
-    App.state.stamina = Math.min(App.state.staminaMax + 50, App.state.stamina + c.stamina);
-    this._tiredShown = false;
-    SFX.cash(); UI.toast(`${c.icon} +${c.stamina} stamina`, 'good'); App.save(); Router.hud();
   },
   itemAvailable(id) {
     const it = ITEMS[id], st = App.state;
