@@ -360,3 +360,11 @@ document.addEventListener('keydown', e => {
 });
 window.addEventListener('beforeunload', () => { if (Router.table) Router.table.refundAll(); App.save(); });
 window.addEventListener('DOMContentLoaded', () => Router.go('title'));
+// installable/offline when served over http(s); opening the file directly still works without it
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { });
+    // ask the browser not to evict saved games
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { });
+  });
+}

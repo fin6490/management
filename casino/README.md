@@ -3,6 +3,21 @@
 A casino table-games app with a career mode. Open `index.html` in any modern browser: no install,
 no build step, no internet needed. Everything runs from local files.
 
+## Install on your phone
+
+High Roller is an installable web app: once it's hosted, add it to your home screen and it runs
+full-screen and offline like a native app.
+
+1. Host it with GitHub Pages: in the repo go to **Settings → Pages**, set **Source** to *Deploy from a
+   branch*, pick `main` and `/ (root)`, and save. After a minute it's live at
+   `https://<your-github-username>.github.io/<repo>/casino/`.
+2. Open that link on your phone.
+   - **iPhone (Safari):** Share button → **Add to Home Screen**.
+   - **Android (Chrome):** ⋮ menu → **Install app** (or **Add to Home screen**).
+3. Launch it from the icon. After the first launch it works with no connection.
+
+Saves live on the phone. Export a backup from **☰ → Export save file** now and then.
+
 ## Games
 
 | Game | Side bets / progressive |
