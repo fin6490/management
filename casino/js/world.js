@@ -428,7 +428,7 @@ const World = (() => {
   }
 
   // story characters and rivals move around with the story and the day, so refresh them on entry
-  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); m.caseSpots = Mystery.spots(m).concat(Holdem.spots(m)); }
+  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); m.caseSpots = Mystery.spots(m).concat(Holdem.spots(m), Darts.spots(m)); }
   function npcAt(m, x, y) { return m.npcs.find(n => n.x === x && n.y === y); }
   function passable(m, x, y) { return !m.solid(x, y) && !npcAt(m, x, y); }
 
@@ -512,7 +512,7 @@ const World = (() => {
     if (n && n.table) return { kind: 'table', game: n.table, label: GAMES[n.table].name };
     if (n) return { kind: 'npc', npc: n, label: n.name || 'Talk' };
     const spot = (m.caseSpots || []).find(c => c.x === fx && c.y === fy);
-    if (spot) return { kind: 'clue', spot, label: '🔎 ' + spot.label };
+    if (spot) return { kind: 'clue', spot, label: (spot.board || spot.door ? '' : '🔎 ') + spot.label };
     const a = m.acts[fx + ',' + fy];
     if (a) return { kind: a.table ? 'table' : 'act', ...a, game: a.table };
     const d = m.doors[fx + ',' + fy];
@@ -531,6 +531,7 @@ const World = (() => {
       }
       if (f.kind === 'door') { await useDoor(f.door); return; }
       if (f.kind === 'clue' && f.spot.id === 'backroom') { savePos(); App.save(); Router.go('poker'); return; }
+      if (f.kind === 'clue' && f.spot.id === 'dartboard') { savePos(); App.save(); await Darts.lobby(); return; }
       if (f.kind === 'clue') { await Mystery.examine(f.spot); populate(S.m); return; }
       if (f.kind === 'npc') {
         const n = f.npc;
@@ -702,6 +703,15 @@ const World = (() => {
       if (q.story) { c.fillStyle = '#ffe066'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('!', sx(q.fx + .5), sy(q.fy) - 4 * u + Math.sin(now / 200) * u); }
     }
     for (const c0 of m.caseSpots || []) { // something worth a closer look
+      if (c0.board) { // a dartboard on the wall, with an oche line on the floor
+        const bx = sx(c0.x + .5), by = sy(c0.y + .45);
+        c.fillStyle = '#111'; c.beginPath(); c.arc(bx, by, 6.5 * u, 0, 7); c.fill();
+        for (let i = 0; i < 20; i++) { c.fillStyle = i % 2 ? '#efe0bf' : '#1c1c1c'; c.beginPath(); c.moveTo(bx, by); c.arc(bx, by, 5.2 * u, i * Math.PI / 10, (i + 1) * Math.PI / 10); c.fill(); }
+        c.strokeStyle = '#c8102e'; c.lineWidth = u; c.beginPath(); c.arc(bx, by, 4.8 * u, 0, 7); c.stroke(); c.strokeStyle = '#0b7a3b'; c.beginPath(); c.arc(bx, by, 2.8 * u, 0, 7); c.stroke();
+        c.fillStyle = '#c8102e'; c.beginPath(); c.arc(bx, by, 1 * u, 0, 7); c.fill();
+        c.fillStyle = 'rgba(240, 210, 120, .7)'; c.fillRect(sx(c0.x) - 4 * u, sy(c0.y + 2) - u, 24 * u, 1.2 * u);
+        continue;
+      }
       if (c0.door) { c.fillStyle = '#2a170a'; c.fillRect(sx(c0.x) + 2 * u, sy(c0.y) - 6 * u, 12 * u, 22 * u); c.fillStyle = '#c9a14a'; c.fillRect(sx(c0.x) + 11 * u, sy(c0.y) + 6 * u, 2 * u, 2 * u); c.fillStyle = '#ffe9a8'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('♠', sx(c0.x + .5), sy(c0.y) + 2 * u); continue; }
       const tw = Math.sin(now / 180 + c0.x) * .5 + .5;
       c.fillStyle = `rgba(255, 236, 140, ${.45 + tw * .5})`;

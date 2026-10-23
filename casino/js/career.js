@@ -4,6 +4,7 @@ const CHARACTERS = {
   me: { name: 'You', face: '🙂', color: '#2a6' },
   vinnie: { name: 'Vinnie "The Vig" Moretti', face: '🦈', color: '#7a2131' },
   dolores: { name: 'Dolores, bartender at the Spur', face: '💁‍♀️', color: '#a0522d' },
+  mick: { name: 'Mick "The Arrow" Doyle', face: '🎯', color: '#2e7d32' },
   doc: { name: '"Doc" Holloway', face: '🧓', color: '#3a5f8a' },
   margot: { name: 'Margot Laval', face: '💃', color: '#8a2be2' },
   kessler: { name: 'Augustus Kessler', face: '🎩', color: '#222' },
@@ -79,6 +80,8 @@ const ITEMS = {
   muscle: { cat: 'Lifestyle', name: 'Cherry-Red Muscle Car', icon: '🏎️', price: 40000, swagger: 14, stamina: 10, requires: 'sedan', desc: 'Valet guys fight over it.' },
   limo: { cat: 'Lifestyle', name: 'Stretch Limo & Driver', icon: '🚙', price: 400000, swagger: 30, stamina: 30, upkeep: 300, requires: 'muscle', desc: 'Nap between casinos. +30 stamina. $300/day for the driver.' },
   // Gear (perks)
+  flights: { cat: 'Gear', name: 'Custom Dart Flights', icon: '🪶', price: 400, desc: 'Stiff kite flights and a proper case. Your darts fly straighter: a steadier sight at the Spur\'s board.' },
+  salDarts: { cat: 'Gear', name: "Sal's Tungsten Darts", icon: '🎯', price: 3000, requiresQuest: 'darts3', questHint: 'Ask Mick Doyle at the Spur about these', desc: '23-gram tungsten, worn smooth where Sal\'s fingers held them. Much steadier at the board, and Mick will want to see them.' },
   stratcard: { cat: 'Gear', name: 'Basic Strategy Card', icon: '🃏', price: 200, perks: ['bjhint'], desc: 'Highlights the mathematically best blackjack play.' },
   oddsbook: { cat: 'Gear', name: 'Pit Boss Odds Book', icon: '📕', price: 600, perks: ['odds'], desc: 'Shows the exact return-to-player of every bet and side bet.' },
   pokerguide: { cat: 'Gear', name: "Doc's Poker Notebook", icon: '📓', price: 1500, perks: ['pokerhint'], desc: 'Strategy hints for Hold\'em, Mississippi Stud, Three Card Poker and Let It Ride.', requiresFlag: 'metDoc' },
@@ -180,6 +183,15 @@ const ACHIEVEMENTS = [
   { id: 'big50k', name: 'Monster Hit', desc: 'Win $50,000+ in one round', test: () => App.state.stats.biggestWin >= 50000, reward: 2500, swagger: 5 },
   { id: 'debtfree', name: 'Clean Slate', desc: 'Owe nobody anything', test: () => App.state.day > 1 && App.debt === 0, reward: 100, swagger: 2 },
   { id: 'mill', name: 'Millionaire', desc: 'Hold $1,000,000 in your bankroll', test: () => App.state.bank >= 1e6, reward: 0, swagger: 10 },
+  // darts
+  { id: 'dWin', name: 'On the Oche', desc: 'Win a darts match', test: () => App.counter('dartWins') >= 1, reward: 100, swagger: 1 },
+  { id: 'dClock', name: 'Round the Clock', desc: 'Go Around the Clock in 35 darts or fewer', test: () => App.counter('dartATCfast') >= 1, reward: 150 },
+  { id: 'dTon', name: 'Ton-Plus Finish', desc: 'Check out 100 or more', test: () => App.counter('dartTonOut') >= 1, reward: 500, swagger: 2 },
+  { id: 'dBull', name: 'Bullseye Finish', desc: 'Win a leg on the bull', test: () => App.counter('dartBullOut') >= 1, reward: 300, swagger: 1 },
+  { id: 'd180', name: 'One Hundred and Eighty!', desc: 'Three darts in the treble 20', test: () => App.counter('dart180') >= 1, reward: 1800, swagger: 3 },
+  { id: 'd170', name: 'The Big Fish', desc: 'Check out 170: T20, T20, bull', test: () => App.counter('dart170') >= 1, reward: 17000, swagger: 5 },
+  { id: 'dMick', name: 'Student Becomes Master', desc: 'Beat Mick Doyle for real money', test: () => App.counter('dartBeatMick') >= 1, reward: 1000, swagger: 3 },
+  { id: 'dGold', name: 'The Golden Arrow', desc: 'Win the Golden Arrow knockout', test: () => App.counter('dartGAwin') >= 1, reward: 0, swagger: 6 },
   // poker
   { id: 'backroom', name: 'Shuffle Up', desc: 'Reopen the Spur\'s back poker room', test: () => !!App.state.flags.pokerRoom, reward: 500, swagger: 2 },
   { id: 'pkCash', name: 'In the Money', desc: 'Cash in a poker tournament', test: () => !!(App.state.stats.poker && App.state.stats.poker.cashes), reward: 250 },
@@ -561,7 +573,7 @@ const Career = {
     if (it.requiresFlag && !st.flags[it.requiresFlag] && st.mode === 'career') return 'Meet Doc on the Riverboat first';
     if (it.requiresChapter && st.chapter < it.requiresChapter && st.mode === 'career') return 'Not for sale yet (story)';
     if (it.requiresEnding && !st.ending && st.mode === 'career') return 'For sale once the story is over';
-    if (it.requiresQuest && Quests.status(it.requiresQuest) !== 'active' && !st.items[id] && st.mode === 'career') return 'Ask Dolores at the Spur about the old back room';
+    if (it.requiresQuest && Quests.status(it.requiresQuest) !== 'active' && !st.items[id] && st.mode === 'career') return it.questHint || 'Ask Dolores at the Spur about the old back room';
     return null;
   },
 };
