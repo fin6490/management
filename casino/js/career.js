@@ -242,7 +242,7 @@ const Career = {
     let s = 0;
     for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].swagger) s += ITEMS[k].swagger;
     for (const a of ACHIEVEMENTS) if (App.state.achievements[a.id] && a.swagger) s += a.swagger;
-    return s;
+    return s + (App.state.flags.bonusSwagger || 0);
   },
   staminaMax() {
     let s = 100; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].stamina) s += ITEMS[k].stamina;
@@ -368,6 +368,11 @@ const Career = {
   },
   consume(id, placeId) {
     const m = MENU[id], st = App.state, place = PLACES[placeId];
+    // a slice of pie for Doc's side job gets boxed up instead of eaten
+    if (id === 'pie' && Quests.status('docPie') === 'active' && !st.flags.hasPie) {
+      if (!App.debit(m.price)) { UI.toast('Not enough cash', 'warn'); return false; }
+      st.flags.hasPie = true; SFX.cash(); UI.toast('🥧 Boxed up a slice for Doc', 'good'); App.save(); return true;
+    }
     const free = this.isComped(place, m);
     if (!free && !App.debit(m.price)) { UI.toast('Not enough cash', 'warn'); return false; }
     if (m.hunger) st.hunger = clamp(st.hunger + m.hunger, 0, 100);
@@ -413,6 +418,7 @@ const Career = {
     st.thirst = clamp(st.thirst - 25 + (L.thirst || 0), 0, 100);
     st.today = { wagered: 0, net: 0, rounds: 0 };
     Progressives.dailyGrowth();
+    Rivals.newDay();
     this.randomNews();
     App.save(); Router.hud();
     await UI.modal({

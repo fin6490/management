@@ -77,6 +77,22 @@ energy runs out while walking you pass out on the street (and someone goes throu
   energy), your own apartment or penthouse once you buy one, or a park bench (free, risky).
   Sleeping compounds loan interest, charges rent and pays your players club cash-back.
 
+### People in town
+
+- **Story characters** follow the chapters: Dolores (the Spur's bar), Doc (the Riverboat), Lucky Lou
+  (the dock), Vinnie (outside his pawn shop), Nico (only when you're behind on a payment), Margot
+  (the Palace) and Kessler (the Salon). A gold **!** marks them. Some offer side jobs for cash and
+  swagger.
+- **Rival gamblers** (red **♦**): Tex Calhoun, Mei "The Calculator" Lin, Baron von Hollow and Rico
+  Suave each have a bankroll and a personality. Every day they show up at a different casino or
+  around town, and they sometimes sit down at your table, bet alongside you and talk trash.
+  ☰ → Status shows who's ahead.
+- **Talk to anyone in your own words** with Claude. In the claude.ai version, replies come from your
+  Claude account (it asks permission once). In the installed app, paste an API key from
+  console.anthropic.com in ☰ → AI chat; the key stays in that browser, is never saved into save
+  files, and replies are billed to your Anthropic account. Without either, characters use their
+  scripted lines.
+
 ### Everything else
 
 - **Vinnie's Pawn & Loan**: borrow against a credit line that grows with your swagger. Miss a due

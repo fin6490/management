@@ -184,6 +184,7 @@ class Table {
         h('div.tt-right',
           this.extraEl = h('div.tt-extra'),
           h('button.btn.ghost.sm', { onclick: () => this.showInfo() }, 'Paytables'))),
+      this.seatsEl = h('div.seats'),
       this.felt = h('div.felt.felt-' + felt,
         h('div.felt-brand', ctx.venue.name),
         this.shoe = h('div.shoe', h('div.shoe-card')),
@@ -249,6 +250,7 @@ class Table {
       else this.showBanner('PUSH', 'push', 1000);
     }
     App.roundDone(this.game.id, { wagered: r.wagered, returned: r.returned, net, ...extra });
+    Rivals.afterRound(this, { net });
     return net;
   }
   saveBets(keys) {

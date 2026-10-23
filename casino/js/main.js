@@ -77,6 +77,7 @@ const Router = {
     this.table = new UI.Table(main, g, ctx);
     this.game = g;
     g.mount(this.table, ctx);
+    Rivals.onTableOpen(this.table);
   },
   hudEl() {
     const st = App.state;
@@ -177,6 +178,8 @@ const Screens = {
           h('button.loc', { onclick: () => Router.go('trophies') }, h('div.loc-i', '🏅'), h('div.loc-t', h('b', 'Trophy Room'), h('span', `${Object.keys(st.achievements).length}/${ACHIEVEMENTS.length} achievements`))),
           h('button.loc', { onclick: () => Router.go('stats') }, h('div.loc-i', '📊'), h('div.loc-t', h('b', 'Stats'), h('span', `${st.stats.rounds.toLocaleString()} rounds played`))),
           !career ? h('button.loc', { onclick: () => { if (st.bank < 10000) { st.bank = 10000; App.save(); Router.refresh(); UI.toast('Bankroll refilled', 'good'); } else UI.toast('You already have $10,000+', 'warn'); } }, h('div.loc-i', '💵'), h('div.loc-t', h('b', 'Refill bankroll'), h('span', 'Top up to $10,000'))) : null),
+        career ? Screens.rivalBoard() : null,
+        career ? Screens.jobBoard() : null,
         h('h3.sec', 'Getting around'),
         h('ul.howto',
           h('li', 'Walk into a door to go inside. Casinos need their story and dress-code requirements first.'),
@@ -194,6 +197,21 @@ const Screens = {
         })))));
   },
 
+  rivalBoard() {
+    const st = App.state; Rivals.ensure();
+    const rows = Object.keys(RIVALS).map(id => ({ id, name: CHARACTERS[id].name, face: CHARACTERS[id].face, bank: st.rivals[id].bank, where: st.rivals[id].where }));
+    rows.push({ id: 'me', name: st.name + ' (you)', face: '🙂', bank: App.netWorth(), where: null });
+    rows.sort((a, b) => b.bank - a.bank);
+    return h('div', h('h3.sec', 'Rival standings (net worth)'),
+      h('table.paytable', rows.map((r, i) => h('tr' + (r.id === 'me' ? '.me-row' : ''), h('td', `${i + 1}. ${r.face} ${r.name}`),
+        h('td.muted.small', r.where ? (r.where === 'town' ? 'around town' : 'at ' + VENUES[r.where].name) : ''), h('td.num', fmt(r.bank))))));
+  },
+  jobBoard() {
+    const ids = Object.keys(QUESTS).filter(id => Quests.status(id));
+    return h('div', h('h3.sec', 'Side jobs'),
+      ids.length ? h('ul.howto', ids.map(id => { const q = QUESTS[id], s = Quests.state()[id]; return h('li', (s.s === 'done' ? '✅ ' : '📝 ') + q.title + ': ' + q.desc + (q.need && s.s !== 'done' ? ` (${s.n || 0}/${q.need})` : '')); }))
+        : h('p.muted.small', 'Talk to people around town. Some of them have work for you.'));
+  },
   goalProgress() {
     const st = App.state, wrap = h('div.goal');
     const bar = (label, cur, target) => h('div.gbar', h('div.gl', h('span', label), h('span', `${fmt(Math.min(cur, target))} / ${fmt(target)}`)),
@@ -311,6 +329,7 @@ const Screens = {
       h('label.lbl', 'Strategy hints (when you own the guide)'), sel('hints', [[true, 'Show'], [false, 'Hide']]),
       h('div.menu-btns',
         h('button.btn', { onclick: () => { box.close(); Router.safeGo('status'); } }, '📋 Status, story & trophies'),
+        h('button.btn', { onclick: () => { box.close(); Chat.settings(); } }, '💬 AI chat with characters'),
         h('button.btn', { onclick: () => { App.save(); UI.toast('Saved to slot ' + App.slot, 'good'); } }, '💾 Save now'),
         h('button.btn', { onclick: () => App.exportSave() }, '⤓ Export save file'),
         h('button.btn.ghost', { onclick: () => { box.close(); App.save(); Router.safeGo('title'); } }, '⏏ Quit to title')),

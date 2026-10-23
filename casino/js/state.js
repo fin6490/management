@@ -62,7 +62,7 @@ const App = {
       progressives,
       stats: { rounds: 0, wagered: 0, returned: 0, biggestWin: 0, peakBank: career ? 500 : 10000, perGame: {}, counters: {}, streak: 0, bestStreak: 0 },
       today: { wagered: 0, net: 0, rounds: 0 },
-      lastBets: {},
+      lastBets: {}, quests: {}, chats: {},
       news: [],
       settings: { sound: true, speed: 'normal', hints: true },
     };
@@ -79,7 +79,7 @@ const App = {
     return out;
   },
   start(state, slot) {
-    this.state = this.migrate(state); this.slot = slot; this.save();
+    this.state = this.migrate(state); this.slot = slot; Rivals.ensure(); this.save();
   },
   migrate(s) {
     const d = this.defaultState(s.mode, s.name);

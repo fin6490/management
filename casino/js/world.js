@@ -101,13 +101,6 @@ const World = (() => {
     palace: { floor: G.CARPET, wall: '#d8c38a', trim: '#8a6a24', carpet: '#5e1430', accent: '#f6d88d', bar: 'bar_palace', npc: { who: 'margot', x: 5, y: 14 } },
     salon: { floor: G.CARPET, wall: '#1d1a14', trim: '#c9a14a', carpet: '#15151c', accent: '#c9a14a', bar: 'bar_salon', npc: { who: 'kessler', x: 23, y: 14 } },
   };
-  const NPC_LINES = {
-    dolores: ['Sal sat right there every night for twenty years.', 'Side bets here are softer than they look, sugar. Check the paytables.', 'Need cash? I\'ve always got a shift washing glasses.'],
-    doc: ['Bet the progressives only when the meter says so. That\'s all Sal did.', 'Basic strategy first. Counting second. Rabbit\'s feet never.', 'My notebook and counting course are at the Outfitters. Full price, kid.'],
-    margot: ['Augustus watches this floor on camera. Smile, darling.', 'Platinum card, quarter million in your pocket. Then I make the call.', 'Our craps field pays triple on the twelve. I spoil my players.'],
-    kessler: ['Every bet in this room could buy a house. Most of them do. For me.', 'The deed to the Spur is in the Outfitters\' catalogue. One million. Earned, not borrowed.', 'Sal sat where you\'re standing. Right before he lost everything.'],
-  };
-
   function buildInterior(venueId) {
     const v = VENUES[venueId], I = INTERIOR[venueId];
     const W = 26, H = 17, m = blank('v:' + venueId, W, H, I.floor);
@@ -369,6 +362,7 @@ const World = (() => {
     main.append(root);
     const cv = root.querySelector('canvas');
     const m = getMap(w.map);
+    populate(m);
     if (m.solid(w.x, w.y) && !m.doors[w.x + ',' + w.y]) [w.x, w.y] = m.start;
     S = { root, cv, c: cv.getContext('2d'), m, p: { x: w.x, y: w.y, dir: w.dir || 'down', fx: w.x, fy: w.y, moving: null, frame: 0 }, keys: new Set(), run: false, area: null, lastStep: 0, steps: 0, raf: 0, busy: false };
     resize();
@@ -417,6 +411,8 @@ const World = (() => {
     S.root.querySelector('canvas').addEventListener('contextmenu', e => e.preventDefault());
   }
 
+  // story characters and rivals move around with the story and the day, so refresh them on entry
+  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); }
   function npcAt(m, x, y) { return m.npcs.find(n => n.x === x && n.y === y); }
   function passable(m, x, y) { return !m.solid(x, y) && !npcAt(m, x, y); }
 
@@ -483,6 +479,7 @@ const World = (() => {
     const fade = S.root.querySelector('.w-fade');
     fade.classList.add('on'); await new Promise(r => setTimeout(r, 180));
     const m = getMap(mapId);
+    populate(m);
     S.m = m; S.p.x = x != null ? x : m.start[0]; S.p.y = y != null ? y : m.start[1]; S.p.dir = dir || 'up'; S.p.moving = null;
     savePos(); App.save(); updateGoal(); showArea(true);
     fade.classList.remove('on');
@@ -514,7 +511,7 @@ const World = (() => {
         const n = f.npc;
         const back = { up: 'down', down: 'up', left: 'right', right: 'left' }[S.p.dir];
         if (!n.dealer) n.dir = back;
-        if (n.who) await UI.dialog([{ who: n.who, text: RNG.pick(NPC_LINES[n.who]) }]);
+        if (n.who) await Chat.open(n.who);
         else await UI.dialog([{ who: 'narrator', text: `**${n.name}:** "${n.line}"` }]);
         return;
       }
@@ -546,12 +543,15 @@ const World = (() => {
         list.append(h('div.menu-row', h('span.mi', it.icon), h('div.mn', h('b', it.name), h('small', tags.join('  '))),
           h('button.btn.sm' + (free ? '.primary' : ''), { disabled: !free && App.state.bank < it.price, onclick: () => { if (Career.consume(id, placeId)) render(); } }, free ? 'Free' : fmt(it.price))));
       }
+      if (P.npc) list.append(h('div.menu-row', h('span.mi', CHARACTERS[P.npc].face), h('div.mn', h('b', `Talk to ${CHARACTERS[P.npc].name.split(',')[0]}`), h('small', 'Catch up, ask for advice, or ask if there\'s any work')),
+        h('button.btn.sm', { onclick: () => { pop.close(); Chat.open(P.npc); } }, 'Talk')));
       if (P.job) list.append(h('div.menu-row', h('span.mi', '🧽'), h('div.mn', h('b', 'Work a shift washing glasses'), h('small', `Earn ${fmt(120 + App.state.chapter * 80)} · ⚡−40 🍔−15 💧−15`)),
         h('button.btn.sm', { onclick: async () => { await Career.oddJob(); render(); } }, 'Work')));
       body.append(list);
     };
     render();
-    return UI.modal({ title: `${P.icon} ${P.name}`, body });
+    const pop = UI.modal({ title: `${P.icon} ${P.name}`, body });
+    return pop;
   }
   function sleepMenu(options, label) {
     const st = App.state;
@@ -658,12 +658,13 @@ const World = (() => {
     const people = m.npcs.map(n => {
       let fx = n.x, fy = n.y, fr = 0;
       if (n.moving) { const k = Math.min(1, (now - n.moving.t0) / 260); fx = n.moving.fx + (n.x - n.moving.fx) * k; fy = n.moving.fy + (n.y - n.moving.fy) * k; fr = Math.floor(now / 130); }
-      return { fx, fy, dir: n.dir, fr, look: n.look, story: n.story };
+      return { fx, fy, dir: n.dir, fr, look: n.look, story: n.story, rival: n.rival };
     });
     people.push({ fx: p.fx, fy: p.fy, dir: p.dir, fr: p.moving ? p.frame : 0, look: playerLook(), me: true });
     people.sort((a, b) => a.fy - b.fy);
     for (const q of people) {
       drawPerson(c, sx(q.fx), sy(q.fy) - 3 * u, u, q.dir, q.fr, q.look);
+      if (q.rival) { c.fillStyle = '#ff6b6b'; c.font = `bold ${6 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('♦', sx(q.fx + .5), sy(q.fy) - 4 * u + Math.sin(now / 260) * u); }
       if (q.story) { c.fillStyle = '#ffe066'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('!', sx(q.fx + .5), sy(q.fy) - 4 * u + Math.sin(now / 200) * u); }
     }
     // signs and labels (crisp text at screen resolution)
