@@ -19,7 +19,7 @@ GAMES.bj = (() => {
     const cards = hand.cards, d = up.r === 14 ? 11 : cv(up), { v, soft } = total(cards);
     const two = cards.length === 2, canDbl = two && (!hand.split || R.das);
     const canSplit = two && cv(cards[0]) === cv(cards[1]) && hands.length < R.maxHands;
-    const canSur = two && !hand.split && R.surrender && hands.length === 1;
+    const canSur = two && !hand.split && R.surrender;
     const D = alt => (canDbl ? 'D' : alt);
     if (canSplit) {
       const p = cv(cards[0]);
@@ -70,9 +70,15 @@ GAMES.bj = (() => {
       main: t.spot({ key: 'main', label: 'BET', sub: `${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`, cls: 'main', max: ctx.limits.max }),
       p3: t.spot({ key: 'p3', label: '21+3', sub: `up to ${PAY.bj.plus3[0].pays}:1`, cls: 'side', max: sideMax }),
       prog: t.spot({ key: 'prog', label: 'Blazing 7s', sub: fmt(prog.cost), cls: 'side prog', fixed: prog.cost }),
+      main2: t.spot({ key: 'main2', label: 'HAND 2', sub: `${fmt(ctx.limits.min)}+`, cls: 'main', max: ctx.limits.max }),
+      main3: t.spot({ key: 'main3', label: 'HAND 3', sub: `${fmt(ctx.limits.min)}+`, cls: 'main', max: ctx.limits.max }),
     };
     insSpot = new UI.BetSpot({ key: 'ins', label: 'Insurance', cls: 'side', passive: true, table: t });
-    $('#bj-spots').append(sp.pp.el, sp.main.el, sp.p3.el, sp.prog.el, h('div.meter-wrap', UI.meter('bj', prog.name)));
+    $('#bj-spots').append(sp.pp.el, sp.main.el, sp.p3.el, sp.main2.el, sp.main3.el, sp.prog.el, h('div.meter-wrap', UI.meter('bj', prog.name)));
+    // play one, two or three hands at once; side bets ride on hand 1
+    const pickN = n => { App.state.flags.bjHands = n; for (const [k, i] of [['main2', 2], ['main3', 3]]) { sp[k].el.hidden = n < i; if (n < i && !sp[k].locked) sp[k].clear(); } sp.main.el.querySelector('.spot-label').textContent = n > 1 ? 'HAND 1' : 'BET'; $$('.bj-n button').forEach(b => b.classList.toggle('on', +b.dataset.n === n)); };
+    t.extraEl.after(h('div.bj-n', h('span.muted.small', 'Hands'), ...[1, 2, 3].map(n => h('button.btn.sm.ghost', { 'data-n': n, onclick: () => { if (!t.busy) pickN(n); } }, n))));
+    pickN(App.state.flags.bjHands || 1);
     t.extraSpots = [insSpot];
     hands = []; updateCount();
     betPhase();
@@ -102,24 +108,31 @@ GAMES.bj = (() => {
     if (sp.main.amount < ctx.limits.min) return UI.toast(`Minimum bet is ${fmt(ctx.limits.min)}`, 'warn');
     t.busy = true; t.setActions([]);
     Object.values(sp).forEach(s => s.setLocked(true));
-    t.saveBets(['pp', 'main', 'p3', 'prog']);
+    const extra = [sp.main2, sp.main3].filter(s => !s.el.hidden && s.amount > 0);
+    if (extra.some(s => s.amount < ctx.limits.min)) { t.busy = false; Object.values(sp).forEach(s => s.setLocked(false)); betPhase(); return UI.toast(`Each hand needs at least ${fmt(ctx.limits.min)}`, 'warn'); }
+    t.saveBets(['pp', 'main', 'p3', 'prog', 'main2', 'main3']);
     if (sp.prog.amount) Progressives.contribute('bj');
     if (shoe.needsShuffle) { t.msg('Shuffling a fresh shoe…'); shoe.shuffle(); updateCount(); t.showBanner('NEW SHOE', 'push', 900); await sleep(900); }
     dealer.clear(); $('#bj-hands').innerHTML = ''; $('#bj-dtot').textContent = '';
-    hands = [newHand(sp.main)];
+    hands = [newHand(sp.main, extra.length ? 'Hand 1' : '')].concat(extra.map((s, i) => newHand(s, 'Hand ' + (i + 2))));
     const h0 = hands[0];
-    const p1 = shoe.draw(); await addCard(h0, p1); see(p1);
+    // one card to each hand, the dealer's up card, a second card each, then the hole card
+    for (const hd of hands) { const c = shoe.draw(); await addCard(hd, c); see(c); }
+    const p1 = h0.cards[0];
     const up = shoe.draw(); await dealer.add(up); see(up);
-    const p2 = shoe.draw(); await addCard(h0, p2); see(p2);
+    for (const hd of hands) { const c = shoe.draw(); await addCard(hd, c); see(c); }
+    const p2 = h0.cards[1];
     const hole = shoe.draw(); await dealer.add(hole, true);
     dealer.hole = hole; dealer.up = up;
     $('#bj-dtot').textContent = totalLabel([up]);
     settleSides(p1, p2, up);
     // insurance / even money
-    if (up.r === 14 && App.bank >= sp.main.amount / 2 - 1e-9) {
-      const take = await choice(isBJ(h0.cards) ? 'Dealer shows an Ace. Even money?' : 'Dealer shows an Ace. Insurance?',
-        [{ label: isBJ(h0.cards) ? 'Even Money' : 'Insurance', key: 'i', v: true, cls: 'primary' }, { label: 'No thanks', key: 'n', v: false }]);
-      if (take) { insSpot.force(round2(sp.main.amount / 2)); $('#bj-spots').prepend(insSpot.el); }
+    const mainTotal = hands.reduce((a, hd) => a + hd.spot.amount, 0);
+    if (up.r === 14 && App.bank >= mainTotal / 2 - 1e-9) {
+      const single = hands.length === 1 && isBJ(h0.cards);
+      const take = await choice(single ? 'Dealer shows an Ace. Even money?' : `Dealer shows an Ace. Insurance${hands.length > 1 ? ' on all your hands' : ''}?`,
+        [{ label: single ? 'Even Money' : 'Insurance', key: 'i', v: true, cls: 'primary' }, { label: 'No thanks', key: 'n', v: false }]);
+      if (take) { insSpot.force(round2(mainTotal / 2)); $('#bj-spots').prepend(insSpot.el); }
     }
     // dealer peeks with an Ace or ten up
     if (up.r === 14 || cv(up) === 10) {
@@ -127,14 +140,13 @@ GAMES.bj = (() => {
       if (insSpot.amount) { dbj ? insSpot.win(2, 'Insurance') : insSpot.lose('Insurance'); }
       if (dbj) {
         await dealer.flip(1); see(hole); $('#bj-dtot').textContent = 'Blackjack';
-        isBJ(h0.cards) ? h0.spot.push('Both blackjack') : h0.spot.lose('Dealer blackjack');
+        for (const hd of hands) isBJ(hd.cards) ? hd.spot.push('Both blackjack') : hd.spot.lose('Dealer blackjack');
         return endRound('Dealer has blackjack.');
       } else if (up.r === 14) t.msg('Dealer peeks… no blackjack.');
       await sleep(300);
     }
-    if (isBJ(h0.cards)) {
-      App.count('blackjacks');
-      h0.spot.win(R.bjPays, 'Blackjack!'); h0.done = true; markHand(h0, 'BLACKJACK');
+    for (const hd of hands) if (isBJ(hd.cards)) { App.count('blackjacks'); hd.spot.win(R.bjPays, 'Blackjack!'); hd.done = true; markHand(hd, 'BLACKJACK'); }
+    if (hands.every(hd => hd.done)) {
       await dealer.flip(1); see(hole); $('#bj-dtot').textContent = totalLabel([up, hole]);
       return endRound('Blackjack!');
     }
@@ -167,8 +179,8 @@ GAMES.bj = (() => {
     Router.hud();
   }
 
-  function newHand(spot) {
-    const wrap = h('div.hand', h('div.cards'), h('div.hand-tot'), h('div.hand-bet'));
+  function newHand(spot, name) {
+    const wrap = h('div.hand', name ? h('div.hand-name', name) : null, h('div.cards'), h('div.hand-tot'), h('div.hand-bet'));
     $('#bj-hands').append(wrap);
     const hd = { cards: [], row: new UI.CardRow(wrap.querySelector('.cards')), wrap, spot, split: false, done: false, doubled: false };
     return hd;
@@ -195,7 +207,7 @@ GAMES.bj = (() => {
     const canHit = !hd.splitAces;
     const canSplit = two && cv(hd.cards[0]) === cv(hd.cards[1]) && hands.length < R.maxHands && App.bank >= hd.spot.amount - 1e-9
       && !(hd.splitAces && !R.rsa);
-    const canSur = two && !hd.split && R.surrender && hands.length === 1;
+    const canSur = two && !hd.split && R.surrender;
     const hint = App.perk('bjhint') && App.state.settings.hints ? strategy(hd, dealer.up) : null;
     t.msg(hands.length > 1 ? `Hand ${active + 1} of ${hands.length}: ${totalLabel(hd.cards)}` : `You have ${totalLabel(hd.cards)} against a ${rankLabel(dealer.up.r)}.` + (hint ? '' : ''));
     if (hint) t.msg(h('span', `${hands.length > 1 ? `Hand ${active + 1}: ` : ''}${totalLabel(hd.cards)} vs ${rankLabel(dealer.up.r)} · 🃏 Strategy card says `, h('b', { H: 'HIT', S: 'STAND', D: 'DOUBLE', P: 'SPLIT', R: 'SURRENDER' }[hint])));

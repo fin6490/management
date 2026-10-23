@@ -247,6 +247,8 @@ read aloud.
 - After each round a results strip lists every bet you had down and what it did ("21+3 · Flush +$45"),
   and it stays up until the next round settles, so a side-bet win never flashes past.
 - **×2** next to Rebet doubles every bet on the table (or rebets twice over).
+- **Blackjack: play up to three hands** (Hands 1 / 2 / 3 in the table header). Each hand has its own
+  bet; side bets ride on hand 1, insurance covers every hand, and splits work on every hand.
 - Tap a player sitting at your table to talk to them.
 - Craps shows the point, a coaching line that says what to do next, and the pass line's **Odds**
   bet right behind it (pays true odds, no house edge; it pulses when a point is set). Props and side
