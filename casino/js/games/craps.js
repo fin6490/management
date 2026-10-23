@@ -174,7 +174,7 @@ GAMES.craps = (() => {
     } else if (n === st.point) {
       sp.pass.amount && sp.pass.win(1); sp.passOdds.amount && sp.passOdds.win(TRUE_ODDS[n]);
       sp.dp.amount && sp.dp.lose(); sp.dpOdds.amount && sp.dpOdds.lose();
-      if (!st.firePts.includes(n)) { st.firePts.push(n); App.state.stats.counters.firePoints = Math.max(App.counter('firePoints'), st.firePts.length); }
+      if (!st.firePts.includes(n)) { st.firePts.push(n); App.state.stats.counters.firePoints = Math.max(App.counter('firePoints'), st.firePts.length); if (st.firePts.length >= 3) Quests.bump('louDice'); }
       msgs.push(`${n}! The shooter made the point.`);
       st.point = null;
       if (st.firePts.length === 6 && sp.fire.amount) settleFire();

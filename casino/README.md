@@ -48,20 +48,61 @@ Edit `js/paytables.js` and re-run the script to rebalance anything.
 ## Career mode
 
 Uncle Sal left you a silver dollar and a $2,500 marker owed to Vinnie "The Vig", a loan shark. Start
-at The Rusty Spur with $500, clear the debt, then work up through the Riverboat, the Gilded Palace
-and the Monte Royale Salon Privé. Better venues have higher limits and better rules (3:2 vs. S17,
-surrender, bigger craps odds, single-zero roulette).
+with $500 outside the Starlite Motel, clear the debt, then work up from The Rusty Spur through the
+Riverboat, the Gilded Palace and the Monte Royale Salon Privé. Better venues have higher limits and
+better rules (S17, surrender, bigger craps odds, single-zero roulette).
 
-- **Days and stamina**: every round uses stamina. Sleep to end the day; interest compounds and rent
-  is due. Coffee and energy drinks buy more rounds.
-- **Vinnie's Back Room**: borrow against a credit line that grows with your swagger. Miss a due
+### Walking around
+
+The game is a top-down town you walk around. Use the arrow keys or WASD (the on-screen pad on a
+phone), **Space / A** to talk, sit down or buy, and hold **Shift / B** to run.
+
+- **Old Town**: The Rusty Spur, Mel's Diner, the Quik-Stop, the Starlite Motel, Vinnie's Pawn &
+  Loan and Lucky Strike Outfitters.
+- **Riverfront**: Lucky Lou's Riverboat at the east dock, the Grand Hotel and Downtown Apartments.
+- **The Strip**: The Gilded Palace and the Monte Royale.
+- **Lucky Park** and **Prime Cut Steakhouse** to the south.
+
+Walk through a door to go in. Inside a casino, walk up to a dealer and press A to sit down at that
+table; the bar is on the left wall, and the story characters are on the floor.
+
+### Hunger, thirst and energy
+
+Three bars drain as you walk and play. If any of them is empty you can't deal a new hand, and if
+energy runs out while walking you pass out on the street (and someone goes through your pockets).
+
+- **Eat and drink** at Mel's, the Quik-Stop, the steakhouse or any casino bar. Casino bars comp
+  drinks once you've wagered 20x the table minimum that day.
+- **Sleep** to end the day: the Starlite Motel ($25), the Grand Hotel ($350, you wake with extra
+  energy), your own apartment or penthouse once you buy one, or a park bench (free, risky).
+  Sleeping compounds loan interest, charges rent and pays your players club cash-back.
+
+### People in town
+
+- **Story characters** follow the chapters: Dolores (the Spur's bar), Doc (the Riverboat), Lucky Lou
+  (the dock), Vinnie (outside his pawn shop), Nico (only when you're behind on a payment), Margot
+  (the Palace) and Kessler (the Salon). A gold **!** marks them. Some offer side jobs for cash and
+  swagger.
+- **Rival gamblers** (red **♦**): Tex Calhoun, Mei "The Calculator" Lin, Baron von Hollow and Rico
+  Suave each have a bankroll and a personality. Every day they show up at a different casino or
+  around town, and they sometimes sit down at your table, bet alongside you and talk trash.
+  ☰ → Status shows who's ahead.
+- **Talk to anyone in your own words** with Claude. In the claude.ai version, replies come from your
+  Claude account (it asks permission once). In the installed app, paste an API key from
+  console.anthropic.com in ☰ → AI chat; the key stays in that browser, is never saved into save
+  files, and replies are billed to your Anthropic account. Without either, characters use their
+  scripted lines.
+
+### Everything else
+
+- **Vinnie's Pawn & Loan**: borrow against a credit line that grows with your swagger. Miss a due
   date, or borrow too far past your line, and Nico pays a visit. Three strikes ends the career.
-- **Lucky Strike Outfitters**: clothes and cars (swagger and stamina), players club cards (nightly
-  cash-back on everything you wager), strategy cards, counting course, the Odds Book, the Jackpot
-  Tracker, felts and card backs, and finally the deeds.
-- **Trophy Room**: achievements that pay cash and swagger.
+- **Lucky Strike Outfitters**: clothes and cars (swagger and energy), players club cards (nightly
+  cash-back on everything you wager), strategy cards, the counting course, the Odds Book, the
+  Jackpot Tracker, felts and card backs, and finally the deeds. Your clothes show on your character.
+- **☰ → Status**: story progress, trophies and stats.
 
-**Free Play** opens every venue with all helpers on and a refillable $10,000 bankroll.
+**Free Play** opens every venue with all helpers on, no hunger or tiredness, and a refillable $10,000 bankroll (☰ → Status).
 
 ## Saving
 

@@ -30,6 +30,7 @@ const Avatar = {
 const Router = {
   screen: 'title', table: null, game: null,
   go(screen, arg) {
+    World.unmount();
     this.teardownTable();
     this.screen = screen; this.arg = arg;
     const app = $('#app'); app.innerHTML = '';
@@ -63,13 +64,12 @@ const Router = {
     if (busy) return UI.toast('Finish the round first', 'warn');
     const block = this.game && this.game.canLeave && this.game.canLeave();
     if (block) return UI.toast(block, 'warn');
-    this.go('lobby', App.state.venue);
+    this.go('world');
   },
   async openTable(gameId) {
     const st = App.state, v = VENUES[st.venue];
-    if (st.mode === 'career' && st.stamina <= 0) {
-      UI.toast('😴 Too tired to play. Grab a coffee or go home and sleep.', 'warn'); return;
-    }
+    const why = Career.canPlay();
+    if (why) { UI.toast(why, 'warn'); return; }
     this.go('table');
     const g = GAMES[gameId];
     const ctx = { venue: v, venueId: st.venue, limits: v.limits, chips: v.chips, rules: (v.rules && v.rules[gameId]) || {} };
@@ -77,17 +77,19 @@ const Router = {
     this.table = new UI.Table(main, g, ctx);
     this.game = g;
     g.mount(this.table, ctx);
+    Rivals.onTableOpen(this.table);
   },
   hudEl() {
     const st = App.state;
     return h('header.hud',
-      h('button.logo', { onclick: () => this.safeGo('hub'), title: 'Back to the map' }, '🎲', h('span', 'High Roller')),
+      h('button.logo', { onclick: () => this.safeGo('world'), title: 'Back to the map' }, '🎲', h('span', 'High Roller')),
       h('div.hud-stats',
         h('div.hs', h('small', st.name), h('b#hud-day', 'Day ' + st.day)),
         h('div.hs.bank', h('small', 'Bankroll'), h('b#hud-bank')),
         st.mode === 'career' ? h('div.hs.debt', { onclick: () => this.safeGo('loans'), title: 'Loans' }, h('small', 'Debt'), h('b#hud-debt')) : null,
-        st.mode === 'career' ? h('div.hs.stam', h('small', 'Stamina'), h('div.bar', h('i#hud-stam')), h('em#hud-stam-t')) : null,
-        st.mode === 'career' ? h('div.hs', h('small', 'Swagger'), h('b#hud-swag')) : null),
+        st.mode === 'career' ? h('div.hs.needs-h', { title: 'Hunger · Thirst · Energy' },
+          ...[['hunger', '🍔'], ['thirst', '💧'], ['stam', '⚡']].map(([k, i]) => h('div.nb', h('span', i), h('div.bar', h('i#hud-' + k))))) : null,
+        st.mode === 'career' ? h('div.hs.swag', h('small', 'Swagger'), h('b#hud-swag')) : null),
       h('button.btn.ghost.sm.menu', { onclick: () => Screens.menu() }, '☰'));
   },
   hud() {
@@ -96,14 +98,18 @@ const Router = {
     set('hud-bank', fmt(st.bank)); set('hud-day', 'Day ' + st.day);
     set('hud-debt', fmt(App.debt)); set('hud-swag', '★ ' + Career.swagger());
     const d = document.getElementById('hud-debt'); if (d) d.parentElement.classList.toggle('zero', App.debt === 0);
-    const s = document.getElementById('hud-stam');
-    if (s) { const p = clamp(st.stamina / st.staminaMax, 0, 1); s.style.width = (p * 100) + '%'; s.className = p < 0.2 ? 'low' : ''; set('hud-stam-t', Math.ceil(st.stamina)); }
+    for (const [id, v, max] of [['hud-hunger', st.hunger, 100], ['hud-thirst', st.thirst, 100], ['hud-stam', st.stamina, st.staminaMax]]) {
+      const e = document.getElementById(id); if (!e) continue;
+      const p = clamp(v / max, 0, 1); e.style.width = (p * 100) + '%'; e.className = p < 0.2 ? 'low' : '';
+      e.parentElement.parentElement.title = `${Math.round(v)} / ${max}`;
+    }
     if (this.table) $$('.meter').forEach(m => m.update && m.update());
   },
 };
 
 const Screens = {
   table() { }, // the Table component fills this screen
+  world(main) { World.mount(main); },
   title(main) {
     document.body.dataset.screen = 'title';
     const slots = App.listSlots();
@@ -112,7 +118,7 @@ const Screens = {
         ? h('span', `${s.name} · ${s.mode === 'free' ? 'Free Play' : 'Career, ch. ' + (s.chapter + 1)} · Day ${s.day} · ${fmt(s.bank)}${s.flags && s.flags.gameOver ? ' · 💀' : ''}`)
         : h('span.muted', 'Empty')),
       h('div.slot-btns',
-        s ? h('button.btn.primary.sm', { onclick: () => { App.start(s, i); Router.go('hub'); } }, 'Continue') : null,
+        s ? h('button.btn.primary.sm', { onclick: () => { App.start(s, i); Router.go('world'); } }, 'Continue') : null,
         h('button.btn.sm', { onclick: () => Screens.newGame(i, 'career') }, 'New Career'),
         h('button.btn.ghost.sm', { onclick: () => Screens.newGame(i, 'free') }, 'Free Play'),
         s ? h('button.btn.ghost.sm.danger', { onclick: async () => { if (await UI.confirm('Delete save?', `Erase slot ${i} (${s.name})? This can't be undone.`, 'Delete')) { App.deleteSlot(i); Router.go('title'); } } }, 'Delete') : null));
@@ -121,7 +127,7 @@ const Screens = {
       const free = slots.find(s => !s.s);
       const slot = free ? free.i : await UI.modal({ title: 'Import into which slot?', body: 'All slots are full. Pick one to overwrite.', buttons: [1, 2, 3].map(i => ({ label: 'Slot ' + i, value: i })) });
       if (!slot) return;
-      try { await App.importSave(f, slot); Router.go('hub'); UI.toast('Save imported', 'good'); } catch (err) { UI.toast('Import failed: ' + err.message, 'warn'); }
+      try { await App.importSave(f, slot); Router.go('world'); UI.toast('Save imported', 'good'); } catch (err) { UI.toast('Import failed: ' + err.message, 'warn'); }
     } });
     main.append(h('div.title',
       h('div.title-cards', ['A♠', 'K♥', 'Q♦', 'J♣'].map((t, i) => h('div.tcard' + (i % 3 ? '.red' : ''), { style: { '--i': i } }, t))),
@@ -145,30 +151,16 @@ const Screens = {
     const st = App.defaultState(mode, input.value.trim() || 'Lucky');
     if (mode === 'free') for (const v in VENUES) st.unlocked[v] = true;
     App.start(st, slot);
-    Router.go('hub');
-    if (mode === 'career') { await UI.dialog(CHAPTERS[0].intro); Router.refresh(); }
+    Router.go('world');
+    if (mode === 'career') {
+      await UI.dialog(CHAPTERS[0].intro.concat([{ who: 'narrator', text: 'Walk with the arrow keys or WASD (the on-screen pad on a phone). Press **Space** or **A** to talk, sit at a table or buy something. Hold **Shift** or **B** to run. Keep an eye on hunger 🍔, thirst 💧 and energy ⚡ at the top.' }]));
+      Router.refresh();
+    }
   },
 
-  hub(main) {
+  status(main) {
     const st = App.state, career = st.mode === 'career';
     const ch = CHAPTERS[st.chapter];
-    const loc = (icon, name, sub, on, cls = '') => h('button.loc' + cls, { onclick: on }, h('div.loc-i', icon), h('div.loc-t', h('b', name), h('span', sub)));
-    const venueCards = Object.keys(VENUES).map(id => {
-      const v = VENUES[id], open = Career.venueOpen(id);
-      const reqs = Career.venueReqs(id);
-      return h('button.loc.venue' + (open ? '' : '.locked'), {
-        onclick: async () => {
-          if (!open && !Career.tryUnlock(id)) {
-            UI.modal({ title: `${v.icon} ${v.name}`, body: h('div', h('p', v.tag), h('p', 'To get through the door:'),
-              h('ul.reqs', reqs.map(([t, ok]) => h('li' + (ok ? '.ok' : ''), (ok ? '✔ ' : '✘ ') + t)))) });
-            return;
-          }
-          st.venue = id; App.save(); Router.go('lobby', id);
-          await Career.enterVenue(id);
-        },
-      }, h('div.loc-i', v.icon), h('div.loc-t', h('b', v.name), h('span', `${fmt(v.limits.min)}–${fmt(v.limits.max, { short: true })} · ${v.games.length} games`),
-        !open ? h('span.lock', '🔒 ' + (reqs.filter(r => !r[1]).length ? reqs.filter(r => !r[1]).map(r => r[0]).join(' · ') : 'Tap to enter')) : null));
-    });
     const owned = Object.keys(st.items).filter(k => st.items[k] && ITEMS[k]);
     main.append(h('div.hub',
       h('section.panel.me',
@@ -181,16 +173,20 @@ const Screens = {
         h('div.kicker', `Chapter ${st.chapter + 1}`), h('h3', ch.title), h('p', ch.goalText),
         Screens.goalProgress()) : null,
       h('section.locs',
-        h('h3.sec', 'Casinos'), h('div.grid', venueCards),
-        h('h3.sec', 'Around town'),
+        h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Back to the map'), h('h2', 'Status')),
         h('div.grid',
-          loc('🛍️', 'Lucky Strike Outfitters', 'Clothes, cars, gear & charms', () => Router.go('shop')),
-          career ? loc('🦈', "Vinnie's Back Room", App.debt ? `You owe ${fmt(App.debt)}` : 'Loans, no questions asked', () => Router.go('loans')) : null,
-          career ? loc('🛏️', st.items.penthouse ? 'Penthouse' : st.items.apartment ? 'Apartment' : 'Starlite Motel', `Sleep: end day ${st.day} · upkeep ${fmt(Career.upkeep())}/day`, () => Career.endDay()) : null,
-          career ? loc('🍺', 'Shift at the Spur', 'Wash glasses for cash (−50 stamina)', () => Career.oddJob()) : null,
-          !career ? loc('💵', 'Refill bankroll', 'Top up to $10,000', () => { if (st.bank < 10000) { st.bank = 10000; App.save(); Router.refresh(); UI.toast('Bankroll refilled', 'good'); } else UI.toast('You already have $10,000+', 'warn'); }) : null,
-          loc('🏅', 'Trophy Room', `${Object.keys(st.achievements).length}/${ACHIEVEMENTS.length} achievements`, () => Router.go('trophies')),
-          loc('📊', 'Stats', `${st.stats.rounds.toLocaleString()} rounds played`, () => Router.go('stats')))),
+          h('button.loc', { onclick: () => Router.go('trophies') }, h('div.loc-i', '🏅'), h('div.loc-t', h('b', 'Trophy Room'), h('span', `${Object.keys(st.achievements).length}/${ACHIEVEMENTS.length} achievements`))),
+          h('button.loc', { onclick: () => Router.go('stats') }, h('div.loc-i', '📊'), h('div.loc-t', h('b', 'Stats'), h('span', `${st.stats.rounds.toLocaleString()} rounds played`))),
+          !career ? h('button.loc', { onclick: () => { if (st.bank < 10000) { st.bank = 10000; App.save(); Router.refresh(); UI.toast('Bankroll refilled', 'good'); } else UI.toast('You already have $10,000+', 'warn'); } }, h('div.loc-i', '💵'), h('div.loc-t', h('b', 'Refill bankroll'), h('span', 'Top up to $10,000'))) : null),
+        career ? Screens.rivalBoard() : null,
+        career ? Screens.jobBoard() : null,
+        h('h3.sec', 'Getting around'),
+        h('ul.howto',
+          h('li', 'Walk into a door to go inside. Casinos need their story and dress-code requirements first.'),
+          h('li', 'Inside a casino, walk up to a dealer or table and press A / Space to sit down. The bar is on the left wall.'),
+          h('li', 'Eat at Mel\'s Diner, the Quik-Stop, the steakhouse or any casino bar. Casino bars comp drinks once you\'ve been playing.'),
+          h('li', 'Sleep at the Starlite Motel, the Grand Hotel, your own place, or a park bench if you\'re feeling lucky.'),
+          h('li', 'Vinnie\'s Pawn & Loan is in Old Town. Lucky Strike Outfitters sells clothes, gear and the deeds.'))),
       h('section.panel.news', h('h3.sec', 'Town Crier'),
         st.news.length ? h('ul', st.news.slice(0, 6).map(n => h('li', h('small', 'Day ' + n.day), ' ', n.text))) : h('p.muted', 'Quiet night.'),
         h('h3.sec', 'Progressive meters'),
@@ -201,6 +197,21 @@ const Screens = {
         })))));
   },
 
+  rivalBoard() {
+    const st = App.state; Rivals.ensure();
+    const rows = Object.keys(RIVALS).map(id => ({ id, name: CHARACTERS[id].name, face: CHARACTERS[id].face, bank: st.rivals[id].bank, where: st.rivals[id].where }));
+    rows.push({ id: 'me', name: st.name + ' (you)', face: '🙂', bank: App.netWorth(), where: null });
+    rows.sort((a, b) => b.bank - a.bank);
+    return h('div', h('h3.sec', 'Rival standings (net worth)'),
+      h('table.paytable', rows.map((r, i) => h('tr' + (r.id === 'me' ? '.me-row' : ''), h('td', `${i + 1}. ${r.face} ${r.name}`),
+        h('td.muted.small', r.where ? (r.where === 'town' ? 'around town' : 'at ' + VENUES[r.where].name) : ''), h('td.num', fmt(r.bank))))));
+  },
+  jobBoard() {
+    const ids = Object.keys(QUESTS).filter(id => Quests.status(id));
+    return h('div', h('h3.sec', 'Side jobs'),
+      ids.length ? h('ul.howto', ids.map(id => { const q = QUESTS[id], s = Quests.state()[id]; return h('li', (s.s === 'done' ? '✅ ' : '📝 ') + q.title + ': ' + q.desc + (q.need && s.s !== 'done' ? ` (${s.n || 0}/${q.need})` : '')); }))
+        : h('p.muted.small', 'Talk to people around town. Some of them have work for you.'));
+  },
   goalProgress() {
     const st = App.state, wrap = h('div.goal');
     const bar = (label, cur, target) => h('div.gbar', h('div.gl', h('span', label), h('span', `${fmt(Math.min(cur, target))} / ${fmt(target)}`)),
@@ -213,42 +224,14 @@ const Screens = {
     return wrap;
   },
 
-  lobby(main, id) {
-    const v = VENUES[id || App.state.venue];
-    const r = v.rules || {};
-    const ruleNotes = [];
-    if (r.bj) ruleNotes.push(`Blackjack pays 3:2 · dealer ${r.bj.h17 ? 'hits' : 'stands on'} soft 17${r.bj.das ? ' · double after split' : ''}${r.bj.surrender ? ' · late surrender' : ''}`);
-    if (r.craps) ruleNotes.push(`Craps ${r.craps.odds === 345 ? '3-4-5x' : r.craps.odds + 'x'} odds · field pays ${r.craps.field2}x on 2, ${r.craps.field12}x on 12`);
-    if (r.roulette) ruleNotes.push(`Roulette: ${r.roulette.wheel === 'american' ? 'double zero' : r.roulette.wheel === 'european' ? 'single zero' : 'single zero with La Partage'}`);
-    if (r.bac) ruleNotes.push(r.bac.ez ? 'Baccarat: EZ no-commission' : `Baccarat: ${Math.round((r.bac.commission || 0.05) * 100)}% banker commission`);
-    main.append(h('div.lobby',
-      h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('hub') }, '← Map'),
-        h('div', h('h2', `${v.icon} ${v.name}`), h('p.muted', v.tag))),
-      h('div.rules-note', ruleNotes.map(t => h('span', t))),
-      h('div.tables', v.games.map(g => {
-        const G = GAMES[g];
-        return h('button.tablecard', { onclick: () => Router.openTable(g) },
-          h('div.tc-i', G.icon), h('div.tc-t', h('b', G.name), h('span', G.blurb)),
-          h('div.tc-l', `${fmt(v.limits.min)}–${fmt(v.limits.max, { short: true })}`));
-      }))));
-  },
-
   shop(main) {
     const st = App.state;
-    const cats = [...new Set(Object.values(ITEMS).map(i => i.cat)), 'Consumables'];
+    const cats = [...new Set(Object.values(ITEMS).map(i => i.cat))];
     let cat = Screens._shopCat || cats[0];
     const grid = h('div.shopgrid'), tabs = h('div.tabs');
     const render = () => {
       tabs.innerHTML = ''; grid.innerHTML = '';
       cats.forEach(c => tabs.append(h('button.tab' + (c === cat ? '.on' : ''), { onclick: () => { cat = Screens._shopCat = c; render(); } }, c)));
-      if (cat === 'Consumables') {
-        for (const id in CONSUMABLES) {
-          const c = CONSUMABLES[id];
-          grid.append(h('div.item', h('div.item-i', c.icon), h('b', c.name), h('p', c.desc),
-            h('button.btn.primary.sm', { disabled: st.bank < c.price || st.mode !== 'career', onclick: () => { Career.buyConsumable(id); render(); } }, fmt(c.price))));
-        }
-        return;
-      }
       for (const id in ITEMS) {
         const it = ITEMS[id]; if (it.cat !== cat) continue;
         const owned = !!st.items[id], block = Career.itemAvailable(id);
@@ -277,7 +260,7 @@ const Screens = {
             h('button.btn.sm', { onclick: () => { st.equipped.back = 'red'; App.save(); render(); } }, st.equipped.back === 'red' ? '✔ Equipped' : 'Equip')));
       }
     };
-    main.append(h('div.shop', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('hub') }, '← Map'),
+    main.append(h('div.shop', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'),
       h('div', h('h2', '🛍️ Lucky Strike Outfitters'), h('p.muted', '"If you look like a high roller, the comps follow." — the sign in the window'))),
       tabs, grid));
     render();
@@ -289,7 +272,7 @@ const Screens = {
     const room = Math.max(0, Math.floor(limit - vinBal));
     const amt = h('input.field', { type: 'number', min: 0, step: 100, value: Math.min(room, 500) });
     main.append(h('div.loans',
-      h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('hub') }, '← Map'),
+      h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'),
         h('div', h('h2', "🦈 Vinnie's Back Room"), h('p.muted', 'Behind the pawn shop. Smells like cigars and bad decisions.'))),
       h('div.dialog.inline', h('div.portrait', { style: { background: CHARACTERS.vinnie.color } }, CHARACTERS.vinnie.face),
         h('div.d-text', h('div.d-name', CHARACTERS.vinnie.name), h('p', App.debt === 0 ? '"Clean books! Makes me nervous. Need a little something?"'
@@ -316,7 +299,7 @@ const Screens = {
 
   trophies(main) {
     const st = App.state;
-    main.append(h('div.trophies', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('hub') }, '← Map'), h('h2', '🏅 Trophy Room')),
+    main.append(h('div.trophies', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'), h('h2', '🏅 Trophy Room')),
       h('div.shopgrid', ACHIEVEMENTS.map(a => h('div.item' + (st.achievements[a.id] ? '.owned' : '.dim'),
         h('div.item-i', st.achievements[a.id] ? '🏅' : '🔒'), h('b', a.name), h('p', a.desc),
         h('div.tags', a.reward ? h('span', fmt(a.reward)) : null, a.swagger ? h('span', '★ +' + a.swagger) : null,
@@ -326,7 +309,7 @@ const Screens = {
   stats(main) {
     const s = App.state.stats;
     const rows = Object.keys(s.perGame).map(g => [GAMES[g] ? GAMES[g].name : g, s.perGame[g].rounds.toLocaleString(), fmt(s.perGame[g].wagered), fmt(s.perGame[g].net, { sign: true })]);
-    main.append(h('div.statsp', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('hub') }, '← Map'), h('h2', '📊 Stats')),
+    main.append(h('div.statsp', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'), h('h2', '📊 Stats')),
       h('div.statgrid',
         [['Rounds', s.rounds.toLocaleString()], ['Total wagered', fmt(s.wagered)], ['Net result', fmt(s.returned - s.wagered, { sign: true })],
          ['Return', s.wagered ? pctStr(s.returned / s.wagered) : '—'], ['Biggest win', fmt(s.biggestWin)], ['Peak bankroll', fmt(s.peakBank)],
@@ -345,6 +328,8 @@ const Screens = {
       h('label.lbl', 'Dealing speed'), sel('speed', [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast'], ['turbo', 'Turbo']]),
       h('label.lbl', 'Strategy hints (when you own the guide)'), sel('hints', [[true, 'Show'], [false, 'Hide']]),
       h('div.menu-btns',
+        h('button.btn', { onclick: () => { box.close(); Router.safeGo('status'); } }, '📋 Status, story & trophies'),
+        h('button.btn', { onclick: () => { box.close(); Chat.settings(); } }, '💬 AI chat with characters'),
         h('button.btn', { onclick: () => { App.save(); UI.toast('Saved to slot ' + App.slot, 'good'); } }, '💾 Save now'),
         h('button.btn', { onclick: () => App.exportSave() }, '⤓ Export save file'),
         h('button.btn.ghost', { onclick: () => { box.close(); App.save(); Router.safeGo('title'); } }, '⏏ Quit to title')),

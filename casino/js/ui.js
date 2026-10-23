@@ -179,11 +179,12 @@ class Table {
     const felt = App.state.equipped.felt || 'green';
     this.el = h('div.table-screen',
       h('div.table-top',
-        h('button.btn.ghost.sm', { onclick: () => Router.leaveTable() }, '← Lobby'),
+        h('button.btn.ghost.sm', { onclick: () => Router.leaveTable() }, '← Leave table'),
         h('div.tt-title', h('b', game.name), h('span', `${ctx.venue.name} · ${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`)),
         h('div.tt-right',
           this.extraEl = h('div.tt-extra'),
           h('button.btn.ghost.sm', { onclick: () => this.showInfo() }, 'Paytables'))),
+      this.seatsEl = h('div.seats'),
       this.felt = h('div.felt.felt-' + felt,
         h('div.felt-brand', ctx.venue.name),
         this.shoe = h('div.shoe', h('div.shoe-card')),
@@ -213,7 +214,15 @@ class Table {
     this.actionsEl.innerHTML = '';
     for (const a of list) {
       if (!a) continue;
-      const b = h('button.btn' + (a.cls ? '.' + a.cls : ''), { disabled: a.disabled, onclick: () => { if (!b.disabled) { SFX.click(); a.on(); } } },
+      // the deal/spin/roll button is held back when you're starving, parched or exhausted
+      const run = () => {
+        if (a.key === ' ') {
+          const why = Career.canPlay(), stuck = this.game.canLeave && this.game.canLeave();
+          if (why && !stuck) { UI.toast(why, 'warn'); return; }
+        }
+        SFX.click(); a.on();
+      };
+      const b = h('button.btn' + (a.cls ? '.' + a.cls : ''), { disabled: a.disabled, onclick: () => { if (!b.disabled) run(); } },
         a.label, a.key ? h('kbd', a.key === ' ' ? 'Space' : a.key.toUpperCase()) : null);
       if (a.hint) b.classList.add('hint');
       a.btn = b; this.actionsEl.append(b);
@@ -241,6 +250,7 @@ class Table {
       else this.showBanner('PUSH', 'push', 1000);
     }
     App.roundDone(this.game.id, { wagered: r.wagered, returned: r.returned, net, ...extra });
+    Rivals.afterRound(this, { net });
     return net;
   }
   saveBets(keys) {
