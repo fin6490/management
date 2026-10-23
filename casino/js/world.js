@@ -354,7 +354,7 @@ const World = (() => {
       h('canvas.world-cv'),
       h('div.w-top',
         h('div.w-chips', h('button.w-goal', { onclick: () => Router.go('status') }), h('button.w-goal.w-case', { onclick: () => Router.go('case'), title: 'Case file' }, '🔎')),
-        h('div.w-area')),
+        h('div.w-right', h('div.w-area'), h('div.w-event'))),
       h('div.w-prompt', { onclick: () => interact() }),
       h('div.pad', ['up', 'left', 'right', 'down'].map(d => h('button.pad-' + d, { 'aria-label': d, 'data-dir': d }, { up: '▲', down: '▼', left: '◀', right: '▶' }[d]))),
       h('div.ab', h('button.ab-b', { 'aria-label': 'Run' }, 'B'), h('button.ab-a', { 'aria-label': 'Interact' }, 'A')),
@@ -370,6 +370,22 @@ const World = (() => {
     updateGoal();
     showArea(true);
     S.raf = requestAnimationFrame(loop);
+    setTimeout(() => worldBeats(), 400);
+  }
+  // story beats that happen to you rather than being started by you
+  async function worldBeats() {
+    const st = App.state;
+    if (!S || st.mode !== 'career' || document.querySelector('.modal-bg')) return;
+    if (Mystery.has('confession') && Mystery.has('chip') && !Mystery.has('badge') && !st.flags.meiNote) {
+      st.flags.meiNote = st.day; App.save();
+      await UI.dialog([{ who: 'narrator', text: 'Someone slipped an envelope into your pocket. Inside, in tidy block capitals: "COMMISSION BUSINESS. FIND ME AT THE RIVERBOAT. DON\'T TELL KESSLER. — M.L."' }]);
+    }
+    const n = Me.now(), stamp = n.d.toDateString();
+    if (n.birthday && st.flags.bday !== stamp) {
+      st.flags.bday = stamp; st.hunger = 100; st.thirst = 100; st.stamina = Math.max(st.stamina, st.staminaMax); App.credit(1717);
+      await UI.dialog([{ who: 'dolores', text: () => `Happy birthday${Me.first() ? ', ' + Me.first() : ', sugar'}! Don't look so surprised, Kessler isn't the only one who keeps files. Cake's on the house, and there's $1,717 in that card. Sal's idea of a joke.` }]);
+      App.save(); Router.hud();
+    }
   }
   function unmount() {
     if (!S) return;
@@ -412,7 +428,7 @@ const World = (() => {
   }
 
   // story characters and rivals move around with the story and the day, so refresh them on entry
-  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); }
+  function populate(m) { m.npcs = m.npcs.filter(n => !n.dyn).concat(Cast.forMap(m)); m.caseSpots = Mystery.spots(m).concat(Holdem.spots(m)); }
   function npcAt(m, x, y) { return m.npcs.find(n => n.x === x && n.y === y); }
   function passable(m, x, y) { return !m.solid(x, y) && !npcAt(m, x, y); }
 
@@ -456,6 +472,11 @@ const World = (() => {
           await UI.modal({ title: `${v.icon} ${v.name}`, body: h('div', h('p', v.tag), h('p', 'The doorman stops you. To get in:'), h('ul.reqs', reqs.map(([t, ok]) => h('li' + (ok ? '.ok' : ''), (ok ? '✔ ' : '✘ ') + t)))) });
           return;
         }
+        const st = App.state;
+        if (id === 'salon' && st.mode === 'career') {
+          if ((st.flags.salonBanUntil || 0) > st.day) { stepOut(door); await UI.dialog([{ who: 'narrator', text: `The doorman doesn't even look up. "Mr. Kessler says you're not welcome until day ${st.flags.salonBanUntil}."` }]); return; }
+          if (!isNight()) { stepOut(door); await UI.dialog([{ who: 'narrator', text: `A brass plaque by the door: "Salon Privé · 8 PM until dawn." It's ${clockText()}.` }]); return; }
+        }
         App.state.venue = id;
         App.state.world.returnTo = door.out;
         await go('v:' + id);
@@ -490,6 +511,8 @@ const World = (() => {
     const n = npcAt(m, fx, fy);
     if (n && n.table) return { kind: 'table', game: n.table, label: GAMES[n.table].name };
     if (n) return { kind: 'npc', npc: n, label: n.name || 'Talk' };
+    const spot = (m.caseSpots || []).find(c => c.x === fx && c.y === fy);
+    if (spot) return { kind: 'clue', spot, label: '🔎 ' + spot.label };
     const a = m.acts[fx + ',' + fy];
     if (a) return { kind: a.table ? 'table' : 'act', ...a, game: a.table };
     const d = m.doors[fx + ',' + fy];
@@ -507,6 +530,8 @@ const World = (() => {
         savePos(); App.save(); Router.openTable(f.game); return;
       }
       if (f.kind === 'door') { await useDoor(f.door); return; }
+      if (f.kind === 'clue' && f.spot.id === 'backroom') { savePos(); App.save(); Router.go('poker'); return; }
+      if (f.kind === 'clue') { await Mystery.examine(f.spot); populate(S.m); return; }
       if (f.kind === 'npc') {
         const n = f.npc;
         const back = { up: 'down', down: 'up', left: 'right', right: 'left' }[S.p.dir];
@@ -543,6 +568,12 @@ const World = (() => {
         list.append(h('div.menu-row', h('span.mi', it.icon), h('div.mn', h('b', it.name), h('small', tags.join('  '))),
           h('button.btn.sm' + (free ? '.primary' : ''), { disabled: !free && App.state.bank < it.price, onclick: () => { if (Career.consume(id, placeId)) render(); } }, free ? 'Free' : fmt(it.price))));
       }
+      const usual = Me.get().drink;
+      if (P.usual && usual) {
+        const had = App.state.flags.usualDay === App.state.day;
+        list.prepend(h('div.menu-row', h('span.mi', '🥃'), h('div.mn', h('b', `Your usual: ${usual}`), h('small', had ? 'Dolores already poured you one today' : 'On the house, once a day · 💧+40 ⚡+5')),
+          h('button.btn.sm.primary', { disabled: had, onclick: () => { const st = App.state; st.flags.usualDay = st.day; st.thirst = Math.min(100, st.thirst + 40); st.stamina = Math.min(st.staminaMax + 40, st.stamina + 5); UI.toast(`🥃 "${usual}, just how you like it, sugar."`, 'good'); App.save(); Router.hud(); render(); } }, 'Free')));
+      }
       if (P.npc) list.append(h('div.menu-row', h('span.mi', CHARACTERS[P.npc].face), h('div.mn', h('b', `Talk to ${CHARACTERS[P.npc].name.split(',')[0]}`), h('small', 'Catch up, ask for advice, or ask if there\'s any work')),
         h('button.btn.sm', { onclick: () => { pop.close(); Chat.open(P.npc); } }, 'Talk')));
       if (P.job) list.append(h('div.menu-row', h('span.mi', '🧽'), h('div.mn', h('b', 'Work a shift washing glasses'), h('small', `Earn ${fmt(120 + App.state.chapter * 80)} · ⚡−40 🍔−15 💧−15`)),
@@ -578,6 +609,8 @@ const World = (() => {
   /* ---------- HUD bits ---------- */
   function updateGoal() {
     if (!S) return;
+    const e = App.state.event, ev = S.root.querySelector('.w-event');
+    ev.textContent = e && e.day === App.state.day ? `🎉 ${EVENTS[e.id].name} · ${VENUES[e.venue].name}` : '';
     const st = App.state, ch = CHAPTERS[st.chapter], el = S.root.querySelector('.w-goal');
     el.textContent = st.mode === 'career' && ch ? `📖 ${ch.title}` : '🎲 Free Play';
     el.title = ch ? ch.goalText : '';
@@ -668,6 +701,20 @@ const World = (() => {
       if (q.rival) { c.fillStyle = '#ff6b6b'; c.font = `bold ${6 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('♦', sx(q.fx + .5), sy(q.fy) - 4 * u + Math.sin(now / 260) * u); }
       if (q.story) { c.fillStyle = '#ffe066'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('!', sx(q.fx + .5), sy(q.fy) - 4 * u + Math.sin(now / 200) * u); }
     }
+    for (const c0 of m.caseSpots || []) { // something worth a closer look
+      if (c0.door) { c.fillStyle = '#2a170a'; c.fillRect(sx(c0.x) + 2 * u, sy(c0.y) - 6 * u, 12 * u, 22 * u); c.fillStyle = '#c9a14a'; c.fillRect(sx(c0.x) + 11 * u, sy(c0.y) + 6 * u, 2 * u, 2 * u); c.fillStyle = '#ffe9a8'; c.font = `bold ${7 * u}px sans-serif`; c.textAlign = 'center'; c.fillText('♠', sx(c0.x + .5), sy(c0.y) + 2 * u); continue; }
+      const tw = Math.sin(now / 180 + c0.x) * .5 + .5;
+      c.fillStyle = `rgba(255, 236, 140, ${.45 + tw * .5})`;
+      const cx0 = sx(c0.x + .5), cy0 = sy(c0.y + .5), r = (2 + tw * 2) * u;
+      c.fillRect(cx0 - r, cy0 - u / 2, r * 2, u); c.fillRect(cx0 - u / 2, cy0 - r, u, r * 2);
+    }
+    if (m.id === 'town') { // the sky follows the in-game clock
+      const t = (App.state.clock || 540) % 1440, dark = t >= 1260 || t < 300 ? .42 : t >= 1140 ? (t - 1140) / 120 * .42 : t < 420 ? (420 - t) / 120 * .42 : 0;
+      if (dark > 0) {
+        c.fillStyle = `rgba(10, 16, 48, ${dark})`; c.fillRect(0, 0, cv.width, cv.height);
+        for (const pr of m.props) if (pr.type === 'lamp') { const g = c.createRadialGradient(sx(pr.x + .5), sy(pr.y + .2), 0, sx(pr.x + .5), sy(pr.y + .2), 2.5 * TS); g.addColorStop(0, `rgba(255, 220, 120, ${dark * .9})`); g.addColorStop(1, 'rgba(255,220,120,0)'); c.fillStyle = g; c.fillRect(sx(pr.x - 2), sy(pr.y - 2), 5 * TS, 5 * TS); }
+      }
+    }
     // signs and labels (crisp text at screen resolution)
     c.textAlign = 'center'; c.textBaseline = 'middle';
     const fs = Math.max(9 * S.dpr, 3.6 * u);
@@ -699,5 +746,8 @@ const World = (() => {
     }
   }
 
-  return { mount, unmount, refreshGoal: () => updateGoal(), savePos, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir } };
+  function clock() { return App.state.clock || 540; }
+  function isNight() { const t = clock() % 1440; return t >= 1200 || t < 360; }
+  function clockText() { const t = Math.floor(clock()) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); }
+  return { mount, unmount, refreshGoal: () => updateGoal(), savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir } };
 })();

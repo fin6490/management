@@ -71,8 +71,8 @@ class CardRow {
 UI.CardRow = CardRow;
 
 /* ---------- Chips ---------- */
-const CHIP_DENOMS = [1, 5, 25, 100, 500, 1000, 5000, 25000, 100000];
-const chipLabel = v => v >= 1000 ? (v / 1000) + 'K' : String(v);
+const CHIP_DENOMS = [1, 5, 25, 100, 500, 1000, 5000, 25000, 100000, 1000000];
+const chipLabel = v => v >= 1e6 ? (v / 1e6) + 'M' : v >= 1000 ? (v / 1000) + 'K' : String(v);
 UI.chip = (v, extra = '') => h('div.chip.c' + v + extra, h('span', chipLabel(v)));
 UI.chipsFor = function (amount, limit = 10) { // greedy decomposition for stack display
   const out = []; let left = Math.round(amount);

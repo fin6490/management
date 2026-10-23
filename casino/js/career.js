@@ -99,8 +99,17 @@ const ITEMS = {
   backBlue: { cat: 'Table Style', name: 'Blue Card Backs', icon: '🂠', price: 150, back: 'blue', desc: 'Classic blue diamond backs.' },
   backGold: { cat: 'Table Style', name: 'Gilded Card Backs', icon: '🌟', price: 4000, back: 'gold', desc: 'Gold leaf. Probably not real gold.' },
   // Deeds (story)
-  spurDeed: { cat: 'Deeds', name: 'Deed to The Rusty Spur', icon: '📜', price: 1000000, swagger: 40, requiresChapter: 3, desc: 'Buy back the bar Sal lost. Rename it. Finish the story.' },
-  palaceDeed: { cat: 'Deeds', name: 'Controlling Stake: The Gilded Palace', icon: '🏰', price: 25000000, swagger: 100, requires: 'spurDeed', desc: 'The final flex. Margot will want a word.' },
+  spurDeed: { cat: 'Deeds', name: 'Deed to The Rusty Spur', icon: '📜', price: 1000000, swagger: 40, income: 8000, requiresChapter: 3, desc: 'Buy back the bar Sal lost. Pays $8,000 a day.' },
+  palaceDeed: { cat: 'Deeds', name: 'Controlling Stake: The Gilded Palace', icon: '🏰', price: 25000000, swagger: 100, income: 350000, requires: 'spurDeed', desc: 'Margot will want a word. Pays $350,000 a day.' },
+  // Investments: businesses that pay you every night (the road to a billion)
+  backroom: { cat: 'Investments', name: 'Back Room Refit', icon: '♠️', price: 15000, swagger: 3, requiresQuest: 'pokerRoom', desc: 'New felt, a working jukebox and a lock Kessler doesn\'t have a key to. Reopens the Spur\'s poker room.' },
+  dinerStake: { cat: 'Investments', name: "Partner in Mel's Diner", icon: '🍳', price: 250000, income: 2500, requiresChapter: 2, desc: 'Half the pie, literally. Pays $2,500 a day.' },
+  quikstop: { cat: 'Investments', name: 'Quik-Stop Franchise', icon: '🏪', price: 1000000, income: 12000, requiresChapter: 3, desc: 'Twelve stores, one terrible coffee recipe. Pays $12,000 a day.' },
+  pokerSeries: { cat: 'Investments', name: 'Back Room Poker Series', icon: '🏆', price: 3000000, income: 40000, requires: 'backroom', requiresChapter: 3, desc: 'Turn the back room into a televised tour stop. Pays $40,000 a day.' },
+  grandHotel: { cat: 'Investments', name: 'The Grand Hotel', icon: '🏨', price: 25000000, income: 300000, requiresEnding: true, desc: 'Every room, every key, every minibar. Pays $300,000 a day.' },
+  riverboatStake: { cat: 'Investments', name: "51% of Lucky Lou's Riverboat", icon: '🛳️', price: 80000000, income: 1000000, requiresEnding: true, desc: 'Lou keeps the captain\'s hat. You keep the profits. Pays $1,000,000 a day.' },
+  salonDeed: { cat: 'Investments', name: 'The Monte Royale Salon Privé', icon: '💎', price: 400000000, income: 5500000, requiresEnding: true, desc: 'Kessler\'s old empire, at auction. Pays $5,500,000 a day.' },
+  resort: { cat: 'Investments', name: 'The Seventeen Resort & Casino', icon: '🌟', price: 1500000000, swagger: 200, requiresEnding: true, desc: 'Seventeen towers on the river. Your name on the sign. Sal\'s silver dollar in the lobby. The last thing money can buy here.' },
 };
 /* Food and drink. hunger/thirst/energy are how much each bar refills (bars run 0-100). */
 const MENU = {
@@ -134,7 +143,7 @@ const PLACES = {
   diner: { name: "Mel's Diner", icon: '🍳', who: 'Mel', line: 'Sit anywhere, hon. Coffee\'s fresh-ish.', items: ['coffee', 'breakfast', 'burger', 'pie', 'shake'] },
   store: { name: 'Quik-Stop', icon: '🏪', who: 'Clerk', line: 'Lottery tickets are behind the counter. Kidding. We\'re sold out.', items: ['water', 'soda', 'energy', 'candy', 'sandwich'] },
   steak: { name: 'Prime Cut Steakhouse', icon: '🥩', who: 'Maître d\'', line: 'Your table is ready. It has been ready since you walked in looking like money.', items: ['steak', 'lobster', 'wine', 'water'] },
-  bar_spur: { name: 'Spur Bar', icon: '🍺', npc: 'dolores', venue: 'spur', comp: true, job: true, line: 'What\'ll it be, sugar?', items: ['beer', 'whiskey', 'soda', 'nachos', 'water'] },
+  bar_spur: { name: 'Spur Bar', icon: '🍺', npc: 'dolores', usual: true, venue: 'spur', comp: true, job: true, line: 'What\'ll it be, sugar?', items: ['beer', 'whiskey', 'soda', 'nachos', 'water'] },
   bar_riverboat: { name: 'Paddlewheel Lounge', icon: '🍹', venue: 'riverboat', comp: true, line: 'Welcome aboard. Drinks are on the house for players.', items: ['cocktail', 'beer', 'coffee', 'shrimp', 'water'] },
   bar_palace: { name: 'Chandelier Bar', icon: '🥂', venue: 'palace', comp: true, line: 'Champagne, darling?', items: ['champagne', 'espresso', 'buffet', 'water'] },
   bar_salon: { name: 'Salon Privé Bar', icon: '🍸', venue: 'salon', comp: true, line: 'Mr. Kessler insists you want for nothing. Within reason.', items: ['martini', 'espresso', 'wagyu', 'caviar', 'water'] },
@@ -148,6 +157,11 @@ const LODGING = {
   bench: { name: 'Park Bench', icon: '🪑', cost: 0, energy: 0.6, risky: true, text: 'Free. Cold. Somebody might lift your wallet while you sleep.' },
 };
 
+const EVENTS = {
+  doubleComps: { name: 'Double Comp Night', desc: 'Cash-back on wagers there counts double tonight.', comps: true },
+  highLimit: { name: 'High-Limit Night', desc: 'Table maximums are doubled.', limits: 2 },
+  meterNight: { name: 'Jackpot Fever', desc: 'Every progressive meter in town jumped 40% this morning.', meters: true },
+};
 const ACHIEVEMENTS = [
   { id: 'first', name: 'First Hand', desc: 'Play your first round', test: () => App.state.stats.rounds >= 1, reward: 25 },
   { id: 'bj', name: 'Natural', desc: 'Get a blackjack', test: () => App.counter('blackjacks') >= 1, reward: 50 },
@@ -166,6 +180,24 @@ const ACHIEVEMENTS = [
   { id: 'big50k', name: 'Monster Hit', desc: 'Win $50,000+ in one round', test: () => App.state.stats.biggestWin >= 50000, reward: 2500, swagger: 5 },
   { id: 'debtfree', name: 'Clean Slate', desc: 'Owe nobody anything', test: () => App.state.day > 1 && App.debt === 0, reward: 100, swagger: 2 },
   { id: 'mill', name: 'Millionaire', desc: 'Hold $1,000,000 in your bankroll', test: () => App.state.bank >= 1e6, reward: 0, swagger: 10 },
+  // poker
+  { id: 'backroom', name: 'Shuffle Up', desc: 'Reopen the Spur\'s back poker room', test: () => !!App.state.flags.pokerRoom, reward: 500, swagger: 2 },
+  { id: 'pkCash', name: 'In the Money', desc: 'Cash in a poker tournament', test: () => !!(App.state.stats.poker && App.state.stats.poker.cashes), reward: 250 },
+  { id: 'pkWin', name: 'Ship It', desc: 'Win a poker tournament', test: () => !!(App.state.stats.poker && App.state.stats.poker.wins), reward: 1000, swagger: 2 },
+  { id: 'pkFinal', name: 'Final Table Regular', desc: 'Make three multi-table final tables', test: () => App.counter('finalTables') >= 3, reward: 5000, swagger: 3 },
+  { id: 'pkDaily', name: 'Daily Grinder', desc: 'Win The Spur Daily', test: () => App.counter('pokerWin_daily') >= 1, reward: 5000, swagger: 3 },
+  { id: 'pkMajor', name: 'Major Champion', desc: 'Win the Tenth-Day Major', test: () => App.counter('pokerWin_major') >= 1, reward: 25000, swagger: 6 },
+  { id: 'pkHR', name: 'High Roller', desc: 'Win the High Roller', test: () => App.counter('pokerWin_hr') >= 1, reward: 100000, swagger: 10 },
+  { id: 'pkSHR', name: 'Poker Legend', desc: 'Win the Super High Roller', test: () => App.counter('pokerWin_shr') >= 1, reward: 1000000, swagger: 20 },
+  // the road to a billion (businesses count at their price)
+  { id: 'm10', name: 'Eight Figures', desc: 'Be worth $10,000,000', test: () => Career.empire() >= 1e7, reward: 0, swagger: 10, legend: true },
+  { id: 'm100', name: 'Nine Figures', desc: 'Be worth $100,000,000', test: () => Career.empire() >= 1e8, reward: 0, swagger: 20, legend: true },
+  { id: 'b1', name: 'Billionaire', desc: 'Be worth $1,000,000,000', test: () => Career.empire() >= 1e9, reward: 0, swagger: 40, legend: true },
+  { id: 'b10', name: 'Untouchable', desc: 'Be worth $10,000,000,000', test: () => Career.empire() >= 1e10, reward: 0, swagger: 60, legend: true },
+  { id: 'income1m', name: 'Money Never Sleeps', desc: 'Earn $1,000,000 a day from businesses', test: () => Career.income() >= 1e6, reward: 0, swagger: 15, legend: true },
+  { id: 'mogul', name: 'Mogul', desc: 'Own every business in town', test: () => Object.keys(ITEMS).filter(k => ITEMS[k].income).every(k => App.has(k)), reward: 0, swagger: 30, legend: true },
+  { id: 'resort', name: 'The Seventeen', desc: 'Build The Seventeen Resort & Casino', test: () => App.has('resort'), reward: 0, swagger: 50, legend: true },
+  { id: 'whale', name: 'Million-Dollar Hand', desc: 'Win $1,000,000 in a single round', test: () => App.state.stats.biggestWin >= 1e6, reward: 0, swagger: 10, legend: true },
 ];
 
 /* Story chapters. goal() decides when the chapter is complete. */
@@ -215,24 +247,20 @@ const CHAPTERS = [
     outro: [
       { who: 'margot', text: 'Platinum and a quarter million. I made the call. The Salon expects you.' },
       { who: 'kessler', text: 'So you\'re the nephew. Sal used to sit exactly where you\'re standing, right before he lost everything.' },
-      { who: 'kessler', text: 'I\'ll sell you the Rusty Spur. For **one million dollars**. Earned at my tables. If you can manage it.' },
+      { who: 'kessler', text: 'I\'ll sell you the Rusty Spur. For **one million dollars**. Or win it from me: I host the **Salon Invitational** on every night that ends in seven. Only the best players are invited.' },
+      { who: 'narrator', text: 'Kessler\'s smile doesn\'t reach his eyes. Whatever happened to Sal at that table, the answer is somewhere in this town. (🔎 Case file.)' },
     ],
   },
   {
-    title: 'The Salon Privé', goalText: 'Buy back the deed to The Rusty Spur from the shop: $1,000,000, or half that if you can prove what Kessler did to Sal.',
-    goal: () => App.has('spurDeed'),
+    title: 'The Salon Privé', goalText: 'End Kessler\'s reign: solve The Seventeenth Card (🔎 Case file) and survive the Salon Invitational. Buying the deed for $1,000,000 gets you the bar, but not the truth.',
+    goal: () => !!App.state.ending,
     intro: [
       { who: 'narrator', text: 'No windows. No clocks. Every bet in the room could buy a house.' },
-      { who: 'kessler', text: 'One million. Not a dollar of it borrowed from Vinnie, I hope. Interest is such a vulgar way to lose.' },
+      { who: 'kessler', text: 'Welcome to my Salon. The Invitational is played on nights ending in seven. Do try to be... worthy.' },
     ],
-    outro: [
-      { who: 'kessler', text: 'Well. A deal is a deal. Sal would be... insufferable about this.' },
-      { who: 'dolores', text: 'They\'re hanging the new sign now, sugar. "SAL\'S". First round\'s on you.' },
-      { who: 'vinnie', text: 'For the record, kid, I always liked you. Interest-free loans for life. Kidding. 1%.' },
-      { who: 'narrator', text: '🏆 **You beat the story!** Keep playing: the Salon is open, the meters keep climbing, and a stake in the Gilded Palace is still for sale...' },
-    ],
+    outro: [],
   },
-  { title: 'Legend', goalText: 'Free roam. Buy a controlling stake in The Gilded Palace if you dare.', goal: () => false, intro: [], outro: [] },
+  { title: 'Legend', goalText: 'Build an empire: $10 million, $100 million, then a billion. Buy businesses, win the poker series, and put your name on The Seventeen. (Status shows your Legend goals.)', goal: () => false, intro: [], outro: [] },
 ];
 
 /* ---------- Career logic ---------- */
@@ -252,6 +280,9 @@ const Career = {
     let c = 0.001; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].comp) c = Math.max(c, ITEMS[k].comp);
     return c;
   },
+  income() { let u = 0; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].income) u += ITEMS[k].income; return u; },
+  // what you're worth with your businesses counted at their price
+  empire() { let v = App.netWorth(); for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].cat === 'Investments' || (App.state.items[k] && ['spurDeed', 'palaceDeed'].includes(k))) v += ITEMS[k].price; return v; },
   upkeep() { let u = 0; for (const k in App.state.items) if (App.state.items[k] && ITEMS[k] && ITEMS[k].upkeep) u += ITEMS[k].upkeep; return u; },
   creditLimit() { return 1000 + Career.swagger() * 400 + App.state.chapter * 5000; },
   vinnieRate() { return App.state.chapter >= 4 ? 0.01 : 0.04; },
@@ -334,7 +365,10 @@ const Career = {
     amount = Math.min(amount, l.balance, App.state.bank);
     if (amount <= 0) return;
     App.debit(amount); l.balance = round2(l.balance - amount);
-    if (l.balance <= 0.005) App.state.loans = App.state.loans.filter(x => x !== l);
+    if (l.balance <= 0.005) {
+      App.state.loans = App.state.loans.filter(x => x !== l);
+      if (l.id === 'sal' && l.due && App.state.day <= l.due - 5) App.state.flags.paidEarly = App.state.day;
+    }
     App.save(); this.afterRound();
   },
 
@@ -351,6 +385,7 @@ const Career = {
   },
   // drain the bars. kind = 'round' (k = rounds) or 'step'
   drain(kind, k = 1) {
+    if (App.state) App.state.clock = (App.state.clock || 540) + (kind === 'round' ? 2 : 0.25) * k;
     if (!this.needsOn()) return;
     const st = App.state, starving = st.hunger <= 0 || st.thirst <= 0;
     const r = kind === 'round' ? { h: 0.8, t: 1.2, e: 1 } : { h: 0.04, t: 0.05, e: 0.02 };
@@ -404,32 +439,50 @@ const Career = {
   async endDay(L = LODGING.motel, robbed = 0) {
     const st = App.state, lines = [];
     lines.push(['Today\'s result', fmt(st.today.net, { sign: true })]);
-    const comp = round2(st.today.wagered * this.compRate());
+    const byV = st.today.byVenue || {}, ev = st.event && EVENTS[st.event.id];
+    let comp = round2(Object.keys(byV).reduce((a, v) => a + byV[v] * (ev && ev.comps && st.event.venue === v ? 2 : 1), 0) * this.compRate());
+    if (!Object.keys(byV).length) comp = round2(st.today.wagered * this.compRate());
+    const cap = 50 * Math.max(...Object.keys(VENUES).filter(v => this.venueOpen(v)).map(v => VENUES[v].limits.min));
+    if (comp > cap) { lines.push(['(Cash-back is capped at ' + fmt(cap) + ' a night)', '']); comp = cap; }
     if (comp > 0) { App.credit(comp); lines.push(['Players club cash-back', fmt(comp, { sign: true })]); }
     if (L.cost) lines.push([L.name, fmt(-L.cost)]);
+    const inc = this.income();
+    if (inc) { App.credit(inc); lines.push(['Business income', fmt(inc, { sign: true })]); }
     const rent = this.upkeep();
     if (rent) { st.bank = round2(st.bank - Math.min(rent, st.bank)); lines.push(['Rent & staff', fmt(-rent)]); }
     if (robbed) lines.push(['Wallet lifted in your sleep', fmt(-robbed)]);
     let interest = 0;
     for (const l of st.loans) { const i = round2(l.balance * l.rate); l.balance = round2(l.balance + i); interest += i; }
     if (interest) lines.push(['Loan interest', fmt(-interest)]);
-    st.day++; st.staminaMax = this.staminaMax(); st.stamina = Math.round(st.staminaMax * (L.energy || 1));
+    st.day++; st.clock = 540; st.staminaMax = this.staminaMax(); st.stamina = Math.round(st.staminaMax * (L.energy || 1));
     st.hunger = clamp(st.hunger - 20 + (L.hunger || 0), 0, 100);
     st.thirst = clamp(st.thirst - 25 + (L.thirst || 0), 0, 100);
     st.today = { wagered: 0, net: 0, rounds: 0 };
     Progressives.dailyGrowth();
     Rivals.newDay();
+    this.rollEvent();
     this.randomNews();
     App.save(); Router.hud();
     await UI.modal({
       title: `🌙 Night ${st.day - 1} · ${L.name}`, buttons: [{ label: `Wake up: Day ${st.day}`, cls: 'primary' }],
       body: h('div', h('table.paytable', lines.map(r => h('tr', h('td', r[0]), h('td.num', r[1])))),
-        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${st.staminaMax}. You wake up a little hungry and thirsty. Progressive meters grew overnight.`)),
+        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${st.staminaMax}. You wake up a little hungry and thirsty. Progressive meters grew overnight.`),
+        h('button.btn.sm', { onclick: () => Chat.newspaper() }, '📰 Read the morning paper')),
     });
     await this.collections();
     Router.refresh();
   },
 
+  // one special night somewhere in town, announced each morning
+  rollEvent() {
+    const st = App.state, ids = Object.keys(EVENTS);
+    const open = Object.keys(VENUES).filter(v => this.venueOpen(v));
+    const id = RNG.pick(ids), venue = RNG.pick(open);
+    st.event = { id, venue, day: st.day };
+    if (EVENTS[id].meters) for (const k of Progressives.KEYS) st.progressives[k] *= 1.4;
+    App.news(`🎉 Tonight: ${EVENTS[id].name} at ${VENUES[venue].name}. ${EVENTS[id].desc}`);
+  },
+  eventAt(venue) { const e = App.state.event; return e && e.day === App.state.day && e.venue === venue ? EVENTS[e.id] : null; },
   randomNews() {
     const st = App.state;
     const hot = Progressives.KEYS.filter(k => Progressives.rtp(k) >= 1);
@@ -456,7 +509,7 @@ const Career = {
       return;
     }
     const target = overdue || vin;
-    target.strikes = (target.strikes || 0) + 1;
+    target.strikes = (target.strikes || 0) + 1; st.flags.everStruck = st.day;
     if (target.strikes >= 3) {
       await UI.dialog([
         { who: 'nico', text: 'Vinnie says this is the third time. Vinnie says there won\'t be a fourth.' },
@@ -507,6 +560,8 @@ const Career = {
     if (it.requires && !st.items[it.requires]) return `Requires ${ITEMS[it.requires].name}`;
     if (it.requiresFlag && !st.flags[it.requiresFlag] && st.mode === 'career') return 'Meet Doc on the Riverboat first';
     if (it.requiresChapter && st.chapter < it.requiresChapter && st.mode === 'career') return 'Not for sale yet (story)';
+    if (it.requiresEnding && !st.ending && st.mode === 'career') return 'For sale once the story is over';
+    if (it.requiresQuest && Quests.status(it.requiresQuest) !== 'active' && !st.items[id] && st.mode === 'career') return 'Ask Dolores at the Spur about the old back room';
     return null;
   },
 };

@@ -54,7 +54,7 @@ const App = {
       version: 1, mode, name: name || 'Lucky', created: Date.now(), saved: Date.now(),
       bank: career ? 500 : 10000, day: 1,
       stamina: 100, staminaMax: 100, hunger: 80, thirst: 80,
-      world: { map: 'town', x: 5, y: 30, dir: 'down' },
+      world: { map: 'town', x: 5, y: 30, dir: 'down' }, clock: 540, event: null, ending: null,
       loans: career ? [{ id: 'sal', label: "Uncle Sal's marker", balance: 2500, rate: 0.03, due: 15, strikes: 0 }] : [],
       items: {}, consumables: {}, equipped: { felt: 'green', back: 'red' },
       chapter: 0, flags: {}, achievements: {},
@@ -140,6 +140,7 @@ const App = {
     const g = s.perGame[gameId] || (s.perGame[gameId] = { rounds: 0, wagered: 0, net: 0 });
     g.rounds++; g.wagered = round2(g.wagered + r.wagered); g.net = round2(g.net + r.net);
     st.today.wagered = round2(st.today.wagered + r.wagered); st.today.net = round2(st.today.net + r.net); st.today.rounds++;
+    st.today.byVenue = st.today.byVenue || {}; st.today.byVenue[st.venue] = round2((st.today.byVenue[st.venue] || 0) + r.wagered);
     if (r.net > s.biggestWin) s.biggestWin = r.net;
     if (r.wagered > 0) {
       if (r.net > 0) { s.streak = Math.max(0, s.streak) + 1; s.bestStreak = Math.max(s.bestStreak, s.streak); }

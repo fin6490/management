@@ -52,6 +52,7 @@ const Router = {
   },
   // navigation away from a table must respect bets in action
   safeGo(screen, arg) {
+    if (Holdem.active() && this.screen === 'pokertable') return UI.toast('Use ← Leave to leave the tournament', 'warn');
     if (this.table) {
       if (this.table.busy) return UI.toast('Finish the round first', 'warn');
       const block = this.game && this.game.canLeave && this.game.canLeave();
@@ -72,7 +73,10 @@ const Router = {
     if (why) { UI.toast(why, 'warn'); return; }
     this.go('table');
     const g = GAMES[gameId];
-    const ctx = { venue: v, venueId: st.venue, limits: v.limits, chips: v.chips, rules: (v.rules && v.rules[gameId]) || {} };
+    const ev = Career.eventAt(st.venue);
+    let limits = ev && ev.limits ? { ...v.limits, max: v.limits.max * ev.limits } : v.limits, chips = v.chips;
+    if (st.ending && st.venue === 'salon') { limits = { ...limits, max: Math.max(limits.max, 1000000) }; chips = [1000, 5000, 25000, 100000, 1000000]; }
+    const ctx = { venue: v, venueId: st.venue, limits, chips, rules: (v.rules && v.rules[gameId]) || {} };
     const main = $('main.screen');
     this.table = new UI.Table(main, g, ctx);
     this.game = g;
@@ -84,7 +88,7 @@ const Router = {
     return h('header.hud',
       h('button.logo', { onclick: () => this.safeGo('world'), title: 'Back to the map' }, '🎲', h('span', 'High Roller')),
       h('div.hud-stats',
-        h('div.hs', h('small', st.name), h('b#hud-day', 'Day ' + st.day)),
+        h('div.hs', h('small', st.name), h('b#hud-day', 'Day ' + st.day), h('em#hud-clock.hud-clock')),
         h('div.hs.bank', h('small', 'Bankroll'), h('b#hud-bank')),
         st.mode === 'career' ? h('div.hs.debt', { onclick: () => this.safeGo('loans'), title: 'Loans' }, h('small', 'Debt'), h('b#hud-debt')) : null,
         st.mode === 'career' ? h('div.hs.needs-h', { title: 'Hunger · Thirst · Energy' },
@@ -95,7 +99,7 @@ const Router = {
   hud() {
     if (!App.state) return;
     const st = App.state, set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
-    set('hud-bank', fmt(st.bank)); set('hud-day', 'Day ' + st.day);
+    set('hud-bank', Math.abs(st.bank) >= 1e7 && innerWidth < 700 ? '$' + (st.bank >= 1e9 ? (st.bank / 1e9).toFixed(2) + 'B' : (st.bank / 1e6).toFixed(1) + 'M') : fmt(st.bank)); set('hud-day', 'Day ' + st.day); set('hud-clock', World.clockText());
     set('hud-debt', fmt(App.debt)); set('hud-swag', '★ ' + Career.swagger());
     const d = document.getElementById('hud-debt'); if (d) d.parentElement.classList.toggle('zero', App.debt === 0);
     for (const [id, v, max] of [['hud-hunger', st.hunger, 100], ['hud-thirst', st.thirst, 100], ['hud-stam', st.stamina, st.staminaMax]]) {
@@ -110,6 +114,8 @@ const Router = {
 const Screens = {
   table() { }, // the Table component fills this screen
   world(main) { World.mount(main); },
+  poker(main) { Holdem.lobby(main); },
+  pokertable(main) { Holdem.table(main); },
   case(main) { Mystery.screen(main); },
   title(main) {
     document.body.dataset.screen = 'title';
@@ -132,7 +138,8 @@ const Screens = {
     } });
     main.append(h('div.title',
       h('div.title-cards', ['A♠', 'K♥', 'Q♦', 'J♣'].map((t, i) => h('div.tcard' + (i % 3 ? '.red' : ''), { style: { '--i': i } }, t))),
-      h('h1', 'HIGH ROLLER'), h('p.tagline', 'Pay off Sal\'s debt. Beat the house. Buy back the bar.'),
+      h('h1', 'HIGH ROLLER'), h('p.tagline', 'Pay off Sal\'s debt. Beat the house. Find out what really happened to Sal.'),
+      h('p.greeting', Me.greeting()),
       h('div.slots', slots.map(slotRow)),
       h('div.title-foot', h('button.btn.ghost.sm', { onclick: () => fileIn.click() }, '⤒ Import save file'), fileIn,
         h('p.muted.small', 'Your game autosaves in this browser after every hand. Use Export in the ☰ menu to keep a backup file.'))));
@@ -177,9 +184,10 @@ const Screens = {
         h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Back to the map'), h('h2', 'Status')),
         h('div.grid',
           h('button.loc', { onclick: () => Router.go('trophies') }, h('div.loc-i', '🏅'), h('div.loc-t', h('b', 'Trophy Room'), h('span', `${Object.keys(st.achievements).length}/${ACHIEVEMENTS.length} achievements`))),
-          h('button.loc', { onclick: () => Router.go('case') }, h('div.loc-i', '🔎'), h('div.loc-t', h('b', 'Case file'), h('span', 'The Last Hand: ' + (Mystery.st().solved ? 'solved' : Object.keys(Mystery.st().clues).length + ' clues')))),
+          h('button.loc', { onclick: () => Router.go('case') }, h('div.loc-i', '🔎'), h('div.loc-t', h('b', 'Case file'), h('span', App.state.ending ? 'Case closed' : `Act ${Mystery.act()} · ${Object.keys(Mystery.st().clues).length} pieces of evidence`))),
           h('button.loc', { onclick: () => Router.go('stats') }, h('div.loc-i', '📊'), h('div.loc-t', h('b', 'Stats'), h('span', `${st.stats.rounds.toLocaleString()} rounds played`))),
           !career ? h('button.loc', { onclick: () => { if (st.bank < 10000) { st.bank = 10000; App.save(); Router.refresh(); UI.toast('Bankroll refilled', 'good'); } else UI.toast('You already have $10,000+', 'warn'); } }, h('div.loc-i', '💵'), h('div.loc-t', h('b', 'Refill bankroll'), h('span', 'Top up to $10,000'))) : null),
+        career ? Screens.legendBoard() : null,
         career ? Screens.rivalBoard() : null,
         career ? Screens.jobBoard() : null,
         h('h3.sec', 'Getting around'),
@@ -199,9 +207,26 @@ const Screens = {
         })))));
   },
 
+  // post-story targets, with progress
+  legendBoard() {
+    const st = App.state; if (!st.ending && st.chapter < 3) return null;
+    const worth = Career.empire(), inc = Career.income();
+    const rows = ACHIEVEMENTS.filter(a => a.legend);
+    const target = { m10: 1e7, m100: 1e8, b1: 1e9, b10: 1e10 };
+    return h('div', h('h3.sec', 'Legend goals'),
+      h('p.small', `Empire value ${fmt(worth, { short: true })} (cash plus businesses at cost) · business income ${fmt(inc, { short: true })} a day`),
+      h('div.legend', rows.map(a => h('div.lg' + (st.achievements[a.id] ? '.done' : ''), h('b', (st.achievements[a.id] ? '🏆 ' : '◻️ ') + a.name), h('span', a.desc),
+        target[a.id] && !st.achievements[a.id] ? h('div.bar', h('i', { style: { width: clamp(worth / target[a.id], 0, 1) * 100 + '%' } })) : null))));
+  },
+  // your place in the net-worth race against the rivals (1 = top)
+  rivalRank() {
+    const st = App.state; Rivals.ensure();
+    const me = App.netWorth();
+    return 1 + Object.keys(RIVALS).filter(id => st.rivals[id].where !== 'jail' && st.rivals[id].bank > me).length;
+  },
   rivalBoard() {
     const st = App.state; Rivals.ensure();
-    const rows = Object.keys(RIVALS).map(id => ({ id, name: CHARACTERS[id].name, face: CHARACTERS[id].face, bank: st.rivals[id].bank, where: st.rivals[id].where }));
+    const rows = Object.keys(RIVALS).filter(id => st.rivals[id].where !== 'jail').map(id => ({ id, name: CHARACTERS[id].name, face: CHARACTERS[id].face, bank: st.rivals[id].bank, where: Rivals.where(id) }));
     rows.push({ id: 'me', name: st.name + ' (you)', face: '🙂', bank: App.netWorth(), where: null });
     rows.sort((a, b) => b.bank - a.bank);
     return h('div', h('h3.sec', 'Rival standings (net worth)'),
@@ -331,8 +356,9 @@ const Screens = {
       h('label.lbl', 'Strategy hints (when you own the guide)'), sel('hints', [[true, 'Show'], [false, 'Hide']]),
       h('div.menu-btns',
         h('button.btn', { onclick: () => { box.close(); Router.safeGo('status'); } }, '📋 Status, story & trophies'),
-        h('button.btn', { onclick: () => { box.close(); Router.safeGo('case'); } }, '🔎 Case file: The Last Hand'),
+        h('button.btn', { onclick: () => { box.close(); Router.safeGo('case'); } }, '🔎 Case file: The Seventeenth Card'),
         h('button.btn', { onclick: () => { box.close(); Chat.settings(); } }, '💬 AI chat with characters'),
+        h('button.btn', { onclick: () => { box.close(); Me.edit(); } }, '🗂️ Your file (make it personal)'),
         h('button.btn', { onclick: () => { App.save(); UI.toast('Saved to slot ' + App.slot, 'good'); } }, '💾 Save now'),
         h('button.btn', { onclick: () => App.exportSave() }, '⤓ Export save file'),
         h('button.btn.ghost', { onclick: () => { box.close(); App.save(); Router.safeGo('title'); } }, '⏏ Quit to title')),
