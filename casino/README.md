@@ -87,6 +87,13 @@ energy runs out while walking you pass out on the street (and someone goes throu
   Suave each have a bankroll and a personality. Every day they show up at a different casino or
   around town, and they sometimes sit down at your table, bet alongside you and talk trash.
   ☰ → Status shows who's ahead.
+- **Dealers** have names and personalities that fit their casino. Tap the 💬 button with the
+  dealer's name at any table to chat; they know the table's rules and how your sitting is going.
+- **The Last Hand** (☰ → Case file, or 🔎 on the map): Sal swore his last game at Kessler's
+  Salon was rigged. Follow clues from Dolores and Doc, crack Sal's lockbox at the Starlite Motel
+  and the cipher inside, get a frightened dealer to talk by showing him the right evidence, answer
+  Rico's riddle, and accuse the culprit with the right method and proof. Solving it pays $10,000
+  and halves the price of the Rusty Spur's deed.
 - **Talk to anyone in your own words** with Claude. In the claude.ai version, replies come from your
   Claude account (it asks permission once). In the installed app, paste an API key from
   console.anthropic.com in ☰ → AI chat; the key stays in that browser, is never saved into save

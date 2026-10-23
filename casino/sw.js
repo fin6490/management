@@ -1,12 +1,12 @@
 /* Offline support: every file the app needs is cached on first visit. Files are served from the
    cache and refreshed in the background, so a new version shows up on the next launch.
    Bump VERSION when the file list changes. */
-const VERSION = 'high-roller-v3';
+const VERSION = 'high-roller-v4';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/core.js', 'js/poker.js', 'js/paytables.js', 'js/rtp.js', 'js/ui.js', 'js/state.js', 'js/career.js',
   'js/games/blackjack.js', 'js/games/uth.js', 'js/games/stud.js', 'js/games/baccarat.js',
-  'js/games/craps.js', 'js/games/roulette.js', 'js/npcs.js', 'js/world.js', 'js/main.js',
+  'js/games/craps.js', 'js/games/roulette.js', 'js/npcs.js', 'js/mystery.js', 'js/world.js', 'js/main.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
 ];
 

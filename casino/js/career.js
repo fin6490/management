@@ -219,7 +219,7 @@ const CHAPTERS = [
     ],
   },
   {
-    title: 'The Salon Privé', goalText: 'Buy back the deed to The Rusty Spur ($1,000,000) from the shop.',
+    title: 'The Salon Privé', goalText: 'Buy back the deed to The Rusty Spur from the shop: $1,000,000, or half that if you can prove what Kessler did to Sal.',
     goal: () => App.has('spurDeed'),
     intro: [
       { who: 'narrator', text: 'No windows. No clocks. Every bet in the room could buy a house.' },

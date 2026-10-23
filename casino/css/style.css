@@ -491,3 +491,20 @@ ul.howto { color: var(--muted); font-size: .9rem; line-height: 1.5; padding-left
 .job-card { background: linear-gradient(160deg, #2a2013, var(--panel2)); border: 1px solid var(--gold2); border-radius: 12px; padding: .7rem; display: grid; gap: .3rem; }
 .job-card p { margin: 0; }
 tr.me-row td { color: var(--gold); font-weight: 700; }
+
+/* ---------- mystery ---------- */
+.w-chips { display: flex; gap: .4rem; pointer-events: auto; }
+.w-case { padding: .4rem .65rem; }
+.ev-row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.keypad-disp { font: 700 2rem "Courier New", monospace; text-align: center; letter-spacing: .2em; padding: .5rem; background: #000; border: 1px solid var(--gold2); border-radius: 10px; color: var(--good); margin-bottom: .8rem; }
+.keypad-disp.shake { animation: shake .4s; color: var(--bad); }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+.keypad .btn { padding: .8rem; font-size: 1.2rem; }
+.cipher-in, .cipher-out { font: 700 1rem "Courier New", monospace; letter-spacing: .08em; background: #0c0a08; border: 1px solid var(--line); border-radius: 8px; padding: .6rem; overflow-wrap: anywhere; }
+.cipher-out { color: var(--good); }
+.cipher-dial { display: flex; align-items: center; justify-content: center; gap: .8rem; margin: .6rem 0; }
+.casefile .panel { margin-bottom: 1rem; }
+.chat-panels { display: grid; gap: .5rem; }
+.chat-panels:empty { display: none; }
+.talk { color: var(--gold); }

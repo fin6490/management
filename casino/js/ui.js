@@ -183,6 +183,7 @@ class Table {
         h('div.tt-title', h('b', game.name), h('span', `${ctx.venue.name} · ${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`)),
         h('div.tt-right',
           this.extraEl = h('div.tt-extra'),
+          h('button.btn.ghost.sm.talk', { onclick: () => Chat.open(Dealers.spec(ctx.venueId, game.id, this)), title: 'Chat with the dealer' }, '💬 ' + Dealers.name(ctx.venueId, game.id)),
           h('button.btn.ghost.sm', { onclick: () => this.showInfo() }, 'Paytables'))),
       this.seatsEl = h('div.seats'),
       this.felt = h('div.felt.felt-' + felt,
@@ -244,6 +245,7 @@ class Table {
   finishRound(extra = {}) {
     const r = this.round; this.round = { wagered: 0, returned: 0 };
     const net = round2(r.returned - r.wagered);
+    if (r.wagered > 0) { this.sessionRounds = (this.sessionRounds || 0) + 1; this.sessionNet = round2((this.sessionNet || 0) + net); }
     if (r.wagered > 0) {
       if (net > 0) { this.showBanner('WIN ' + fmt(net), 'win'); net >= 20 * this.ctx.limits.min ? SFX.big() : SFX.win(); }
       else if (net < 0) { this.showBanner('LOSE ' + fmt(-net), 'lose', 1200); SFX.lose(); }
