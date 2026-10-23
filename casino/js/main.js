@@ -54,6 +54,7 @@ const Router = {
   safeGo(screen, arg) {
     if (Holdem.active() && this.screen === 'pokertable') return UI.toast('Use ← Leave to leave the tournament', 'warn');
     if (Darts.active() && this.screen === 'darts') return UI.toast('Finish the match first (or concede)', 'warn');
+    if (Slots.busy() && this.screen === 'slots') return UI.toast('Let the reels stop first', 'warn');
     if (this.table) {
       if (this.table.busy) return UI.toast('Finish the round first', 'warn');
       const block = this.game && this.game.canLeave && this.game.canLeave();
@@ -118,6 +119,7 @@ const Screens = {
   poker(main) { Holdem.lobby(main); },
   pokertable(main) { Holdem.table(main); },
   darts(main) { Darts.screen(main); },
+  slots(main, venueId) { Slots.screen(main, venueId); },
   case(main) { Mystery.screen(main); },
   title(main) {
     document.body.dataset.screen = 'title';
@@ -206,6 +208,12 @@ const Screens = {
           const r = Progressives.rtp(k);
           return h('div.mm', h('span', PAY[k].prog.name), h('b', fmt(Math.floor(st.progressives[k]))),
             App.perk('tracker') ? h('em.' + (r >= 1 ? 'good' : r > 0.97 ? 'ok' : 'bad'), pctStr(r, 1)) : null);
+        })),
+        h('h3.sec', 'Slot mystery jackpots (hottest meter per casino)'),
+        h('div.meters-mini', Object.keys(SLOT_MACHINES).filter(v => st.mode !== 'career' || st.unlocked[v]).map(v => {
+          const ms = Slots.meters(v), b = SLOT_MACHINES[v].b;
+          const hot = MYSTERY.map(t => ({ t, p: (ms[t.key].v - t.reset * b) / ((t.cap - t.reset) * b) })).sort((x, y) => y.p - x.p)[0];
+          return h('div.mm', h('span', `${SLOT_MACHINES[v].name} · ${hot.t.icon} ${hot.t.name}`), h('b', fmt(Math.floor(ms[hot.t.key].v))), h('em.' + (hot.p > .85 ? 'good' : hot.p > .6 ? 'ok' : 'bad'), `${Math.round(hot.p * 100)}% to cap`));
         })))));
   },
 
@@ -290,7 +298,8 @@ const Screens = {
       }
     };
     main.append(h('div.shop', h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'),
-      h('div', h('h2', '🛍️ Lucky Strike Outfitters'), h('p.muted', '"If you look like a high roller, the comps follow." — the sign in the window'))),
+      h('div', h('h2', '🛍️ Lucky Strike Outfitters'), h('p.muted', '"If you look like a high roller, the comps follow." — the sign in the window')),
+      h('button.btn.sm.ghost', { onclick: () => Chat.open(Crowd.staff('rosa')) }, '💬 Talk to Rosa')),
       tabs, grid));
     render();
   },

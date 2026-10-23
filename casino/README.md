@@ -159,6 +159,32 @@ partner, stands beside it. Walk up to the board, or talk to Mick and press **�
   seventh day.
 - Achievements include a 180, a 170 checkout ("The Big Fish") and a bullseye finish.
 
+### Slots
+
+Every casino has a bank of slot machines on its right-hand wall, each with its own theme and bets:
+Dusty Dollars at the Spur ($0.25 to $10), Paddlewheel Gold on the Riverboat ($1 to $50), Gilded
+Dragon at the Palace ($5 to $250) and Kessler's Vault in the Salon ($25 to $2,500).
+
+- **243 ways**: symbols pay left to right on adjacent reels, in any row. Wilds on reels 2 to 4.
+- **Free spins**: 3, 4 or 5 scatters award 8, 12 or 20 spins on reels with extra wilds, each ×2 or ×3
+  (multiplying across a way), and 3 more scatters add 8 spins.
+- **Hold & Spin**: 6 or more coins lock in with cash values and give you 3 respins, reset whenever a
+  coin lands. Coins can carry the MINI (20× bet), MINOR (50×) or MAJOR (250×); fill all 15 for the
+  GRAND (1,000×).
+- **Sal's Lucky 17**: at random, one or two middle reels turn completely wild.
+- **Gamble** ordinary wins on red or black (a fair 50/50), and **autoplay** 10 to 100 spins.
+- **Mystery jackpots to target**: each casino has four must-hit-by meters (Copper, Silver, Gold,
+  Diamond). Every spin by anyone feeds them, and each must hit before its cap, so a meter close to
+  its cap is worth more than it costs to chase. Other players feed them overnight (and sometimes hit
+  them); ☰ → Status shows each casino's hottest meter.
+- **Return**: 97.3% from the reels and features (`node tools/slots-sim.js` simulates it; 10 million
+  spins: free spins about 1 in 110, Hold & Spin about 1 in 140), plus about 2.6% from the mystery
+  jackpots on average. That's roughly 100% overall, and more when you play a meter near its cap.
+- **Sparky's side jobs**: Ignatius "Sparky" Vance, the fired slot tech by the Spur's slot row, secretly
+  reflashed every machine in town. Play 100 spins, win a mystery jackpot, then buy the **Meter
+  Reader** (it shows exactly what the next spin is worth), and finally hit a Gold or Diamond (or the
+  GRAND) for $10,000.
+
 ### Legend goals
 
 When the story ends, the game keeps going. ☰ → Status shows your legend goals: be worth $10M,
@@ -180,18 +206,32 @@ go up to $1,000,000 a hand.
 
 ## AI chat
 
-Every character and dealer can talk back in their own voice, and they know the story so far.
+Everyone in town can talk back in their own voice: story characters, rivals, dealers (the 💬 button
+at any table), the staff behind every counter (Mel, Raj at the Quik-Stop, the bartenders, Darlene at
+the motel, Mr. Pemberton at the Grand, Rosa at the Outfitters), the townsfolk and the regulars by the
+tables, and your darts and poker opponents (💬 Talk and 💬 Table talk). They know the story so far,
+your bankroll and needs, what they sell, and the state of the game you're playing.
 
 - **On claude.ai** (the published artifact): nothing to set up. The first time you chat, Claude asks
   for permission to answer from your account.
 - **The installed app or GitHub Pages version**: you need your own Anthropic API key.
   1. Sign in at console.anthropic.com, add a payment method and buy some credits under Billing.
   2. Create a key under API Keys.
-  3. In the game, open ☰ → AI chat, paste the key and press **Test**.
+  3. In the game, open ☰ → AI chat (or press **Set up AI chat** in any chat window), paste the key
+     and press **Test**. Each phone or browser needs the key once.
 
   Each reply costs roughly 1 to 2 cents. The key stays in that browser and is never saved into save
   files or exports.
 - **Without either**, characters use their scripted lines and the whole game still works.
+
+### Voice
+
+☰ → AI chat → **Voice** turns on spoken replies: every character has their own voice, picked from
+the voices on your device. Tap 🎤 in any chat to talk instead of typing, or turn on **Hands-free** and
+the mic reopens after each reply so you can just talk back and forth. Tap 🔊 in a chat to mute it.
+Voice uses your browser's built-in speech features: Chrome, Edge and Safari all work. The microphone
+works best in the installed app; inside claude.ai the browser may block it, but replies can still be
+read aloud.
 
 ## Saving
 

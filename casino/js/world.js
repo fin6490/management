@@ -90,7 +90,7 @@ const World = (() => {
     ];
     const looks = [['#c0392b', '#2c3e50'], ['#8e44ad', '#34495e'], ['#16a085', '#2d3436'], ['#d35400', '#4b3b2a'], ['#2980b9', '#3d3d3d'], ['#f1c40f', '#5d4037']];
     [[8, 17], [21, 20], [33, 20], [15, 30], [40, 33], [10, 37], [29, 12], [44, 19]].forEach(([x, y], i) =>
-      m.npcs.push({ x, y, dir: 'down', wander: true, home: [x, y], look: { shirt: looks[i % 6][0], pants: looks[i % 6][1], skin: ['#f0c19a', '#c68863', '#8d5524', '#e0ac69'][i % 4], hair: ['#3a2a1e', '#111', '#a0522d', '#d9c27a'][i % 4] }, line: lines[i % lines.length], name: 'Local' }));
+      m.npcs.push({ x, y, dir: 'down', wander: true, home: [x, y], look: { shirt: looks[i % 6][0], pants: looks[i % 6][1], skin: ['#f0c19a', '#c68863', '#8d5524', '#e0ac69'][i % 4], hair: ['#3a2a1e', '#111', '#a0522d', '#d9c27a'][i % 4] }, line: lines[i % lines.length], name: TOWNSFOLK[i % TOWNSFOLK.length].name, crowd: () => Crowd.townsfolk(i, lines[i % lines.length]) }));
     m.start = [5, 30];
     return m;
   }
@@ -113,16 +113,18 @@ const World = (() => {
     for (let y = 4; y < 10; y++) m.act(3, y, { place: I.bar, label: PLACES[I.bar].name });
     m.props.push({ type: 'shelf', x: 1, y: 1, w: 3 });
     // slot machines on the right wall
-    for (let y = 3; y < 14; y += 1) { m.props.push({ type: 'slot', x: W - 2, y }); m.blockRect(W - 2, y, 1, 1); m.act(W - 2, y, { talk: 'This slot machine holds 12%. Doc would never forgive you.', label: 'Slot machine' }); }
+    for (let y = 3; y < 14; y += 1) { m.props.push({ type: 'slot', x: W - 2, y }); m.blockRect(W - 2, y, 1, 1); m.act(W - 2, y, { slots: venueId, label: `🎰 ${SLOT_MACHINES[venueId].name}` }); }
     // tables, 3 x 3 grid
     const cols = [7, 13, 19], rows = [4, 8, 12];
+    let reg = 0; // regulars standing by the tables
     v.games.forEach((g, i) => {
       const x = cols[i % 3], y = rows[Math.floor(i / 3)];
       m.tables.push({ game: g, x, y, w: 4, h: 2 });
       m.blockRect(x, y, 4, 2);
       for (let j = 0; j < 2; j++) for (let k = 0; k < 4; k++) m.act(x + k, y + j, { table: g, label: GAMES[g].name });
       m.npcs.push({ x: x + 1 + (i % 2), y: y - 1, dir: 'down', dealer: true, look: { shirt: '#f4f4f4', pants: '#111', vest: venueId === 'spur' ? '#7a2131' : '#111', skin: ['#f0c19a', '#c68863', '#8d5524'][i % 3], hair: ['#111', '#3a2a1e', '#a0522d'][i % 3], bow: true }, line: null, table: g });
-      if (hash(i, 7, venueId.length) < 0.45) m.npcs.push({ x: x + (hash(i, 9) < 0.5 ? 0 : 3), y: y + 2, dir: 'up', look: { shirt: ['#2980b9', '#8e44ad', '#c0392b', '#16a085'][i % 4], pants: '#2d3436', skin: '#e0ac69', hair: '#3a2a1e' }, line: RNG.pick(['Shh. I\'m counting.', 'Dealer\'s been hot all night.', 'One more hand. Then dinner. Probably.', 'You want my seat? Tough.']), name: 'Gambler' });
+      const ri = hash(i, 7, venueId.length) < 0.45 ? reg++ : -1;
+      if (ri >= 0) m.npcs.push({ x: x + (hash(i, 9) < 0.5 ? 0 : 3), y: y + 2, dir: 'up', look: { shirt: ['#2980b9', '#8e44ad', '#c0392b', '#16a085'][i % 4], pants: '#2d3436', skin: '#e0ac69', hair: '#3a2a1e' }, line: RNG.pick(['Shh. I\'m counting.', 'Dealer\'s been hot all night.', 'One more hand. Then dinner. Probably.', 'You want my seat? Tough.']), name: (REGULARS[venueId] || REGULARS.spur)[ri % 4].name, crowd() { return Crowd.regular(venueId, ri, this.line); } });
     });
     const n = I.npc, ch = CHARACTERS[n.who];
     m.npcs.push({ x: n.x, y: n.y, dir: n.bartender ? 'right' : 'down', look: { shirt: ch.color, pants: '#222', skin: n.who === 'kessler' ? '#e8c4a0' : '#f0c19a', hair: { dolores: '#a0522d', doc: '#ddd', margot: '#111', kessler: '#999' }[n.who], hat: n.who === 'kessler' }, who: n.who, name: ch.name, story: true });
@@ -538,9 +540,11 @@ const World = (() => {
         const back = { up: 'down', down: 'up', left: 'right', right: 'left' }[S.p.dir];
         if (!n.dealer) n.dir = back;
         if (n.who) await Chat.open(n.who);
+        else if (n.crowd) await Chat.open(n.crowd());
         else await UI.dialog([{ who: 'narrator', text: `**${n.name}:** "${n.line}"` }]);
         return;
       }
+      if (f.slots) { const why = Career.canPlay(); if (why) { UI.toast(why, 'warn'); return; } savePos(); App.save(); Router.go('slots', f.slots); return; }
       if (f.place) await foodMenu(f.place);
       else if (f.sleep) await sleepMenu(f.sleep, f.label);
       else if (f.talk) await UI.dialog([{ who: 'narrator', text: f.talk }]);
@@ -577,6 +581,7 @@ const World = (() => {
       }
       if (P.npc) list.append(h('div.menu-row', h('span.mi', CHARACTERS[P.npc].face), h('div.mn', h('b', `Talk to ${CHARACTERS[P.npc].name.split(',')[0]}`), h('small', 'Catch up, ask for advice, or ask if there\'s any work')),
         h('button.btn.sm', { onclick: () => { pop.close(); Chat.open(P.npc); } }, 'Talk')));
+      else if (STAFF_AT[placeId]) list.append(talkRow(STAFF_AT[placeId], () => pop.close()));
       if (P.job) list.append(h('div.menu-row', h('span.mi', '🧽'), h('div.mn', h('b', 'Work a shift washing glasses'), h('small', `Earn ${fmt(120 + App.state.chapter * 80)} · ⚡−40 🍔−15 💧−15`)),
         h('button.btn.sm', { onclick: async () => { await Career.oddJob(); render(); } }, 'Work')));
       body.append(list);
@@ -584,6 +589,12 @@ const World = (() => {
     render();
     const pop = UI.modal({ title: `${P.icon} ${P.name}`, body });
     return pop;
+  }
+  // a Talk row for whoever works the counter
+  function talkRow(key, close) {
+    const s = STAFF[key];
+    return h('div.menu-row', h('span.mi', s.face), h('div.mn', h('b', `Talk to ${s.name}`), h('small', 'Chat, ask questions, get the local gossip')),
+      h('button.btn.sm', { onclick: () => { close(); Chat.open(Crowd.staff(key)); } }, '💬 Talk'));
   }
   function sleepMenu(options, label) {
     const st = App.state;
@@ -601,6 +612,7 @@ const World = (() => {
         h('button.btn.sm.primary', { disabled: L.cost > st.bank, onclick: async () => { pop.close(); await Career.sleep(id); } }, L.cost ? `Sleep · ${fmt(L.cost)}` : 'Sleep')));
     }
     if (options.includes('motel')) { const lb = Mystery.lockboxRow(() => pop.close()); if (lb) list.append(lb); }
+    const desk = STAFF_AT[options.find(o => STAFF_AT[o])]; if (desk) list.append(talkRow(desk, () => pop.close()));
     if (!any) body.append(h('p.muted.small', 'Nowhere to sleep here yet.'));
     body.append(h('p.muted.small', `Sleeping ends day ${st.day}: loan interest compounds, rent is due, and your players club pays out.`));
     const pop = UI.modal({ title: `🛏️ ${label}`, body });
@@ -759,5 +771,5 @@ const World = (() => {
   function clock() { return App.state.clock || 540; }
   function isNight() { const t = clock() % 1440; return t >= 1200 || t < 360; }
   function clockText() { const t = Math.floor(clock()) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); }
-  return { mount, unmount, refreshGoal: () => updateGoal(), savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir } };
+  return { mount, unmount, refreshGoal: () => updateGoal(), savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
 })();
