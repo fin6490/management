@@ -107,6 +107,57 @@ energy runs out while walking you pass out on the street (and someone goes throu
   Sleeping compounds loan interest, charges rent and pays your players club cash-back.
 - A hand at the tables takes about four minutes of game time, so a full day is roughly 200 hands.
 
+### Mood, drinks and the degen meter
+
+A fourth HUD bar with a face tracks your **mood**. It drifts back toward "getting by" over the day.
+These lift it:
+
+- a good night in a real bed (the better the room, the bigger the lift)
+- restaurant meals and pie
+- a drink or two
+- big wins and winning days
+
+These wear it down:
+
+- debt keeping you up at night
+- hangovers and going hungry, thirsty or exhausted
+- losing streaks
+- sleeping rough
+
+A happy player tires more slowly. A miserable one tires faster.
+
+- **Booze** (beer, whiskey, cocktails, champagne) raises your **buzz**. You go from Merry to Tipsy,
+  then Drunk, then Hammered. The first couple of drinks cheer you up, but after that they stop
+  helping and start hurting.
+  - Merry steadies your darts arm a touch.
+  - Tipsy makes the screen sway.
+  - Drunk drops the dealer hints, makes your darts wobble, and gets you turned away by the bouncers
+    at the Gilded Palace and the Salon.
+  - Drinking too much makes you black out.
+  - Water and food sober you up, and buzz wears off by the hour.
+  - Going to bed with a big buzz means a hangover in the morning.
+- **Coffee.** Four caffeinated drinks in a day make you jittery: the HUD shakes, your mood dips and
+  your darts get worse. Three or more coffees in a day also spoil that night's sleep.
+- **The degen meter** rises when you play recklessly:
+  - betting a big share of your bankroll
+  - chasing losses
+  - playing drunk or exhausted
+  - playing the 3 AM session
+  - gambling on the day you borrowed
+
+  It cools off overnight. Your title goes Recreational → Regular → Grinder → Degenerate → Full Degen.
+  The status screen shows all three gauges and what moved your mood lately. The end-of-day summary
+  explains the night's changes.
+- **The Degen Diaries.** Lonnie in town keeps a diary of legends. Start a page with him, then:
+  - chase a loss back to even
+  - win a hand while tipsy
+  - play a hand between 4 and 6 AM
+  - win with half your roll on one hand
+
+  Do all four for $2,500 and the "In the Book" achievement.
+- New achievements cover living well, rock bottom, your first hangover, the coffee jitters, a full
+  degen and a clean week.
+
 ### People in town
 
 - **Story characters** follow the chapters: Dolores (the Spur's bar), Doc (the Riverboat), Lucky Lou
