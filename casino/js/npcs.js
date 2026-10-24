@@ -404,7 +404,7 @@ const Chat = {
     return [
       `The player is "${st.name}", day ${st.day}. Story chapter ${st.chapter + 1}: "${ch.title}". Current goal: ${ch.goalText || 'free roam'}.`,
       `Bankroll ${fmt(st.bank)}; owes ${fmt(App.debt)} to Vinnie. Swagger ${Career.swagger()}. Owns: ${owned.join(', ') || 'nothing yet'}.`,
-      `Hunger ${Math.round(st.hunger)}/100, thirst ${Math.round(st.thirst)}/100, energy ${Math.round(st.stamina)}/${st.staminaMax}.`,
+      `Hunger ${Math.round(st.hunger)}/100, thirst ${Math.round(st.thirst)}/100, energy ${Math.round(st.stamina)}/${Career.energyMax()}, tiredness ${Math.round(Career.tiredness())}% (only sleep fixes tiredness).`,
       `You are talking ${place}. Casinos in town: The Rusty Spur (dive bar), Lucky Lou's Riverboat, The Gilded Palace, Monte Royale Salon Privé (Kessler's). Also Mel's Diner, the Quik-Stop, Starlite Motel, Grand Hotel, Vinnie's Pawn & Loan, Lucky Strike Outfitters, Prime Cut Steakhouse, Lucky Park.`,
       `Rival gamblers: ${rivals}. Side jobs: ${jobs}.`,
       `Progressive jackpot meters right now: ${meters}.`,

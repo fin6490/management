@@ -91,9 +91,21 @@ energy runs out while walking you pass out on the street (and someone goes throu
 
 - **Eat and drink** at Mel's, the Quik-Stop, the steakhouse or any casino bar. Casino bars comp
   drinks once you've wagered 20x the table minimum that day.
-- **Sleep** to end the day: the Starlite Motel ($25), the Grand Hotel ($350, you wake with extra
-  energy), your own apartment or penthouse once you buy one, or a park bench (free, risky).
+- **Tiredness.** After about eight hours awake you start to get tired, and the end of your energy
+  bar turns striped. Food and coffee can only refill the unstriped part; only sleep gives the rest
+  back. By the small hours there's almost nothing left to refill, so plan to be in bed.
+- **Caffeine** (coffee, soda, energy drinks, espresso) shares one tolerance for the day: the first
+  two work fully, then each one does half as much, and past five you just get the jitters. The menus
+  show what each drink is actually worth to you right now.
+- **Sleep** to end the day. Where you sleep matters:
+  - the Starlite Motel ($25) keeps you sharp for about 8 hours
+  - your apartment for 9 hours
+  - the Grand Hotel ($350) for 10 hours, and you wake with extra energy
+  - the penthouse for 11 hours
+  - a park bench is free but risky, and you wake up already tired
+  
   Sleeping compounds loan interest, charges rent and pays your players club cash-back.
+- A hand at the tables takes about four minutes of game time, so a full day is roughly 200 hands.
 
 ### People in town
 
