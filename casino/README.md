@@ -199,6 +199,24 @@ chat window.
 - The trail ends with a tape Sal recorded for you. It only plays once you know the truth about him.
 - Postcards and keepsakes live in the case file's **Postcards** tab, with a nudge if you're stuck.
 
+### Whispers
+
+Some people in town are holding a secret they'll only share if you ask about the right thing in
+your own words. These secrets are called whispers.
+
+- **Needs AI chat.** Each whisper needs AI chat switched on. None of them are needed to finish the
+  story.
+- **Where to find them.** The case file's **Whispers** tab lists who is holding something back,
+  with a nudge about what to ask. Some only show up once the story has reached them.
+- **What you get.** Each one is a piece of the town's past, plus some cash or a perk. Perks include:
+  - $500 off your debt
+  - free pie at Mel's for good
+  - a steadier darts arm
+- **Achievements.** Good Listener for your first whisper, All Ears for all nine.
+- **How the game checks it.** The character tells the secret when you ask about the right thing.
+  The game only counts it if your own question was actually about that topic, so you can't trick
+  someone into handing it over.
+
 ### Your file
 
 ☰ → Your file lets you tell the town a few real things about yourself: first name, hometown,
