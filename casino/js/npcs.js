@@ -378,7 +378,11 @@ const Chat = {
   apiKey() { try { return localStorage.getItem(AI_KEY) || ''; } catch (e) { return ''; } },
   setKey(k) { try { k ? localStorage.setItem(AI_KEY, k.trim()) : localStorage.removeItem(AI_KEY); } catch (e) { } },
   // which way can we reach Claude? 'sample' inside a claude.ai artifact, 'api' with the player's own key
+  // a host site (spindecks.app) can run chat through its own server: window.HR_HOST
+  host() { return window.HR_HOST && window.HR_HOST.chatUrl ? window.HR_HOST : null; },
   async backend() {
+    const host = this.host();
+    if (host) { if (host.ready) await host.ready; return host.premium ? 'proxy' : null; }
     if (this._sample === undefined) {
       this._sample = null;
       if (window.claude && window.claude.use) { try { this._sample = await window.claude.use('sample'); } catch (e) { this._sample = null; } }
@@ -474,6 +478,7 @@ const Chat = {
     const sp = this.spec(who);
     const hist = this.history(sp.id).slice(-12);
     const mode = await this.backend();
+    if (mode === 'proxy') return this.proxy({ kind: 'chat', system: this.rules(sp), messages: hist.map(m => ({ role: m.role, content: m.content })) }, onText, signal);
     if (mode === 'sample') {
       const turns = [{ role: 'user', content: this.rules(sp) + '\n\nThe conversation follows. Reply only with your next line.' }, ...hist.map(m => ({ role: m.role, content: m.content }))];
       const { text } = await this._sample(turns, { modelTier: 'quick', cache: false, signal, onText: u => onText(u.text) });
@@ -495,8 +500,30 @@ const Chat = {
     if (msg.stop_reason === 'refusal') throw { code: 'refused' };
     return msg.content.filter(b => b.type === 'text').map(b => b.text).join('').trim() || text;
   },
+  async proxy(body, onText, signal) {
+    const host = this.host(), tok = await host.token();
+    const res = await fetch(host.chatUrl, { method: 'POST', signal, headers: { Authorization: 'Bearer ' + tok, apikey: host.anon || '', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) { const j = await res.json().catch(() => ({})); if (j.left != null) host.left = j.left; throw { code: j.code || res.status }; }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = '', text = '';
+    for (;;) {
+      const { done, value } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i; while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!line) continue;
+        const ev = JSON.parse(line);
+        if (ev.t) { text += ev.t; onText && onText(text); }
+        if (ev.left != null) host.left = ev.left;
+        if (ev.error) throw { code: ev.error };
+      }
+    }
+    return text.trim();
+  },
   errorText(e) {
     const code = e && (e.code || e.status);
+    if (code === 'cap') return `You've used today's AI chats (${(this.host() && this.host().cap) || 100} a day). Characters are back to their usual lines until tomorrow.`;
+    if (code === 'not_premium') return 'AI chat is part of SpinDecks Premium.';
+    if (code === 'not_signed_in') return 'Sign in to SpinDecks again to keep chatting.';
     if (code === 'refused') return '(They change the subject.)';
     if (code === 'not_granted' || code === 'sampling_disabled') return 'Chat with Claude is turned off for this page.';
     if (code === 'rate_limited' || code === 429) return 'Too many messages for now. Try again in a little while.';
@@ -539,7 +566,7 @@ const Chat = {
     const mode = await this.backend();
     if (!mode && mic) mic.disabled = true;
     if (!mode) { input.disabled = send.disabled = true; note.append('To ask questions in your own words, connect Claude. ', h('button.btn.sm.primary', { type: 'button', onclick: () => { pop.close(); setTimeout(() => this.settings(), 50); } }, '💬 Set up AI chat')); }
-    else note.textContent = mode === 'sample' ? 'Replies come from Claude on your account.' : 'Replies come from Claude using your API key.';
+    else note.textContent = mode === 'proxy' ? `Replies come from Claude, included with SpinDecks Premium${this.host().left != null ? ` (${this.host().left} left today)` : ''}.` : mode === 'sample' ? 'Replies come from Claude on your account.' : 'Replies come from Claude using your API key.';
     let ctl = null;
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -588,7 +615,8 @@ const Chat = {
     ].join('\n\n');
     try {
       let text;
-      if (mode === 'sample') ({ text } = await this._sample(prompt, { modelTier: 'quick', cache: { gcTime: 6 * 3600 * 1000 } }));
+      if (mode === 'proxy') text = await this.proxy({ kind: 'paper', prompt });
+      else if (mode === 'sample') ({ text } = await this._sample(prompt, { modelTier: 'quick', cache: { gcTime: 6 * 3600 * 1000 } }));
       else {
         const { client } = await this.client();
         const msg = await client.beta.messages.create({ model: 'claude-opus-5-5', max_tokens: 1024, messages: [{ role: 'user', content: prompt }], output_config: { effort: 'low' }, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' });
@@ -603,6 +631,14 @@ const Chat = {
 
   /* ---------- settings ---------- */
   async settings() {
+    if (this.host()) {
+      const host = this.host(), on = (await this.backend()) === 'proxy';
+      const body = h('div', h('p', on ? `AI chat is included with SpinDecks Premium: talk to anyone in town in your own words. ${host.left != null ? `${host.left} of ${host.cap || 100} chats left today.` : `Up to ${host.cap || 100} chats a day.`}` : 'AI chat is part of SpinDecks Premium. Upgrade from your SpinDecks account to talk to anyone in town in your own words.'),
+        h('p.muted.small', 'What you type to characters, and anything you put in Your file, is sent to Claude (Anthropic) through SpinDecks to write their replies. It is not stored on SpinDecks.'));
+      body.append(Voice.settingsRows());
+      await UI.modal({ title: '💬 AI chat', body, buttons: [{ label: 'Done', cls: 'primary' }] });
+      return;
+    }
     const inSample = (await this.backend()) === 'sample';
     const key = h('input.field#ai-key', { type: 'password', placeholder: 'sk-ant-…', value: this.apiKey(), autocomplete: 'off' });
     const status = h('p.small');
