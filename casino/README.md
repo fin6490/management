@@ -421,6 +421,27 @@ Each place has its own quiet soundscape, generated live:
 
 Turn it off with ☰ → Background sound.
 
+### Music
+
+Every casino has its own band, generated live in the browser (no audio files):
+
+| Where | Style |
+| --- | --- |
+| The Rusty Spur | Honky-tonk piano shuffle |
+| The Riverboat | Ragtime stride |
+| The Gilded Palace | Lounge jazz on electric piano and vibes |
+| The Salon Privé | Slow minor-key noir |
+| Mel's Diner | Jukebox doo-wop |
+
+The tunes follow each venue's chord changes and are built from short phrases that repeat and vary,
+so they never loop exactly. The street stays quiet.
+
+Turn the music off with ☰ → Music.
+
+Table sounds:
+- The roulette ball clicks round the rim, slows down and rattles into its pocket.
+- Slot reels tick while they spin and land with a thunk.
+
 ### At the tables
 
 - The top-right badge shows this sitting's profit and loss, split into **main** bets and **side** bets.
