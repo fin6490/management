@@ -74,6 +74,13 @@ UI.CardRow = CardRow;
 const CHIP_DENOMS = [1, 5, 25, 100, 500, 1000, 5000, 25000, 100000, 1000000];
 const chipLabel = v => v >= 1e6 ? (v / 1e6) + 'M' : v >= 1000 ? (v / 1000) + 'K' : String(v);
 UI.chip = (v, extra = '') => h('div.chip.c' + v + extra, h('span', chipLabel(v)));
+// a chip you can pick from the rack, by tap or keyboard
+UI.chipButton = (v, on, pick) => {
+  const c = UI.chip(v, on ? '.sel' : '');
+  Object.assign(c, { tabIndex: 0, onclick: pick, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); pick(); } } });
+  c.setAttribute('role', 'radio'); c.setAttribute('aria-checked', on ? 'true' : 'false'); c.setAttribute('aria-label', `${fmt(v)} chip`);
+  return c;
+};
 UI.chipsFor = function (amount, limit = 10) { // greedy decomposition for stack display
   const out = []; let left = Math.round(amount);
   for (let i = CHIP_DENOMS.length - 1; i >= 0 && out.length < limit; i--) {
@@ -94,7 +101,12 @@ class BetSpot {
   constructor(opts) {
     this.o = opts; this.key = opts.key; this.amount = 0; this.history = []; this.locked = false;
     this.el = h('div.spot' + (opts.cls ? '.' + opts.cls.split(' ').filter(Boolean).join('.') : ''),
-      { title: opts.title || '', onclick: e => this.click(e), oncontextmenu: e => { e.preventDefault(); this.undo(); } },
+      { title: opts.title || '', role: 'button', tabindex: 0, onclick: e => this.click(e), oncontextmenu: e => { e.preventDefault(); this.undo(); },
+        onkeydown: e => {
+          // keep these keys off the table's own shortcuts (Space deals)
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); this.click(e); }
+          else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '-') { e.preventDefault(); e.stopPropagation(); this.undo(); }
+        } },
       h('div.spot-label', opts.label), opts.sub ? h('div.spot-sub', opts.sub) : null,
       this.stackEl = h('div.spot-stack'), this.amtEl = h('div.spot-amt'));
     this.el.dataset.key = opts.key;
@@ -136,13 +148,21 @@ class BetSpot {
     if (!App.debit(v)) return false;
     this.amount = round2(this.amount + v); this.history.push(v); SFX.chip(); this.render(); return true;
   }
-  setLocked(l) { this.locked = l; this.el.classList.toggle('locked', l); }
+  setLocked(l) { this.locked = l; this.el.classList.toggle('locked', l); this.el.setAttribute('aria-disabled', l ? 'true' : 'false'); this.label(); }
   render() {
     this.stackEl.innerHTML = '';
     if (this.amount > 0) this.stackEl.append(UI.stack(this.amount));
     this.amtEl.textContent = this.amount > 0 ? fmt(this.amount, { short: true }) : '';
     this.el.classList.toggle('has-bet', this.amount > 0);
     this.el.classList.remove('won', 'lost', 'pushed');
+    this.label();
+  }
+  // what a screen reader announces for this spot
+  label(extra) {
+    const name = [this.o.label, this.o.sub].filter(Boolean).join(', ');
+    const bet = this.amount > 0 ? `${fmt(this.amount)} bet` : 'no bet';
+    const how = this.locked || this.o.passive ? 'locked' : this.o.fixed ? 'Enter to toggle' : 'Enter adds a chip, Backspace removes one';
+    this.el.setAttribute('aria-label', `${name}: ${bet}${extra ? ', ' + extra : ''}. ${how}`);
   }
   // settlement helpers: return the amount credited back to the bankroll
   settle(back, cls, text, note) {
@@ -183,7 +203,7 @@ class Table {
         h('button.btn.ghost.sm', { onclick: () => Router.leaveTable() }, '← Leave table'),
         h('div.tt-title', GameArt.has(game.id) ? GameArt.el(game.id, 'tt-ga') : '', h('b', game.name), h('span', `${ctx.venue.name} · ${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`)),
         h('div.tt-right',
-          this.plEl = h('div.pl'),
+          this.plEl = h('div.pl', { role: 'status', 'aria-label': 'Session profit and loss' }),
           this.extraEl = h('div.tt-extra'),
           h('button.btn.ghost.sm.talk', { onclick: () => Chat.open(Dealers.spec(ctx.venueId, game.id, this)), title: 'Chat with the dealer' }, '💬 ' + Dealers.name(ctx.venueId, game.id)),
           h('button.btn.ghost.sm', { onclick: () => this.showInfo() }, 'Paytables'))),
@@ -194,10 +214,14 @@ class Table {
         this.body = h('div.felt-body'),
         this.banner = h('div.banner')),
       h('div.controls',
-        this.resultsEl = h('div.results'),
+        this.resultsEl = h('div.results', { role: 'status', 'aria-live': 'polite', 'aria-label': 'Results this round' }),
         this.msgEl = h('div.msg'),
         h('div.ctl-row',
-          this.rack = h('div.rack'),
+          this.rack = h('div.rack', { role: 'radiogroup', 'aria-label': 'Chip value', onkeydown: e => {
+            const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!d) return;
+            const cs = this.ctx.chips, i = cs.indexOf(this.chip), v = cs[(i + d + cs.length) % cs.length]; e.preventDefault();
+            this.chip = v; SFX.click(); this.renderRack(); const n = this.rack.querySelector('.chip.sel'); n && n.focus();
+          } }),
           this.actionsEl = h('div.actions'))));
     root.appendChild(this.el);
     UI.shoeEl = this.shoe;
@@ -206,9 +230,7 @@ class Table {
   renderRack() {
     this.rack.innerHTML = '';
     for (const v of this.ctx.chips) {
-      const c = UI.chip(v, v === this.chip ? '.sel' : '');
-      c.onclick = () => { this.chip = v; SFX.click(); this.renderRack(); };
-      this.rack.append(c);
+      this.rack.append(UI.chipButton(v, v === this.chip, () => { this.chip = v; SFX.click(); this.renderRack(); const n = this.rack.querySelector('.chip.sel'); n && n.focus(); }));
     }
   }
   spot(opts) { const s = new BetSpot({ ...opts, table: this }); this.spots[opts.key] = s; return s; }

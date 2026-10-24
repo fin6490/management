@@ -414,7 +414,9 @@ const Mystery = {
     }
     st.ending = ending;
     if (ending === 'justice') {
+      // parity with the takeover: a whistleblower's reward and an honest stake in Kessler's old house
       if (st.items.spurDeed) App.credit(1000000); else st.items.spurDeed = st.day;
+      App.credit(5000000); st.items.trustee = st.day; st.flags.justiceReward = true;
       st.rivals.baron.bank = 0; st.rivals.baron.where = 'jail';
     }
     if (ending === 'takeover') { App.credit(5000000); st.items.palaceDeed = st.day; }
@@ -579,6 +581,7 @@ const ENDINGS = {
     { who: 'kessler', text: '*straightens his cuffs* The house always wins. Eventually.' },
     { who: 'dolores', text: 'They\'re hanging the sign now. SAL\'S. And look who\'s behind the bar, pretending he never left.' },
     { who: 'sal', text: () => `Free drinks for life${Me.first() ? ', ' + Me.first() : ', kid'}. Well. Free coffee. I've seen the prices.` },
+    { who: 'mei', text: 'One more thing. The Commission pays whistleblowers ten percent of what it seizes: **$5,000,000**. And somebody honest has to run the Monte Royale while it\'s wound up. You\'re the court\'s **trustee**, at $300,000 a day.' },
     { who: 'narrator', text: '🏆 **The Seventeenth Card: Justice.** The Spur is yours again, free and clear. The meters still climb and the tables never close: keep playing as long as you like.' },
   ] },
   takeover: { title: 'The New Kessler', scenes: [

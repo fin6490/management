@@ -864,3 +864,25 @@ body[data-screen="table"] #toasts, body[data-screen="slots"] #toasts, body[data-
 .tt-title:has(.tt-ga) > b, .tt-title:has(.tt-ga) > span:not(.ga) { grid-column: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ga-pr { width: 22px; height: 22px; margin-right: .35rem; vertical-align: middle; }
 @media (max-width: 520px) { .tt-title .tt-ga { width: 28px; height: 28px; } }
+
+/* spotting for Doc */
+.sp-tiers { display: flex; flex-direction: column; gap: .45rem; margin-top: .4rem; }
+.sp-tier { display: flex; flex-direction: column; gap: .2rem; padding: .45rem .55rem; border: 1px solid rgba(212, 175, 55, .3); border-radius: 10px; }
+.sp-tier small { color: var(--muted); }
+.sp-drill { display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+.sp-stage { min-height: 130px; display: flex; gap: .5rem; align-items: center; justify-content: center; }
+.sp-prog { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* bigger tap targets on touch screens */
+@media (pointer: coarse) {
+  .btn.sm { min-height: 38px; }
+  .hud .logo { min-width: 42px; min-height: 42px; }
+  .hud .menu { min-width: 44px; min-height: 42px; }
+  .w-goal { min-height: 40px; }
+  .w-goal.w-case { min-width: 42px; }
+  .modal .x { min-width: 42px; min-height: 42px; }
+  .lk-sw .sw { width: 38px; height: 38px; }
+  .bj-n .btn { min-width: 40px; min-height: 38px; }
+  .spot:focus-visible, .chip:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+}
+.chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
