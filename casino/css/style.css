@@ -894,3 +894,23 @@ body[data-screen="world"] .modal .dialog, body[data-screen="world"] .menu-row { 
 /* tiredness: the striped end of the energy bar that only sleep gives back */
 .bar { position: relative; }
 .bar b.lock { position: absolute; top: 0; right: 0; bottom: 0; width: 0; background: repeating-linear-gradient(135deg, #3a3550 0 3px, #1c1a28 3px 6px); border-left: 1px solid rgba(255, 255, 255, .25); transition: width .3s; }
+
+/* voice cast */
+.cast-list { display: flex; flex-direction: column; gap: .4rem; max-height: 60vh; overflow: auto; }
+.cast-row { display: grid; grid-template-columns: 36px 1fr minmax(0, 1.4fr) auto; gap: .5rem; align-items: center; }
+.cast-row b { font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cast-row select { min-width: 0; width: 100%; }
+.cast-pt { width: 36px; height: 36px; display: inline-flex; }
+.tts-more { margin: .5rem 0; } .tts-more summary { cursor: pointer; color: var(--gold); }
+
+/* postcards */
+body[data-back="sal"] { --card-back: radial-gradient(circle at 50% 50%, #d4af37 0 9%, transparent 10%), repeating-linear-gradient(45deg, #13213f 0 5px, #0c1630 5px 10px); }
+.postcard { display: flex; flex-direction: column; gap: .6rem; }
+.pc-front { aspect-ratio: 3 / 2; border-radius: 10px; display: flex; align-items: flex-end; padding: .8rem; background: linear-gradient(160deg, #3b2f4a, #1a1424 60%), #222; border: 6px solid #f4ead2; box-shadow: 0 6px 16px rgba(0, 0, 0, .5); font-family: Georgia, serif; font-size: 1.05rem; color: #f4ead2; }
+.pc-back { background: #f4ead2; color: #2b2116; border-radius: 6px; padding: .8rem 1rem; font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive; transform: rotate(-.6deg); box-shadow: 0 4px 10px rgba(0, 0, 0, .4); }
+.pc-back p { margin: 0 0 .4rem; font-size: 1.05rem; line-height: 1.35; } .pc-back small { color: #6b5a40; font-family: system-ui, sans-serif; }
+.pc-item { cursor: pointer; }
+.pc-keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin: .6rem 0; }
+.pc-key { height: 120px; border-radius: 0 0 8px 8px; border: 1px solid #999; background: linear-gradient(#fff, #e9e4d8); color: #333; font-weight: 800; display: flex; align-items: flex-end; justify-content: center; padding-bottom: .5rem; cursor: pointer; }
+.pc-key:active { background: linear-gradient(#e2dccb, #cfc8b4); transform: translateY(2px); }
+.pc-played { text-align: center; font-family: Georgia, serif; letter-spacing: .3em; color: var(--gold); min-height: 1.4em; }

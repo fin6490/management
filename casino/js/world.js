@@ -162,7 +162,7 @@ const World = (() => {
         ['plant', 1, 7, 1, 1], ['tv', 6, 7, 2, 1, { talk: 'The lobby TV is showing the late news: "Gaming Commission denies probe into Monte Royale." Darlene snorts.', label: 'Lobby TV' }]],
       folk: [] },
     pawn: { name: "Vinnie's Pawn & Loan", W: 14, H: 10, floor: 'wood', theme: { wall: '#3d3d3d', trim: '#1d1d1d' }, staff: null,
-      f: [['hcounter', 3, 4, 8, 1, { screen: 'loans', label: 'Loan counter: borrow or repay' }], ['case', 1, 6, 3, 1, { talk: 'A glass case of pawned treasures: a saxophone, three wedding rings, and a gold watch engraved "S. — 17". The tag says NOT FOR SALE.', label: 'Display case' }],
+      f: [['hcounter', 3, 4, 8, 1, { screen: 'loans', label: 'Loan counter: borrow or repay' }], ['case', 1, 6, 3, 1, { fn: 'watchcase', label: 'Display case' }],
         ['case', 10, 6, 3, 1, { talk: 'Guitars, a taxidermied armadillo, a slot-machine handle. Everything in town ends up here eventually, kid.', label: 'Display case' }], ['safe', 12, 2, 1, 1, { talk: 'A huge old safe. Vinnie leans on it whenever he talks numbers.', label: 'Safe' }],
         ['door', 2, 1, 1, 1, { talk: 'The back office. A sign reads: KNOCK. THEN LEAVE.', label: 'Back office' }]],
       folk: [] },
@@ -180,7 +180,7 @@ const World = (() => {
       folk: [] },
     steak: { name: 'Prime Cut Steakhouse', W: 16, H: 11, floor: 'carpet', theme: { wall: '#3e2723', trim: '#c9a14a', carpet: '#4a1c1c' }, staff: ['philippe', 3, 7],
       f: [['desk', 2, 8, 3, 1, { place: 'steak', label: 'Maître d\': a table for one (Philippe)' }], ['table', 6, 3, 2, 2], ['table', 10, 3, 2, 2], ['table', 10, 7, 2, 2], ['tank', 13, 2, 2, 1, { talk: 'A lobster tank. One of them is wearing a tiny rubber band and an expression of deep resignation.', label: 'Lobster tank' }],
-        ['door', 2, 1, 1, 1, { talk: 'The wine cellar. Philippe guards the key like a state secret.', label: 'Wine cellar' }], ['plant', 14, 8, 1, 1]],
+        ['door', 2, 1, 1, 1, { fn: 'cellar', label: 'Wine cellar' }], ['plant', 14, 8, 1, 1]],
       folk: [[8, 3, 4], [12, 7, 5]] },
   };
   function buildRoom(key) {
@@ -241,6 +241,12 @@ const World = (() => {
     const st = App.state;
     if (fn === 'paper') return Chat.newspaper();
     if (fn === 'laptop') {
+      if (Mystery.has('oscar') && Postcards.st().got === 0) return Postcards.morning();
+      if (Postcards.tapeReady() && !Postcards.st().heard) {
+        const go = await UI.modal({ title: '💻 Room 12', body: h('p', 'Your laptop is open. On the desktop, a new file from Sparky: SAL_TAPE.wav. Your cursor hovers over it for a long time.'), buttons: [{ label: 'Not yet', value: false, cls: 'ghost' }, { label: '▶ Play it', value: true, cls: 'primary' }] });
+        if (go) return Postcards.playTape();
+        return;
+      }
       const name = Me.first(), proj = Me.known();
       const lines = proj.length ? [
         { who: 'narrator', text: `Room 12. Your room, for as long as the $25 a night holds out. The bed is made, badly. Your laptop is open on the desk.` },
@@ -250,11 +256,10 @@ const World = (() => {
       ] : [{ who: 'narrator', text: 'Room 12. Your room, for as long as the $25 a night holds out. A lumpy bed, a TV bolted to the dresser, and a Gideon Bible with a racing form tucked inside.' }];
       return UI.dialog(lines);
     }
-    if (fn === 'jukebox') {
-      const song = RNG.pick(['"Luck Be a Lady"', '"The Gambler"', '"Viva Las Vegas"', '"Ace of Spades"', '"Seventeen"', '"Money (That\'s What I Want)"']);
-      SFX.win(); UI.toast(`🎵 The jukebox plays ${song}.${song === '"Seventeen"' ? ' Mel smiles. "That was his song."' : ''}`, 'good'); return;
-    }
-    if (fn === 'piano') { SFX.win(); UI.toast(RNG.pick(['🎹 You play the only song you know. Mr. Pemberton applauds, politely.', '🎹 A few bars of something jazzy. A guest tips you a dollar.', '🎹 "Chopsticks," with feeling.']), 'good'); return; }
+    if (fn === 'jukebox') return Postcards.jukebox();
+    if (fn === 'piano') return Postcards.piano();
+    if (fn === 'watchcase') return Postcards.watchcase();
+    if (fn === 'cellar') return Postcards.cellar();
     if (fn === 'ice') {
       if (st.flags.iceDay === st.day) return UI.toast('The ice machine coughs. Come back tomorrow.', 'warn');
       st.flags.iceDay = st.day; st.thirst = Math.min(100, st.thirst + 15); Router.hud(); App.save(); UI.toast('🧊 A cup of ice water. 💧+15', 'good'); return;

@@ -422,6 +422,7 @@ const Mystery = {
     if (ending === 'takeover') { App.credit(5000000); st.items.palaceDeed = st.day; }
     if (ending === 'doublecross') App.credit(250000);
     await UI.dialog(E.scenes);
+    await Postcards.afterEnding(ending);
     App.news(`📖 Ending: ${E.title}.`);
     Career.checkAchievements(); App.save();
     await Career.checkChapter();
@@ -465,8 +466,17 @@ const Mystery = {
       `The mystery ("The Seventeenth Card"), act ${this.act()} of 4: the player has found ${found.join(', ')}. Current lead: ${this.lead()}`,
       secrets ? 'Your private knowledge: ' + secrets : '',
       'Never give away puzzle answers or reveal secrets the player hasn\'t uncovered: not codes, digits, decoded text, lucky numbers, who did it or what really happened. You may drop gentle hints that point toward where to look.',
+      this.postcardBrief(id),
       Me.brief(),
     ].filter(Boolean).join(' ');
+  },
+
+  // the postcard trail, for the characters it touches (never the answers)
+  postcardBrief(id) {
+    const p = Postcards.st(); if (!p.got) return '';
+    const about = { mel: 'Sal played "Seventeen" on your jukebox every Thursday and taped something under it.', vinnie: 'Sal pawned his gold watch with you the week he lost the Spur.', sparky: 'The player may bring you a chewed cassette of Sal\'s to repair.',
+      'staff:mel': 'Sal played "Seventeen" on your jukebox every Thursday and taped something under it.', 'staff:philippe': 'Sal left a bottle of 1971 Bordeaux in your cellar for someone who would ask by bin number.', 'staff:pemberton': 'A gentleman left something in the piano bench three years ago.' }[id];
+    return `The player is following postcards signed "17" (${p.solved} of 4 solved). ${about || ''} Never give the answers to the postcard puzzles.`;
   },
 
   /* ---------- Sal's lockbox at the motel (Act I) ---------- */
@@ -515,7 +525,7 @@ const Mystery = {
   /* ---------- the case file screen ---------- */
   screen(main) {
     const m = this.st(), act = this.act(), st = App.state;
-    const tabs = ['Board', 'Evidence', 'Testimony', 'Crew'];
+    const tabs = ['Board', 'Evidence', 'Testimony', 'Crew'].concat(Postcards.st().got ? ['Postcards'] : []);
     let tab = Mystery._tab || 'Board';
     const content = h('div'), tabBar = h('div.tabs');
     const render = () => {
@@ -535,6 +545,7 @@ const Mystery = {
         if (tools.childNodes.length) content.append(tools);
         if (act === 2 || act === 3) content.append(this.timeline());
       }
+      if (tab === 'Postcards') content.append(Postcards.panel());
       if (tab === 'Evidence') content.append(h('div.shopgrid', this.owned().map(k => h('div.item', h('div.item-i', CLUES[k].icon), h('b', CLUES[k].name), h('p', CLUES[k].text)))));
       if (tab === 'Testimony') {
         const ids = Object.keys(TESTIMONY).filter(id => m.said[id]);

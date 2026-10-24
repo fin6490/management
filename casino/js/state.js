@@ -64,7 +64,7 @@ const App = {
       today: { wagered: 0, net: 0, rounds: 0 },
       lastBets: {}, quests: {}, chats: {},
       news: [],
-      settings: { sound: true, speed: 'normal', hints: true },
+      settings: { sound: true, speed: 'normal', hints: true, ambient: true },
     };
   },
 

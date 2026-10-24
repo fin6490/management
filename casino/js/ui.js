@@ -408,14 +408,18 @@ UI.modal = function ({ title, body, buttons, wide, closable = true, cls }) {
 /* Story dialogue: lines = [{who, text}] ; optional choices at the end. */
 UI.dialog = async function (lines, choices) {
   for (let i = 0; i < lines.length; i++) {
-    const L = lines[i], ch = CHARACTERS[L.who] || CHARACTERS.narrator;
+    const L = lines[i], ch = CHARACTERS[L.who] || (typeof STAFF !== 'undefined' && STAFF[L.who]) || CHARACTERS.narrator;
     const last = i === lines.length - 1;
     const text = typeof L.text === 'function' ? L.text() : L.text;
     const body = h('div.dialog',
-      h('div.portrait', Portrait.el(CHARACTERS[L.who] ? L.who : 'narrator')),
+      h('div.portrait', Portrait.el(ch === CHARACTERS.narrator ? 'narrator' : L.who)),
       h('div.d-text', h('div.d-name', ch.name), h('p', { html: UI.esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') })));
     const btns = last && choices ? choices.map(c => ({ label: c.label, value: c.value, cls: c.cls || 'primary' })) : [{ label: last ? 'Okay' : 'Next ›', cls: 'primary', value: 'next' }];
+    // story scenes are voiced when you've turned voices on (your own lines stay silent)
+    const vp = typeof Voice !== 'undefined' && Voice.prefs();
+    if (vp && vp.speak && vp.story !== false && L.who !== 'me') Voice.say({ id: ch === CHARACTERS.narrator ? 'narrator' : L.who, name: ch.name }, text);
     const v = await UI.modal({ body, buttons: btns, closable: false, cls: 'dlg' });
+    if (vp && vp.speak) Voice.stop();
     if (last && choices) return v;
   }
   return 'next';
