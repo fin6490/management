@@ -88,6 +88,8 @@ const App = {
     for (const k in d.settings) if (s.settings[k] === undefined) s.settings[k] = d.settings[k];
     if (!s.world || !s.world.map) s.world = d.world;
     for (const k of Progressives.KEYS) if (!(s.progressives[k] > 0)) s.progressives[k] = PAY[k].prog.seed;
+    // the Justice ending used to pay far less than the takeover: top up finished games once
+    if (s.ending === 'justice' && !s.flags.justiceReward) { s.flags.justiceReward = true; s.bank += 5000000; s.items.trustee = s.day; s.news = [{ day: s.day, text: '⚖️ The Gaming Commission paid your $5,000,000 whistleblower reward and named you trustee of the Monte Royale.' }].concat(s.news || []); }
     return s;
   },
   save() {

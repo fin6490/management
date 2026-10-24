@@ -310,7 +310,7 @@ const Screens = {
     const st = App.state, limit = Career.creditLimit();
     const vin = st.loans.find(l => l.id === 'vinnie'), vinBal = vin ? vin.balance : 0;
     const room = Math.max(0, Math.floor(limit - vinBal));
-    const amt = h('input.field', { type: 'number', min: 0, step: 100, value: Math.min(room, 500) });
+    const amt = h('input.field', { type: 'number', min: 0, step: 100, 'aria-label': 'Amount to borrow', value: Math.min(room, 500) });
     main.append(h('div.loans',
       h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'),
         h('div', h('h2', "🦈 Vinnie's Back Room"), h('p.muted', 'Behind the pawn shop. Smells like cigars and bad decisions.'))),
@@ -385,6 +385,8 @@ const Screens = {
 /* ---------- boot ---------- */
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, select, textarea') || document.querySelector('.modal-bg')) return;
+  // a focused button, chip or bet spot handles its own Space/Enter
+  if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('button, a, [role=button], [role=radio]')) return;
   if (Router.table) Router.table.key(e);
 });
 window.addEventListener('beforeunload', () => { if (Router.table) Router.table.refundAll(); App.save(); });

@@ -122,7 +122,9 @@ the map) holds the case board: clues, statements and a timeline.
 3. **The Code.** Eight digits open Kessler's vault. Each pair is hidden in a different puzzle: a
    coin, a bead road, Sal's last dice, and a stacked shoe you have to read 17 cards deep.
 4. **The Invitational.** A $100,000 buy-in night at the Salon. Beat Kessler heads-up, open the
-   vault, and choose what to do with what's inside. There are four endings.
+   vault, and choose what to do with what's inside. There are four endings. Bringing Kessler to
+   justice pays about as well as taking his empire: a $5,000,000 whistleblower's reward and a
+   court-appointed trusteeship of the Monte Royale worth $300,000 a day.
 
 Rivals have their own arcs too: challenge any of them to a heads-up blackjack match from their
 chat window.
@@ -243,6 +245,11 @@ go up to $1,000,000 a hand.
 - **Lucky Strike Outfitters**: clothes and cars (swagger and energy), players club cards (nightly
   cash-back on everything you wager), strategy cards, the counting course, the Odds Book, the
   Jackpot Tracker, felts and card backs, and finally the deeds. Your clothes show on your character.
+- **Spot for Doc's team** (talk to Doc on the Riverboat): a skill job for the middle of the
+  career. Cards flash past and you keep the Hi-Lo running count (2 to 6 is +1, 7 to 9 is 0, tens,
+  faces and aces are −1). An exact count earns Doc's full cut, one off earns 40%. Three tables,
+  from one card at a time up to three at once; one paid shift a day, unlimited free practice, and
+  the pay grows each chapter (up to $24,000 a shift before the ending).
 - **☰ → Status**: story progress, trophies and stats.
 
 **Free Play** opens every venue with all helpers on, no hunger or tiredness, and a refillable $10,000 bankroll (☰ → Status).
@@ -302,3 +309,9 @@ on another computer.
 
 Pick a chip in the rack, then click a betting spot to add it. Right-click (or long-press on touch)
 removes the last chip. Keyboard shortcuts are shown on the action buttons (Space deals).
+
+Everything works from the keyboard and with a screen reader: Tab moves between chips, betting
+spots and buttons; the arrow keys change the selected chip; Enter or Space on a betting spot adds a
+chip and Backspace takes one off. Each spot announces its name and current bet, and results and the
+session profit and loss are read out as they change. On touch screens the buttons are sized for
+fingers.

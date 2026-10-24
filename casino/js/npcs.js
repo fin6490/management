@@ -440,6 +440,7 @@ const Chat = {
       if (offer) box.append(h('div.job-card', h('b', '📝 Side job: ' + QUESTS[offer].title), h('p', QUESTS[offer].offer), h('p.muted.small', `${QUESTS[offer].desc} Reward ${QUESTS[offer].reward.cash ? fmt(QUESTS[offer].reward.cash) + ' and ' : ''}★ ${QUESTS[offer].reward.swagger}.`),
         h('button.btn.sm.primary', { onclick: () => { Quests.accept(offer); api.say('Good. Don\'t make me wait.'); render(); } }, 'Take the job')));
       else if (active) { const q = Quests.state()[active]; box.append(h('p.muted.small', `📝 ${QUESTS[active].title}: ${QUESTS[active].desc}${QUESTS[active].need ? ` (${q.n || 0}/${QUESTS[active].need})` : ''}`)); }
+      if (who === 'doc') box.append(Spotter.card(api));
       if (who === 'mick') App.state.flags.metMick = 1;
       if (who === 'mick') box.append(h('div.ev-row', h('span.muted.small', `Your arm: ${Darts.armLabel(Darts.wobble())}.`), h('button.btn.sm', { onclick: () => { api.close(); setTimeout(() => Darts.lobby(), 50); } }, '🎯 Play darts')));
     };

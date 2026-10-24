@@ -105,6 +105,7 @@ const ITEMS = {
   backGold: { cat: 'Table Style', name: 'Gilded Card Backs', icon: '🌟', price: 4000, back: 'gold', desc: 'Gold leaf. Probably not real gold.' },
   // Deeds (story)
   spurDeed: { cat: 'Deeds', name: 'Deed to The Rusty Spur', icon: '📜', price: 1000000, swagger: 40, income: 8000, requiresChapter: 3, desc: 'Buy back the bar Sal lost. Pays $8,000 a day.' },
+  trustee: { cat: 'Deeds', name: 'Trustee of the Monte Royale', icon: '⚖️', price: 0, swagger: 60, income: 300000, award: 'justice', desc: 'The Gaming Commission put you in charge of Kessler\'s casino while it is wound up, honestly this time. Pays $300,000 a day.' },
   palaceDeed: { cat: 'Deeds', name: 'Controlling Stake: The Gilded Palace', icon: '🏰', price: 25000000, swagger: 100, income: 350000, requires: 'spurDeed', desc: 'Margot will want a word. Pays $350,000 a day.' },
   // Investments: businesses that pay you every night (the road to a billion)
   backroom: { cat: 'Investments', name: 'Back Room Refit', icon: '♠️', price: 15000, swagger: 3, requiresQuest: 'pokerRoom', desc: 'New felt, a working jukebox and a lock Kessler doesn\'t have a key to. Reopens the Spur\'s poker room.' },
@@ -172,6 +173,8 @@ const ACHIEVEMENTS = [
   { id: 'first', name: 'First Hand', desc: 'Play your first round', test: () => App.state.stats.rounds >= 1, reward: 25 },
   { id: 'bj', name: 'Natural', desc: 'Get a blackjack', test: () => App.counter('blackjacks') >= 1, reward: 50 },
   { id: 'bj10', name: 'Twenty-One Club', desc: 'Get 10 blackjacks', test: () => App.counter('blackjacks') >= 10, reward: 250, swagger: 2 },
+  { id: 'spot1', name: 'Human Calculator', desc: 'Nail a perfect count for Doc\'s team', test: () => App.counter('spotPerfect') >= 1, reward: 100, swagger: 1 },
+  { id: 'spot10', name: 'Team Player', desc: 'Ten perfect counts for Doc\'s team', test: () => App.counter('spotPerfect') >= 10, reward: 2500, swagger: 3 },
   { id: 'side25', name: 'Side Hustle', desc: 'Win a side bet paying 25 to 1 or better', test: () => App.counter('bigSide') >= 1, reward: 100, swagger: 1 },
   { id: 'prog', name: 'On the Meter', desc: 'Win any progressive payout', test: () => App.counter('progHits') >= 1, reward: 100 },
   { id: 'jackpot', name: 'JACKPOT', desc: 'Hit a percentage jackpot tier', test: () => App.counter('jackpots') >= 1, reward: 5000, swagger: 10 },
@@ -220,7 +223,7 @@ const ACHIEVEMENTS = [
   { id: 'b1', name: 'Billionaire', desc: 'Be worth $1,000,000,000', test: () => Career.empire() >= 1e9, reward: 0, swagger: 40, legend: true },
   { id: 'b10', name: 'Untouchable', desc: 'Be worth $10,000,000,000', test: () => Career.empire() >= 1e10, reward: 0, swagger: 60, legend: true },
   { id: 'income1m', name: 'Money Never Sleeps', desc: 'Earn $1,000,000 a day from businesses', test: () => Career.income() >= 1e6, reward: 0, swagger: 15, legend: true },
-  { id: 'mogul', name: 'Mogul', desc: 'Own every business in town', test: () => Object.keys(ITEMS).filter(k => ITEMS[k].income).every(k => App.has(k)), reward: 0, swagger: 30, legend: true },
+  { id: 'mogul', name: 'Mogul', desc: 'Own every business in town', test: () => Object.keys(ITEMS).filter(k => ITEMS[k].income && !ITEMS[k].award).every(k => App.has(k)), reward: 0, swagger: 30, legend: true },
   { id: 'resort', name: 'The Seventeen', desc: 'Build The Seventeen Resort & Casino', test: () => App.has('resort'), reward: 0, swagger: 50, legend: true },
   { id: 'whale', name: 'Million-Dollar Hand', desc: 'Win $1,000,000 in a single round', test: () => App.state.stats.biggestWin >= 1e6, reward: 0, swagger: 10, legend: true },
 ];
@@ -592,6 +595,7 @@ const Career = {
   },
   itemAvailable(id) {
     const it = ITEMS[id], st = App.state;
+    if (it.award) return st.items[id] ? null : 'Earned in the Justice ending, not for sale';
     if (it.requires && !st.items[it.requires]) return `Requires ${ITEMS[it.requires].name}`;
     if (it.requiresFlag && !st.flags[it.requiresFlag] && st.mode === 'career') return 'Meet Doc on the Riverboat first';
     if (it.requiresChapter && st.chapter < it.requiresChapter && st.mode === 'career') return 'Not for sale yet (story)';
