@@ -33,7 +33,7 @@ const Duel = (() => {
           h('div.area-l', 'Dealer ', dTot), dRow,
           h('div.duel-split',
             h('div', h('div.area-l', 'You ', meTot), meRow),
-            h('div', h('div.area-l', h('span.duel-face', { style: { background: ch.color } }, ch.face), ' ', ch.name.split(' ')[0].replace(/"/g, ''), ' ', foeTot), foeRow, bubble))),
+            h('div', h('div.area-l', h('span.duel-face', Portrait.el(ch)), ' ', ch.name.split(' ')[0].replace(/"/g, ''), ' ', foeTot), foeRow, bubble))),
         msg, btns);
       const rowAdd = (row, c, down) => { const el = UI.card(c, down); row.append(el); SFX.card(); return el; };
       const render = () => {

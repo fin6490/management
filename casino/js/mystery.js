@@ -538,7 +538,7 @@ const Mystery = {
         const ids = Object.keys(TESTIMONY).filter(id => m.said[id]);
         content.append(ids.length ? h('div.testimony', ids.map(id => {
           const t = TESTIMONY[id], broken = m.broken[id];
-          return h('div.stmt' + (broken ? '.broken' : ''), h('div.stmt-h', h('span.duel-face', { style: { background: CHARACTERS[id].color } }, CHARACTERS[id].face), h('b', CHARACTERS[id].name), t.time ? h('small', t.time) : null),
+          return h('div.stmt' + (broken ? '.broken' : ''), h('div.stmt-h', h('span.duel-face', Portrait.el(id)), h('b', CHARACTERS[id].name), t.time ? h('small', t.time) : null),
             h('p', `"${t.text}"`), broken ? h('p.good.small', '💥 ' + t.reply) : t.lie ? h('details', h('summary', 'Present evidence against this'), this.presentRow(id, { say: txt => { UI.toast(txt); render(); }, close() { } })) : null);
         })) : h('p.muted', 'No statements yet. They come in Act II.'));
       }

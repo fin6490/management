@@ -72,7 +72,7 @@ Every other building has an inside too, each with its own staff, locals and thin
 - **Quik-Stop**: snacks and drinks at the register or the cooler, today's paper and $5 scratch cards
   (three matching symbols wins).
 - **Starlite Motel**: the front desk rents a room for the night; the lobby has an ice machine,
-  vending machine and Sal's old Room 7.
+  vending machine, Sal's old Room 7 and your own Room 12.
 - **Vinnie's Pawn & Loan**: the loan counter, cases of pawned treasures, and Vinnie himself leaning
   on the safe.
 - **Lucky Strike Outfitters**: Rosa's counter, the racks, the showroom car and a full-length mirror.
@@ -135,6 +135,23 @@ usual, Sal's postcards use your name, Kessler reads out his dossier on you at th
 your real birthday throws a party at the Spur. It's stored only in this browser, never in save
 files or exports. When AI chat is on, it is sent to Claude with each message so characters can
 use it.
+
+The town also knows about your betting-tool projects in this repository: the Auto-Dice
+progression simulator, the Betfair value-betting bot and the Value & Reload Finder. Kessler's
+dossier brings them up, Mei, Tex and Rico needle you about them at the tables, the Lucky Ledger
+runs the odd story about a local tinkerer, and your laptop is open in **Room 12** at the Starlite
+Motel. Untick the box in Your file to turn this off.
+
+### Your look
+
+New careers start at the mirror: pick your skin tone, hairstyle and colour, facial hair, glasses,
+shirt and trousers, and which of your bought outfits, hats, shades and chains to wear. It changes
+your walking sprite and your portrait. Change it any time at the full-length mirror in Lucky Strike
+Outfitters or from ☰ → Your look.
+
+Everyone in town has a drawn portrait now instead of an emoji (story characters, rivals, staff,
+regulars and locals), and each table game has its own drawn crest on its sign and in the table
+header.
 
 ### The Back Room (poker)
 

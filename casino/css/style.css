@@ -832,3 +832,35 @@ body[data-screen="table"] #toasts, body[data-screen="slots"] #toasts, body[data-
 .town-map-wrap { display: flex; flex-direction: column; align-items: center; gap: .5rem; } .town-map { max-width: 100%; border-radius: 10px; image-rendering: pixelated; border: 1px solid var(--line); }
 .scratch { display: grid; grid-template-columns: repeat(3, 64px); gap: 6px; justify-content: center; margin: .3rem 0 .6rem; }
 .sc { height: 64px; border-radius: 10px; border: 0; background: linear-gradient(135deg, #b0bec5, #78909c); font: 900 1.6rem system-ui; color: #37474f; cursor: pointer; } .sc.open { background: #fff8e1; animation: flipin .25s ease-out; }
+
+/* drawn portraits */
+.pt { display: inline-block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; line-height: 0; vertical-align: middle; }
+.pt svg { width: 100%; height: 100%; display: block; }
+.portrait { overflow: hidden; padding: 0; background: #223; }
+.seat-face, .pk-face, .duel-face { overflow: hidden; }
+.mi .pt { width: 38px; height: 38px; }
+.dt-face { display: inline-flex; width: 28px; height: 28px; vertical-align: middle; }
+
+/* the mirror */
+.looks { display: flex; flex-direction: column; gap: .6rem; }
+.lk-prev { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: .6rem; border-radius: 12px; background: radial-gradient(circle at 50% 40%, #3b2f4a, #161320); }
+.lk-pt { width: 104px; height: 104px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; flex: none; }
+.lk-pt svg { width: 100%; height: 100%; display: block; }
+.lk-sprite { width: 192px; height: 64px; image-rendering: pixelated; }
+.lk-rows { display: flex; flex-direction: column; gap: .5rem; }
+.lk-row .lbl { margin: 0 0 .25rem; }
+.lk-sw, .lk-ch { display: flex; flex-wrap: wrap; gap: .35rem; }
+.lk-sw .sw { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .25); padding: 0; cursor: pointer; }
+.lk-sw .sw.on { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212, 175, 55, .45); }
+.lk-ch .btn.on { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, .12); }
+@media (max-width: 520px) { .lk-pt { width: 84px; height: 84px; } .lk-sprite { width: 144px; height: 48px; } }
+.lbl.me-check { display: flex; gap: .5rem; align-items: flex-start; text-transform: none; letter-spacing: 0; font-size: .85rem; color: var(--text, #ddd); margin-top: .8rem; }
+.lk-prev { position: sticky; top: -1px; z-index: 2; }
+
+/* game crests */
+.ga { display: inline-block; line-height: 0; flex: none; } .ga svg { width: 100%; height: 100%; display: block; }
+.tt-title:has(.tt-ga) { display: grid; grid-template-columns: auto 1fr; column-gap: .5rem; align-items: center; }
+.tt-title .tt-ga { grid-column: 1; grid-row: 1 / span 2; width: 36px; height: 36px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+.tt-title:has(.tt-ga) > b, .tt-title:has(.tt-ga) > span:not(.ga) { grid-column: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ga-pr { width: 22px; height: 22px; margin-right: .35rem; vertical-align: middle; }
+@media (max-width: 520px) { .tt-title .tt-ga { width: 28px; height: 28px; } }

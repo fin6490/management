@@ -418,7 +418,7 @@ const Darts = (() => {
       const p = M.players[i], on = M.turn === i && !M.over;
       const avg = p.thrown ? (p.scored / p.thrown * 3).toFixed(1) : '–';
       el.score.append(h('div.dt-p' + (on ? '.on' : '') + (p.me ? '.me' : ''),
-        h('div.dt-who', h('span.dt-face', p.face), h('b', p.me ? 'You' : p.name)),
+        h('div.dt-who', h('span.dt-face', Portrait.el(p)), h('b', p.me ? 'You' : p.name)),
         M.mode === 'atc'
           ? h('div.dt-rem', p.target > 21 ? '✓' : p.target === 21 ? 'Bull' : p.target, h('small', 'target'))
           : h('div.dt-rem', p.rem, h('small', 'left')),

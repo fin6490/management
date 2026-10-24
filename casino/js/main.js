@@ -152,7 +152,7 @@ const Screens = {
   async newGame(slot, mode) {
     const existing = App.listSlots()[slot - 1].s;
     if (existing && !(await UI.confirm('Overwrite slot?', `Slot ${slot} has ${existing.name}'s game. Start over?`, 'Overwrite'))) return;
-    const input = h('input.field', { value: existing ? existing.name : 'Lucky', maxlength: 18, placeholder: 'Your name' });
+    const input = h('input.field', { value: existing ? existing.name : (Me.first() || 'Fin'), maxlength: 18, placeholder: 'Your name' });
     const body = h('div', h('p', mode === 'career'
       ? 'Career: start with $500 and your late Uncle Sal\'s debt to a loan shark. Work your way from a dive bar to the high-limit salon.'
       : 'Free Play: every casino open, all helpers on, $10,000 bankroll with free refills. No story, no stamina.'),
@@ -164,8 +164,10 @@ const Screens = {
     if (mode === 'free') for (const v in VENUES) st.unlocked[v] = true;
     App.start(st, slot);
     Router.go('world');
+    await Looks.edit(true);
     if (mode === 'career') {
-      await UI.dialog(CHAPTERS[0].intro.concat([{ who: 'narrator', text: 'Walk with the arrow keys or WASD (the on-screen pad on a phone). Press **Space** or **A** to talk, sit at a table or buy something. Hold **Shift** or **B** to run. Keep an eye on hunger 🍔, thirst 💧 and energy ⚡ at the top.' }]));
+      const fin = Me.known().length ? [{ who: 'dolores', text: () => `And you're the one with the betting programs, aren't you, ${App.state.name}? Word gets around. Sal kept his systems on bar napkins. He'd have loved you.` }] : [];
+      await UI.dialog(CHAPTERS[0].intro.concat(fin, [{ who: 'narrator', text: 'Walk with the arrow keys or WASD (the on-screen pad on a phone). Press **Space** or **A** to talk, sit at a table or buy something. Hold **Shift** or **B** to run. Keep an eye on hunger 🍔, thirst 💧 and energy ⚡ at the top.' }]));
       Router.refresh();
     }
   },
@@ -312,7 +314,7 @@ const Screens = {
     main.append(h('div.loans',
       h('div.lobby-h', h('button.btn.ghost.sm', { onclick: () => Router.go('world') }, '← Map'),
         h('div', h('h2', "🦈 Vinnie's Back Room"), h('p.muted', 'Behind the pawn shop. Smells like cigars and bad decisions.'))),
-      h('div.dialog.inline', h('div.portrait', { style: { background: CHARACTERS.vinnie.color } }, CHARACTERS.vinnie.face),
+      h('div.dialog.inline', h('div.portrait', Portrait.el('vinnie')),
         h('div.d-text', h('div.d-name', CHARACTERS.vinnie.name), h('p', App.debt === 0 ? '"Clean books! Makes me nervous. Need a little something?"'
           : `"You owe me ${fmt(App.debt)}. Interest compounds nightly. I'm not a monster. I'm a businessman."`))),
       h('section.panel', h('h3', 'Your markers'),
@@ -370,6 +372,7 @@ const Screens = {
         h('button.btn', { onclick: () => { box.close(); Router.safeGo('case'); } }, '🔎 Case file: The Seventeenth Card'),
         h('button.btn', { onclick: () => { box.close(); World.townMap(); } }, '🗺️ Town map'),
         h('button.btn', { onclick: () => { box.close(); Chat.settings(); } }, '💬 AI chat with characters'),
+        h('button.btn', { onclick: () => { box.close(); Looks.edit(); } }, '🪞 Your look'),
         h('button.btn', { onclick: () => { box.close(); Me.edit(); } }, '🗂️ Your file (make it personal)'),
         h('button.btn', { onclick: () => { App.save(); UI.toast('Saved to slot ' + App.slot, 'good'); } }, '💾 Save now'),
         h('button.btn', { onclick: () => App.exportSave() }, '⤓ Export save file'),
@@ -389,7 +392,7 @@ window.addEventListener('beforeunload', () => { if (Router.table) Router.table.r
 const saveQuiet = () => { if (!App.state) return; if (World.savePos) World.savePos(); App.save(); };
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveQuiet(); });
 window.addEventListener('pagehide', saveQuiet);
-window.addEventListener('DOMContentLoaded', () => Router.go('title'));
+window.addEventListener('DOMContentLoaded', () => { Me.apply(); Router.go('title'); });
 // installable/offline when served over http(s); opening the file directly still works without it
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {

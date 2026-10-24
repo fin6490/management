@@ -228,7 +228,7 @@ const Rivals = {
       const r = App.state.rivals[s.id], ch = CHARACTERS[s.id];
       const talk = () => Chat.open({ ...Chat.spec(s.id), brief: () => `You are sitting at the ${t.game.name} table at ${t.ctx.venue.name}, right next to the player, mid-session. Your last hand: ${s.last ? s.last + (s.lastAmt ? ' ' + fmt(s.lastAmt) : '') : 'no result yet'}. The player has played ${t.sessionRounds || 0} rounds here and is ${(t.sessionNet || 0) >= 0 ? 'up' : 'down'} ${fmt(Math.abs(t.sessionNet || 0))}. Table talk: needle them, brag, or share a tip, in character.` });
       const el = h('div.seat.talkable' + (s.last === 'win' || s.last === 'big' ? '.won' : s.last === 'lose' ? '.lost' : ''), { 'data-rival': s.id, title: `Talk to ${ch.name}`, role: 'button', tabindex: 0, onclick: talk, onkeydown: e => { if (e.key === 'Enter') talk(); } },
-        h('div.seat-face', { style: { background: ch.color } }, ch.face),
+        h('div.seat-face', Portrait.el(s.id)),
         h('div.seat-info', h('b', ch.name.replace(/^.*"(.+)".*$/, '$1').replace('Baron Felix von Hollow', 'The Baron')), h('span', fmt(r.bank, { short: true })),
           s.bet ? h('em', (s.last === 'win' || s.last === 'big' ? '+' : s.last === 'lose' ? '−' : '') + fmt(s.lastAmt || s.bet, { short: true })) : null),
         h('span.seat-talk', '💬'),
@@ -559,7 +559,7 @@ const Chat = {
         trim(); App.save();
       }
     });
-    const body = h('div.chat', h('div.dialog', h('div.portrait', { style: { background: sp.color } }, sp.face), h('div.d-text', h('div.d-name', sp.name), h('p.muted.small', sp.subtitle || '')), speakToggle), log, panels, form, note);
+    const body = h('div.chat', h('div.dialog', h('div.portrait', Portrait.el(sp)), h('div.d-text', h('div.d-name', sp.name), h('p.muted.small', sp.subtitle || '')), speakToggle), log, panels, form, note);
     const pop = UI.modal({ title: null, body, cls: 'dlg' });
     setTimeout(() => { if (!input.disabled) input.focus(); log.scrollTop = log.scrollHeight; }, 50);
     Voice.say(sp, opener, () => { if (open && mic && mode && Voice.prefs().handsFree && Voice.prefs().speak) setTimeout(listen, 250); });
@@ -573,13 +573,15 @@ const Chat = {
   async newspaper() {
     const st = App.state, mode = await this.backend();
     const out = h('div.paper-body', mode ? h('p.muted', 'The paper boy is running late…') : null);
-    const scripted = () => { out.innerHTML = ''; st.news.slice(0, 6).forEach(n => out.append(h('p', n.text))); };
+    const local = Me.headline(); // one small item about you, from your own projects
+    const scripted = () => { out.innerHTML = ''; if (local) { const [hd, ...rest] = local.split(' — '); out.append(h('div.paper-item', h('b', hd), h('p', rest.join(' — ')))); } st.news.slice(0, 6).forEach(n => out.append(h('p', n.text))); };
     const pop = UI.modal({ title: `📰 The Lucky Ledger · Day ${st.day}`, body: h('div.paper', out), wide: true });
     if (!mode) { scripted(); return pop; }
     const prompt = [
       'Write the front page of "The Lucky Ledger", the gossip-hungry daily paper of the casino town in the game High Roller.',
       `Use these facts about the town (don't contradict them):\n${this.worldBrief('paper')}\nRecent events: ${st.news.slice(0, 8).map(n => n.text).join(' | ')}`,
       Mystery.brief('paper'),
+      local ? `One of the four items must be a small, affectionate local story inspired by this, about a resident of town (the player, unnamed): ${local}` : '',
       'Write exactly four short items. Each item is one line: a punchy headline in capitals, then " — ", then one or two sentences. Mix casino gossip, rival gamblers, the progressive meters and one strange rumour about Sal. Plain text only, no markdown, no numbering.',
     ].join('\n\n');
     try {
