@@ -94,7 +94,7 @@ const Router = {
         h('div.hs.bank', h('small', 'Bankroll'), h('b#hud-bank')),
         st.mode === 'career' ? h('div.hs.debt', { onclick: () => this.safeGo('loans'), title: 'Loans' }, h('small', 'Debt'), h('b#hud-debt')) : null,
         st.mode === 'career' ? h('div.hs.needs-h', { title: 'Hunger · Thirst · Energy' },
-          ...[['hunger', '🍔'], ['thirst', '💧'], ['stam', '⚡']].map(([k, i]) => h('div.nb', h('span', i), h('div.bar', h('i#hud-' + k))))) : null,
+          ...[['hunger', '🍔'], ['thirst', '💧'], ['stam', '⚡']].map(([k, i]) => h('div.nb', h('span', i), h('div.bar', h('i#hud-' + k), k === 'stam' ? h('b.lock#hud-lock') : null)))) : null,
         st.mode === 'career' ? h('div.hs.swag', h('small', 'Swagger'), h('b#hud-swag')) : null),
       h('button.btn.ghost.sm.menu', { onclick: () => Screens.menu() }, '☰'));
   },
@@ -104,11 +104,13 @@ const Router = {
     set('hud-bank', Math.abs(st.bank) >= 1e5 && innerWidth < 700 ? '$' + (st.bank >= 1e9 ? (st.bank / 1e9).toFixed(2) + 'B' : st.bank >= 995e3 ? (st.bank / 1e6).toFixed(2) + 'M' : (st.bank / 1e3).toFixed(1) + 'K') : fmt(st.bank)); set('hud-day', 'Day ' + st.day); set('hud-clock', World.clockText());
     set('hud-debt', fmt(App.debt)); set('hud-swag', '★ ' + Career.swagger());
     const d = document.getElementById('hud-debt'); if (d) d.parentElement.classList.toggle('zero', App.debt === 0);
-    for (const [id, v, max] of [['hud-hunger', st.hunger, 100], ['hud-thirst', st.thirst, 100], ['hud-stam', st.stamina, st.staminaMax]]) {
+    const tired = Career.tiredness(), emax = Career.energyMax();
+    for (const [id, v, max] of [['hud-hunger', st.hunger, 100], ['hud-thirst', st.thirst, 100], ['hud-stam', st.stamina, emax]]) {
       const e = document.getElementById(id); if (!e) continue;
       const p = clamp(v / max, 0, 1); e.style.width = (p * 100) + '%'; e.className = p < 0.2 ? 'low' : '';
-      e.parentElement.parentElement.title = `${Math.round(v)} / ${max}`;
+      e.parentElement.parentElement.title = id === 'hud-stam' && tired >= 5 ? `${Math.round(v)} / ${max} · tiredness ${Math.round(tired)}%: sleep to unlock the striped part` : `${Math.round(v)} / ${max}`;
     }
+    const lk = document.getElementById('hud-lock'); if (lk) lk.style.width = tired + '%';
     if (this.table) $$('.meter').forEach(m => m.update && m.update());
   },
 };

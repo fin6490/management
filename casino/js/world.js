@@ -731,8 +731,11 @@ const World = (() => {
   function needBars() {
     const st = App.state;
     if (!Career.needsOn()) return h('p.muted.small', 'Free Play: no hunger, thirst or tiredness.');
-    const bar = (icon, v, max) => h('div.need', h('span', icon), h('div.bar', h('i', { style: { width: clamp(v / max, 0, 1) * 100 + '%' } })), h('em', Math.round(v)));
-    return h('div.needs', bar('🍔', st.hunger, 100), bar('💧', st.thirst, 100), bar('⚡', st.stamina, st.staminaMax));
+    const bar = (icon, v, max, lock = 0) => h('div.need', h('span', icon), h('div.bar', h('i', { style: { width: clamp(v / max, 0, 1) * 100 + '%' } }), lock ? h('b.lock', { style: { width: lock * 100 + '%' } }) : null), h('em', Math.round(v)));
+    const t = Career.tiredness(), max = Career.energyMax();
+    return h('div', h('div.needs', bar('🍔', st.hunger, 100), bar('💧', st.thirst, 100), bar('⚡', st.stamina, max, t / 100)),
+      t >= 5 ? h('p.muted.small', `🥱 Tiredness ${Math.round(t)}%: the striped part of your energy only comes back with sleep.`) : null,
+      (st.today.caf || 0) >= 2 ? h('p.muted.small', `☕ ${st.today.caf} caffeinated drinks today: each one does less from here.`) : null);
   }
   function foodMenu(placeId) {
     const P = PLACES[placeId];
@@ -745,7 +748,9 @@ const World = (() => {
       const list = h('div.menu-list');
       for (const id of P.items) {
         const it = MENU[id], free = Career.isComped(P, it);
-        const tags = [it.hunger && `🍔+${it.hunger}`, it.thirst && `💧+${it.thirst}`, it.energy && `⚡${it.energy > 0 ? '+' : ''}${it.energy}`].filter(Boolean);
+        // what the energy is actually worth right now, after caffeine tolerance
+        const n = (App.state.today.caf || 0) + 1, en = it.caf ? Math.round(it.energy * ([1, 1, .5, .25, .1][n - 1] || 0)) : it.energy;
+        const tags = [it.hunger && `🍔+${it.hunger}`, it.thirst && `💧+${it.thirst}`, it.energy && `⚡${en > 0 ? '+' : ''}${en}${it.caf ? ' ☕' : ''}`].filter(Boolean);
         list.append(h('div.menu-row', h('span.mi', it.icon), h('div.mn', h('b', it.name), h('small', tags.join('  '))),
           h('button.btn.sm' + (free ? '.primary' : ''), { disabled: !free && App.state.bank < it.price, onclick: () => { if (Career.consume(id, placeId)) render(); } }, free ? 'Free' : fmt(it.price))));
       }
@@ -753,7 +758,7 @@ const World = (() => {
       if (P.usual && usual) {
         const had = App.state.flags.usualDay === App.state.day;
         list.prepend(h('div.menu-row', h('span.mi', '🥃'), h('div.mn', h('b', `Your usual: ${usual}`), h('small', had ? 'Dolores already poured you one today' : 'On the house, once a day · 💧+40 ⚡+5')),
-          h('button.btn.sm.primary', { disabled: had, onclick: () => { const st = App.state; st.flags.usualDay = st.day; st.thirst = Math.min(100, st.thirst + 40); st.stamina = Math.min(st.staminaMax + 40, st.stamina + 5); UI.toast(`🥃 "${usual}, just how you like it, sugar."`, 'good'); App.save(); Router.hud(); render(); } }, 'Free')));
+          h('button.btn.sm.primary', { disabled: had, onclick: () => { const st = App.state; st.flags.usualDay = st.day; st.thirst = Math.min(100, st.thirst + 40); st.stamina = Math.max(st.stamina, Math.min(Career.energyCap(), st.stamina + 5)); UI.toast(`🥃 "${usual}, just how you like it, sugar."`, 'good'); App.save(); Router.hud(); render(); } }, 'Free')));
       }
       if (P.npc) list.append(h('div.menu-row', h('span.mi', Portrait.el(P.npc)), h('div.mn', h('b', `Talk to ${CHARACTERS[P.npc].name.split(',')[0]}`), h('small', 'Catch up, ask for advice, or ask if there\'s any work')),
         h('button.btn.sm', { onclick: () => { pop.close(); Chat.open(P.npc); } }, 'Talk')));

@@ -119,10 +119,10 @@ const ITEMS = {
 };
 /* Food and drink. hunger/thirst/energy are how much each bar refills (bars run 0-100). */
 const MENU = {
-  coffee: { name: 'Coffee', icon: '☕', price: 3, thirst: 20, energy: 12, drink: true },
+  coffee: { name: 'Coffee', icon: '☕', price: 3, thirst: 20, energy: 12, drink: true, caf: true },
   water: { name: 'Bottled Water', icon: '💧', price: 2, thirst: 35, drink: true },
-  soda: { name: 'Soda', icon: '🥤', price: 3, thirst: 30, energy: 4, drink: true },
-  energy: { name: 'Lightning Energy Drink', icon: '⚡', price: 6, thirst: 15, energy: 35, drink: true },
+  soda: { name: 'Soda', icon: '🥤', price: 3, thirst: 30, energy: 4, drink: true, caf: true },
+  energy: { name: 'Lightning Energy Drink', icon: '⚡', price: 6, thirst: 15, energy: 35, drink: true, caf: true },
   candy: { name: 'Candy Bar', icon: '🍫', price: 2, hunger: 12, energy: 4 },
   sandwich: { name: 'Gas-Station Sandwich', icon: '🥪', price: 7, hunger: 35 },
   breakfast: { name: 'Lumberjack Breakfast', icon: '🍳', price: 9, hunger: 45, thirst: 10, energy: 8 },
@@ -135,7 +135,7 @@ const MENU = {
   cocktail: { name: 'Riverboat Old Fashioned', icon: '🍹', price: 12, thirst: 30, drink: true },
   shrimp: { name: 'Shrimp Basket', icon: '🍤', price: 16, hunger: 45 },
   champagne: { name: 'Champagne', icon: '🥂', price: 35, thirst: 30, energy: 3, drink: true },
-  espresso: { name: 'Double Espresso', icon: '☕', price: 8, thirst: 10, energy: 25, drink: true },
+  espresso: { name: 'Double Espresso', icon: '☕', price: 8, thirst: 10, energy: 25, drink: true, caf: true },
   buffet: { name: 'Palace Buffet', icon: '🍽️', price: 55, hunger: 100, thirst: 20 },
   martini: { name: 'Vesper Martini', icon: '🍸', price: 60, thirst: 30, drink: true },
   caviar: { name: 'Caviar Service', icon: '🥄', price: 400, hunger: 35, energy: 10 },
@@ -155,13 +155,14 @@ const PLACES = {
   bar_palace: { name: 'Chandelier Bar', icon: '🥂', venue: 'palace', comp: true, line: 'Champagne, darling?', items: ['champagne', 'espresso', 'buffet', 'water'] },
   bar_salon: { name: 'Salon Privé Bar', icon: '🍸', venue: 'salon', comp: true, line: 'Mr. Kessler insists you want for nothing. Within reason.', items: ['martini', 'espresso', 'wagyu', 'caviar', 'water'] },
 };
-// where you can sleep. energy: fraction of max restored. cost is per night.
+// where you can sleep. energy: fraction of max restored. cost is per night. grace: hours you can stay
+// up before tiredness starts creeping in; base: tiredness you wake up with (a bad night's sleep).
 const LODGING = {
-  motel: { name: 'Starlite Motel', icon: '🛏️', cost: 25, energy: 1, text: 'A bed, a buzzing sign, and a lock that mostly works.' },
-  grand: { name: 'Grand Hotel Suite', icon: '🏨', cost: 350, energy: 1.25, hunger: 25, thirst: 25, text: 'Feather pillows and room-service breakfast. Wake up with extra energy.' },
-  apartment: { name: 'Your Apartment', icon: '🏢', cost: 0, energy: 1.1, item: 'apartment', text: 'Your own place. Rent is paid daily.' },
-  penthouse: { name: 'Your Penthouse', icon: '🌆', cost: 0, energy: 1.35, hunger: 20, thirst: 20, item: 'penthouse', text: 'The whole city glittering below. Wake up unstoppable.' },
-  bench: { name: 'Park Bench', icon: '🪑', cost: 0, energy: 0.6, risky: true, text: 'Free. Cold. Somebody might lift your wallet while you sleep.' },
+  motel: { name: 'Starlite Motel', icon: '🛏️', cost: 25, energy: 1, grace: 8, text: 'A bed, a buzzing sign, and a lock that mostly works.' },
+  grand: { name: 'Grand Hotel Suite', icon: '🏨', cost: 350, energy: 1.25, grace: 10, hunger: 25, thirst: 25, text: 'Feather pillows and room-service breakfast. Wake up with extra energy, and stay sharp two hours longer.' },
+  apartment: { name: 'Your Apartment', icon: '🏢', cost: 0, energy: 1.1, grace: 9, item: 'apartment', text: 'Your own place. Rent is paid daily.' },
+  penthouse: { name: 'Your Penthouse', icon: '🌆', cost: 0, energy: 1.35, grace: 11, hunger: 20, thirst: 20, item: 'penthouse', text: 'The whole city glittering below. Wake up unstoppable.' },
+  bench: { name: 'Park Bench', icon: '🪑', cost: 0, energy: 0.6, grace: 6, base: 25, risky: true, text: 'Free. Cold. Somebody might lift your wallet while you sleep.' },
 };
 
 const EVENTS = {
@@ -403,11 +404,25 @@ const Career = {
   /* ---------- the day cycle ---------- */
   /* ---------- needs: hunger, thirst and energy (energy is state.stamina) ---------- */
   needsOn() { return App.state && App.state.mode === 'career'; },
+  // tiredness 0-100 builds once you've been up longer than your bed allows; only sleep resets it
+  tiredness() {
+    const st = App.state; if (!this.needsOn()) return 0;
+    const r = st.rest || { grace: 8, base: 0 }, awakeH = ((st.clock || 540) - (st.wokeAt || 540)) / 60;
+    return clamp((r.base || 0) + Math.max(0, awakeH - r.grace) * 10, 0, 100);
+  },
+  // the most energy you can have right now: tiredness locks away the rest of the bar
+  energyMax() { return Math.round(Math.max(App.state.restMax || 0, App.state.staminaMax)); },
+  energyCap() { return Math.round(this.energyMax() * (1 - this.tiredness() / 100)); },
+  tiredWarn() {
+    const st = App.state, t = this.tiredness(), w = st.today.tiredWarn || 0;
+    if (t >= 30 && w < 1) { st.today.tiredWarn = 1; UI.toast('🥱 You\'re starting to get tired. Coffee only fills the part of your energy bar that isn\'t locked.', 'warn'); }
+    else if (t >= 70 && w < 2) { st.today.tiredWarn = 2; UI.toast('😴 You\'re running on fumes. Find a bed soon.', 'warn'); }
+  },
   canPlay() {
     if (!this.needsOn()) return null;
     const st = App.state;
     if ((st.clock || 540) >= 1680) return 'It\'s 4 AM and the night is over. Get some sleep (motel, hotel, home or a park bench).';
-    if (st.stamina <= 0) return 'You\'re exhausted. Get some sleep (or an energy drink).';
+    if (st.stamina <= 0) return this.tiredness() >= 50 ? 'You\'re exhausted, and no amount of coffee will fix it now. Get some sleep.' : 'You\'re exhausted. Get some sleep, or something with caffeine.';
     if (st.hunger <= 0) return 'You\'re starving. Go get something to eat.';
     if (st.thirst <= 0) return 'You\'re parched. Get a drink first.';
     return null;
@@ -415,7 +430,7 @@ const Career = {
   // drain the bars. kind = 'round' (k = rounds) or 'step'
   drain(kind, k = 1) {
     const was = App.state ? (App.state.clock || 540) : 0;
-    if (App.state) App.state.clock = (App.state.clock || 540) + (kind === 'round' ? 2 : 0.25) * k;
+    if (App.state) App.state.clock = (App.state.clock || 540) + (kind === 'round' ? 4 : 0.25) * k;
     if (!this.needsOn()) return;
     if (was < 1560 && App.state.clock >= 1560) UI.toast('🌙 It\'s 2 AM. The night ends at 4: find a bed before then.', 'warn');
     const st = App.state, starving = st.hunger <= 0 || st.thirst <= 0;
@@ -423,7 +438,8 @@ const Career = {
     const before = { hunger: st.hunger, thirst: st.thirst, stamina: st.stamina };
     st.hunger = Math.max(0, st.hunger - r.h * k);
     st.thirst = Math.max(0, st.thirst - r.t * k);
-    st.stamina = Math.max(0, st.stamina - r.e * k * (starving ? 3 : 1));
+    st.stamina = Math.max(0, Math.min(this.energyCap(), st.stamina - r.e * k * (starving ? 3 : 1)));
+    this.tiredWarn();
     const warn = { hunger: '🍔 You\'re getting hungry.', thirst: '💧 You\'re getting thirsty.', stamina: '⚡ You\'re getting tired.' };
     for (const key in warn) {
       const lim = key === 'stamina' ? st.staminaMax * 0.2 : 20;
@@ -445,8 +461,14 @@ const Career = {
     if (m.thirst) st.thirst = clamp(st.thirst + m.thirst, 0, 100);
     if (m.energy) {
       let e = m.energy;
-      if (e > 0 && m.energy >= 20) { st.today.boosts = (st.today.boosts || 0) + 1; if (st.today.boosts > 2) { e = Math.round(e / (st.today.boosts - 1)); UI.toast(`⚡ Diminishing returns: only +${e} energy. Your body wants sleep.`, 'warn'); } }
-      st.stamina = clamp(st.stamina + e, 0, st.staminaMax + 40);
+      if (e > 0) {
+        // caffeine stacks badly: the first two of the day work, then each one does less
+        if (m.caf) { const n = st.today.caf = (st.today.caf || 0) + 1; e = Math.round(e * ([1, 1, .5, .25, .1][n - 1] || 0)); if (n === 3) UI.toast('☕ The caffeine is wearing thin: each one does less from here.', 'warn'); if (n >= 6) UI.toast('😵 Jittery. Your heart is racing and you\'re no less tired.', 'warn'); }
+        const cap = this.energyCap(), room = Math.max(0, cap - st.stamina);
+        if (room <= 0) UI.toast(this.tiredness() >= 5 ? '🥱 You\'re too tired for that to help. Only sleep unlocks the rest of your energy.' : '⚡ You\'re already full of energy.', 'warn');
+        e = Math.min(e, room);
+        st.stamina = clamp(st.stamina + e, 0, cap);
+      } else st.stamina = clamp(st.stamina + e, 0, this.energyCap());
     }
     SFX.cash(); UI.toast(`${m.icon} ${m.name}${free ? ' (comped)' : ''}`, 'good');
     App.save(); Router.hud(); return true;
@@ -469,7 +491,7 @@ const Career = {
     const robbed = st.bank > 20 ? round2(Math.min(st.bank * 0.2, 10000)) : 0;
     st.bank = round2(st.bank - robbed);
     await UI.dialog([{ who: 'narrator', text: `You collapse on the sidewalk and sleep where you fall.${robbed ? ` When you wake up, **${fmt(robbed)}** is missing from your wallet.` : ''} Next time, find a bed before you hit empty.` }]);
-    await this.endDay({ name: 'The sidewalk', energy: 0.5 }, 0);
+    await this.endDay({ name: 'The sidewalk', energy: 0.5, grace: 5, base: 35 }, 0);
   },
   async endDay(L = LODGING.motel, robbed = 0) {
     const st = App.state, lines = [];
@@ -489,7 +511,9 @@ const Career = {
     let interest = 0;
     for (const l of st.loans) { const i = round2(l.balance * l.rate); l.balance = round2(l.balance + i); interest += i; }
     if (interest) lines.push(['Loan interest', fmt(-interest)]);
-    st.day++; st.clock = 540; st.staminaMax = this.staminaMax(); st.stamina = Math.round(st.staminaMax * (L.energy || 1));
+    st.day++; st.clock = 540; st.wokeAt = 540; st.rest = { grace: L.grace != null ? L.grace : 8, base: L.base || 0 };
+    st.staminaMax = this.staminaMax(); st.restMax = Math.round(st.staminaMax * Math.max(1, L.energy || 1));
+    st.stamina = Math.round(Math.min(st.staminaMax * (L.energy || 1), this.energyCap()));
     st.hunger = clamp(st.hunger - 20 + (L.hunger || 0), 0, 100);
     st.thirst = clamp(st.thirst - 25 + (L.thirst || 0), 0, 100);
     st.today = { wagered: 0, net: 0, rounds: 0 };
@@ -502,7 +526,7 @@ const Career = {
     await UI.modal({
       title: `🌙 Night ${st.day - 1} · ${L.name}`, buttons: [{ label: `Wake up: Day ${st.day}`, cls: 'primary' }],
       body: h('div', h('table.paytable', lines.map(r => h('tr', h('td', r[0]), h('td.num', r[1])))),
-        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${st.staminaMax}. You wake up a little hungry and thirsty. Progressive meters grew overnight.`),
+        h('p.muted.small', `Energy ${Math.round(st.stamina)}/${this.energyMax()}. ${(L.grace || 8) >= 10 ? 'Well rested: you\'ll stay sharp a couple of hours longer today. ' : L.base ? 'A rough night: you start the day already a bit tired. ' : ''}You wake up a little hungry and thirsty. Progressive meters grew overnight.`),
         h('button.btn.sm', { onclick: () => Chat.newspaper() }, '📰 Read the morning paper')),
     });
     await this.collections();
