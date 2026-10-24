@@ -886,3 +886,7 @@ body[data-screen="table"] #toasts, body[data-screen="slots"] #toasts, body[data-
   .spot:focus-visible, .chip:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 }
 .chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* no text selection or iOS callout from holding the on-screen controls */
+.world, .pad button, .ab button { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+body[data-screen="world"] .modal .dialog, body[data-screen="world"] .menu-row { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }

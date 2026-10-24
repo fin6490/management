@@ -1,7 +1,7 @@
 /* Offline support: every file the app needs is cached on first visit. Files are served from the
    cache and refreshed in the background, so a new version shows up on the next launch.
    Bump VERSION when the file list changes. */
-const VERSION = 'high-roller-v16';
+const VERSION = 'high-roller-v17';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/core.js', 'js/poker.js', 'js/paytables.js', 'js/rtp.js', 'js/ui.js', 'js/state.js', 'js/career.js',

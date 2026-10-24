@@ -393,7 +393,9 @@ UI.modal = function ({ title, body, buttons, wide, closable = true, cls }) {
       title ? h('div.modal-h', h('h2', title), closable ? h('button.x', { onclick: () => close(null), 'aria-label': 'Close' }, '×') : null) : null,
       h('div.modal-b', typeof body === 'string' ? h('p', body) : body),
       buttons ? h('div.modal-f', buttons.map(b => h('button.btn' + (b.cls ? '.' + b.cls : ''), { disabled: b.disabled, onclick: () => close(b.value !== undefined ? b.value : b.label) }, b.label))) : null);
-    const bg = h('div.modal-bg', { onclick: e => { if (e.target === bg && closable) close(null); } }, box);
+    // ignore the tap that opened this (a phone sends its click when the finger lifts)
+    const opened = performance.now();
+    const bg = h('div.modal-bg', { onclick: e => { if (e.target === bg && closable && performance.now() - opened > 450) close(null); } }, box);
     document.body.append(bg); document.addEventListener('keydown', esc);
     closer = close;
     const first = box.querySelector('.modal-f .btn.primary') || box.querySelector('.modal-f .btn');
