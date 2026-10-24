@@ -590,7 +590,10 @@ const World = (() => {
       b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
     });
     const A = S.root.querySelector('.ab-a'), Bb = S.root.querySelector('.ab-b');
-    A.addEventListener('pointerdown', e => { e.preventDefault(); interact(); });
+    // act on the press, and keep the finger's release from landing on whatever opens underneath it
+    A.addEventListener('pointerdown', e => { e.preventDefault(); A.classList.add('on'); try { A.setPointerCapture(e.pointerId); } catch (_) { } interact(); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => A.addEventListener(ev, () => A.classList.remove('on')));
+    [A, Bb, ...S.root.querySelectorAll('.pad button')].forEach(b => { b.addEventListener('contextmenu', e => e.preventDefault()); b.addEventListener('touchend', e => e.preventDefault(), { passive: false }); });
     Bb.addEventListener('pointerdown', e => { e.preventDefault(); S.run = true; Bb.classList.add('on'); });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => Bb.addEventListener(ev, () => { S.run = false; Bb.classList.remove('on'); }));
     S.root.querySelector('canvas').addEventListener('contextmenu', e => e.preventDefault());
@@ -691,7 +694,10 @@ const World = (() => {
   }
 
   async function interact() {
-    if (!S || S.busy || S.p.moving || document.querySelector('.modal-bg')) return;
+    if (!S) return;
+    // pressed mid-step: remember it and act as soon as the step lands
+    if (S.p.moving) { S.wantA = performance.now(); return; }
+    if (S.busy || document.querySelector('.modal-bg')) return;
     const f = facing(); if (!f) return;
     S.busy = true; S.keys.clear();
     try {
@@ -838,7 +844,10 @@ const World = (() => {
       p.fx = p.moving.fx + (p.moving.tx - p.moving.fx) * k; p.fy = p.moving.fy + (p.moving.ty - p.moving.fy) * k;
       p.frame = Math.floor(now / 120);
       if (k >= 1) { p.moving = null; p.fx = p.x; p.fy = p.y; arrive().then(() => { }); }
-    } else if (!S.busy && !document.querySelector('.modal-bg')) tryMove(now);
+    } else if (!S.busy && !document.querySelector('.modal-bg')) {
+      if (S.wantA) { const w = S.wantA; S.wantA = 0; if (now - w < 600) interact(); else tryMove(now); }
+      else tryMove(now);
+    }
     if (!p.moving) { p.fx = p.x; p.fy = p.y; }
     wander(m, now);
     draw(now);
