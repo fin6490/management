@@ -154,7 +154,7 @@ const Screens = {
   async newGame(slot, mode) {
     const existing = App.listSlots()[slot - 1].s;
     if (existing && !(await UI.confirm('Overwrite slot?', `Slot ${slot} has ${existing.name}'s game. Start over?`, 'Overwrite'))) return;
-    const input = h('input.field', { value: existing ? existing.name : (Me.first() || 'Fin'), maxlength: 18, placeholder: 'Your name' });
+    const input = h('input.field', { value: existing ? existing.name : (Me.first() || (window.HR_HOST && !window.HR_HOST.owner ? 'Lucky' : 'Fin')), maxlength: 18, placeholder: 'Your name' });
     const body = h('div', h('p', mode === 'career'
       ? 'Career: start with $500 and your late Uncle Sal\'s debt to a loan shark. Work your way from a dive bar to the high-limit salon.'
       : 'Free Play: every casino open, all helpers on, $10,000 bankroll with free refills. No story, no stamina.'),
@@ -399,7 +399,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 window.addEventListener('pagehide', saveQuiet);
 window.addEventListener('DOMContentLoaded', () => { Me.apply(); Router.go('title'); });
 // installable/offline when served over http(s); opening the file directly still works without it
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.HR_HOST) { // a host site runs its own
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => { });
     // ask the browser not to evict saved games

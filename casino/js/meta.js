@@ -34,7 +34,11 @@ const Me = {
       kessler: 'And this town. I\'ve read the commit log: every building, every card, every one of my tables. You asked for them. So tell me: which of us is really the house?',
       head: 'TOWN GROWS OVERNIGHT, AGAIN — Residents woke to find new rooms in every building, a duck pond and a working jukebox. City Hall says the permits were "requested in a chat."' },
   ],
-  known() { return this.get().projects === false ? [] : this.PROJECTS; },
+  known() {
+    const host = window.HR_HOST; // hosted for other people: only the owner's account gets the personal layer
+    if (host && !host.owner) return [];
+    return this.get().projects === false ? [] : this.PROJECTS;
+  },
   headline() { const k = this.known(); return k.length ? RNG.pick(k).head : null; },
 
   // the real-world clock and calendar, for a little fourth-wall seasoning
@@ -109,7 +113,7 @@ const Me = {
       body.append(h('label.lbl', { for: id }, label), inputs[k]);
     }
     const proj = h('input#me-projects', { type: 'checkbox', checked: me.projects !== false ? true : null });
-    body.append(h('label.lbl.me-check', { for: 'me-projects' }, proj, ' Let the town know about my betting-tool projects (the dice simulator, the Betfair bot and the Value & Reload Finder in this repo)'));
+    if (!window.HR_HOST || window.HR_HOST.owner) body.append(h('label.lbl.me-check', { for: 'me-projects' }, proj, ' Let the town know about my betting-tool projects (the dice simulator, the Betfair bot and the Value & Reload Finder in this repo)'));
     // inside claude.ai, offer the viewer's own profile name
     if (window.claude && window.claude.use) {
       const btn = h('button.btn.sm.ghost', { type: 'button', hidden: true, onclick: async () => {
