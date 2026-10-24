@@ -47,10 +47,35 @@ Edit `js/paytables.js` and re-run the script to rebalance anything.
 
 ## Career mode
 
-Uncle Sal left you a silver dollar and a $2,500 marker owed to Vinnie "The Vig", a loan shark. Start
-with $500 outside the Starlite Motel, clear the debt, then work up from The Rusty Spur through the
+Uncle Sal left you a silver dollar and a **$500,000 marker** owed to Vinnie "The Vig", a loan shark.
+You start with $500 outside the Starlite Motel and work up from The Rusty Spur through the
 Riverboat, the Gilded Palace and the Monte Royale Salon Privé. Better venues have higher limits and
 better rules (S17, surrender, bigger craps odds, single-zero roulette).
+
+### Sal's marker
+
+The marker charges no interest as long as you pay Vinnie every week.
+
+- **Weekly payments.** The amount grows as you come up in the world:
+
+  | Chapter | Weekly payment |
+  | --- | --- |
+  | 1 | $1,500 |
+  | 2 | $3,000 |
+  | 3 | $10,000 |
+  | 4 | $30,000 |
+  | Legend | $60,000 |
+
+- **Chapter one** ends when you make the first payment.
+- **Paying more.** Anything over the weekly amount comes off the marker.
+- **Missing a payment.**
+  - Nico takes 30% of your wallet.
+  - Three weeks' payments go on the marker.
+  - You get a strike. Three strikes ends the career.
+- **Where to see it.** The status screen shows how much is left and what's due this week. Vinnie's
+  loan counter has a **Pay this week** button.
+- **Achievements.** Like Clockwork for ten payments on time. Free and Clear for paying off every
+  cent.
 
 ### Walking around
 
@@ -328,8 +353,9 @@ go up to $1,000,000 a hand.
 
 ### Everything else
 
-- **Vinnie's Pawn & Loan**: borrow against a credit line that grows with your swagger. Miss a due
-  date, or borrow too far past your line, and Nico pays a visit. Three strikes ends the career.
+- **Vinnie's Pawn & Loan**: pay Sal's marker, or borrow against a credit line that grows with your
+  swagger (4% a day, compounding). Miss a weekly payment, or borrow too far past your line, and
+  Nico pays a visit. Three strikes ends the career.
 - **Lucky Strike Outfitters**: clothes and cars (swagger and energy), players club cards (nightly
   cash-back on everything you wager), strategy cards, the counting course, the Odds Book, the
   Jackpot Tracker, felts and card backs, and finally the deeds. Your clothes show on your character.
