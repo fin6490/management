@@ -360,7 +360,7 @@ const Holdem = (() => {
       const turn = H && resolveMe && p.me;
       el.seats.append(h('div.pk-seat' + (p.me ? '.me' : '') + (p.folded ? '.folded' : '') + (p.last === 'Wins' ? '.wins' : '') + (turn ? '.turn' : ''), { style: { left: pos.left + '%', top: pos.top + '%' } },
         cards,
-        h('div.pk-plate', h('span.pk-face', { style: { background: p.color } }, p.face), h('div', h('b', p.name), h('span', fmtc(p.stack)))),
+        h('div.pk-plate', h('span.pk-face', Portrait.el(p.me ? 'me' : p)), h('div', h('b', p.name), h('span', fmtc(p.stack)))),
         p.last ? h('div.pk-act', p.last + (p.shown && p.eval ? ' · ' + p.eval.name : '')) : null,
         T.btn === i ? h('div.pk-btn', 'D') : null));
       if (p.bet > 0) { const bp = { left: 50 + (pos.left - 50) * .58, top: 50 + (pos.top - 50) * .55 }; el.seats.append(h('div.pk-bet', { style: { left: bp.left + '%', top: bp.top + '%' } }, UI.stack(p.bet), h('span', fmtc(p.bet)))); }
@@ -431,7 +431,7 @@ const Holdem = (() => {
     if (!T) return;
     const others = T.seats.filter(p => p && !p.me && p.stack > 0);
     let pick = null;
-    const body = h('div.menu-list', others.map(p => h('div.menu-row', h('span.mi', p.face || '🃏'), h('div.mn', h('b', p.name), h('small', `${fmtc(p.stack)} chips${p.styleName ? ' · plays ' + p.styleName : ''}`)),
+    const body = h('div.menu-list', others.map(p => h('div.menu-row', h('span.mi', Portrait.el(p.me ? 'me' : p)), h('div.mn', h('b', p.name), h('small', `${fmtc(p.stack)} chips${p.styleName ? ' · plays ' + p.styleName : ''}`)),
       h('button.btn.sm', { onclick: () => { pick = p; dlg.close(); } }, '💬 Talk'))));
     const dlg = UI.modal({ title: '💬 Who do you want to talk to?', body });
     await dlg;

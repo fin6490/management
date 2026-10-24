@@ -158,7 +158,7 @@ const World = (() => {
       folk: [[10, 8, 2]] },
     motel: { name: 'Starlite Motel', W: 14, H: 10, floor: 'carpet', theme: { wall: '#6c3483', trim: '#2e1338', carpet: '#5b4a3a' }, staff: ['darlene', 3, 3],
       f: [['hcounter', 1, 4, 5, 1, { sleep: ['motel'], label: 'Front desk: a room for the night (Darlene)' }], ['door', 8, 1, 1, 1, { talk: 'Room 7. Sal\'s room, Darlene says. She still won\'t rent it to anyone else.', label: 'Room 7' }],
-        ['door', 10, 1, 1, 1, { talk: 'Room 8. A Do Not Disturb sign and a lot of snoring.', label: 'Room 8' }], ['machine', 12, 3, 1, 1, { fn: 'ice', label: 'Ice machine' }], ['machine', 12, 6, 1, 1, { place: 'vending', label: 'Vending machine' }],
+        ['door', 10, 1, 1, 1, { talk: 'Room 8. A Do Not Disturb sign and a lot of snoring.', label: 'Room 8' }], ['door', 6, 1, 1, 1, { fn: 'laptop', label: 'Room 12: your room' }], ['machine', 12, 3, 1, 1, { fn: 'ice', label: 'Ice machine' }], ['machine', 12, 6, 1, 1, { place: 'vending', label: 'Vending machine' }],
         ['plant', 1, 7, 1, 1], ['tv', 6, 7, 2, 1, { talk: 'The lobby TV is showing the late news: "Gaming Commission denies probe into Monte Royale." Darlene snorts.', label: 'Lobby TV' }]],
       folk: [] },
     pawn: { name: "Vinnie's Pawn & Loan", W: 14, H: 10, floor: 'wood', theme: { wall: '#3d3d3d', trim: '#1d1d1d' }, staff: null,
@@ -240,6 +240,16 @@ const World = (() => {
   async function roomFx(fn) {
     const st = App.state;
     if (fn === 'paper') return Chat.newspaper();
+    if (fn === 'laptop') {
+      const name = Me.first(), proj = Me.known();
+      const lines = proj.length ? [
+        { who: 'narrator', text: `Room 12. Your room, for as long as the $25 a night holds out. The bed is made, badly. Your laptop is open on the desk.` },
+        { who: 'narrator', text: 'Three tabs: an **Auto-Dice simulator** still running its millionth Martingale (still broke), a **Betfair bot** in paper mode politely declining every race, and the **Value & Reload Finder** with a lay calculated to the penny.' },
+        { who: 'narrator', text: `A fourth tab is a chat window. The last message reads: "${RNG.pick(['Make the slots more exciting', 'Can I go inside every building?', 'Add a double option', 'Always merge without prompting'])}". A sticky note on the screen, in your handwriting: **NO EDGE, NO BET.**` },
+        { who: 'me', text: name ? `${name}, you absolute nerd.` : 'Absolute nerd.' },
+      ] : [{ who: 'narrator', text: 'Room 12. Your room, for as long as the $25 a night holds out. A lumpy bed, a TV bolted to the dresser, and a Gideon Bible with a racing form tucked inside.' }];
+      return UI.dialog(lines);
+    }
     if (fn === 'jukebox') {
       const song = RNG.pick(['"Luck Be a Lady"', '"The Gambler"', '"Viva Las Vegas"', '"Ace of Spades"', '"Seventeen"', '"Money (That\'s What I Want)"']);
       SFX.win(); UI.toast(`🎵 The jukebox plays ${song}.${song === '"Seventeen"' ? ' Mel smiles. "That was his song."' : ''}`, 'good'); return;
@@ -460,14 +470,7 @@ const World = (() => {
   }
 
   /* ======================= sprites ======================= */
-  function playerLook() {
-    const it = k => App.has(k);
-    return {
-      shirt: it('tux') ? '#111' : it('suit') ? '#2f3e5c' : it('blazer') ? '#6b4f3a' : '#4a7a46',
-      pants: it('tux') ? '#111' : it('suit') ? '#25314a' : '#3b4a6b',
-      skin: '#f0c19a', hair: '#3a2a1e', hat: it('fedora'), shades: it('shades'), chain: it('chain'), bow: it('tux'), tie: it('suit') && !it('tux'),
-    };
-  }
+  function playerLook() { return Looks.sprite(); }
   // 16x16 pixel person; u = screen pixels per art pixel
   function drawPerson(c, sx, sy, u, dir, frame, L) {
     const p = (x, y, w, hh, col) => { c.fillStyle = col; c.fillRect(Math.round(sx + x * u), Math.round(sy + y * u), Math.ceil(w * u), Math.ceil(hh * u)); };
@@ -482,13 +485,23 @@ const World = (() => {
     if (dir === 'down') { p(7, 7, 2, 2, '#f4f4f4'); if (L.tie) p(7.5, 8, 1, 3, '#a3242e'); if (L.bow) p(6.5, 7, 3, 1, '#111'); if (L.chain) p(5, 9, 6, 1, '#f5c542'); }
     if (!side) { p(3, 7.5, 1.5, 4, L.shirt); p(11.5, 7.5, 1.5, 4, L.shirt); p(3, 11, 1.5, 1.2, L.skin); p(11.5, 11, 1.5, 1.2, L.skin); }
     else p(dir === 'left' ? 6 : 8, 8, 2, 4, L.shirt);
-    // head
+    // head; hair styles and facial hair come from Looks (or default to a short cut)
+    const st = L.style || 'short', H = L.hair, bald = st === 'bald', long = st === 'long' || st === 'bob';
+    const len = st === 'long' ? 7 : st === 'bob' ? 5.5 : 4;
+    if (st === 'bun') p(6.5, -1.2, 3, 2.2, H);
+    if (st === 'pony' && dir !== 'down') p(dir === 'left' ? 11 : dir === 'right' ? 3 : 7, 3, 2, 5, H);
     p(4, 1, 8, 7, L.skin);
-    if (dir === 'up') p(4, 1, 8, 6, L.hair);
+    if (dir === 'up') { if (!bald) p(4, st === 'pomp' ? 0 : 1, 8, long ? len : st === 'buzz' ? 4 : 6, H); }
     else {
-      p(4, 1, 8, 2, L.hair);
-      if (side) { p(dir === 'left' ? 9 : 4, 1, 3, 4, L.hair); p(dir === 'left' ? 5 : 10, 4, 1, 1, '#222'); }
-      else { p(4, 1, 1, 4, L.hair); p(11, 1, 1, 4, L.hair); p(6, 4, 1, 1, '#222'); p(9, 4, 1, 1, '#222'); }
+      if (!bald) p(st === 'curly' ? 3.5 : 4, st === 'pomp' ? 0 : st === 'curly' ? .4 : 1, st === 'curly' ? 9 : 8, st === 'buzz' ? 1.2 : st === 'pomp' ? 2.8 : 2, H);
+      if (side) { if (!bald && st !== 'buzz') p(dir === 'left' ? 9 : 4, 1, 3, long ? len : 4, H); p(dir === 'left' ? 5 : 10, 4, 1, 1, '#222'); }
+      else { if (long) { p(3.5, 1, 1.5, len, H); p(11, 1, 1.5, len, H); } else if (!bald && st !== 'buzz') { p(4, 1, 1, 4, H); p(11, 1, 1, 4, H); } p(6, 4, 1, 1, '#222'); p(9, 4, 1, 1, '#222'); }
+      const fx = side ? (dir === 'left' ? 4 : 7) : 5, fw = side ? 5 : 6;
+      if (L.beard === 'full') { p(4, 5.4, 8, 2.6, H); p(6.5, 6, 3, .8, L.skin); }
+      else if (L.beard === 'goatee') p(side ? fx + 2 : 7, 6.4, 2, 1.4, H);
+      else if (L.beard === 'stache') p(side ? fx + 1 : 6, 5.6, side ? 3 : 4, .8, H);
+      else if (L.beard === 'stubble') { c.globalAlpha = .3; p(4, 5.2, 8, 2.8, H); c.globalAlpha = 1; }
+      if (L.glasses && !L.shades) { if (side) p(dir === 'left' ? 4 : 9, 3.6, 3, .5, '#222'); else { p(5, 3.4, 2.6, .5, '#222'); p(8.4, 3.4, 2.6, .5, '#222'); p(5, 3.4, .5, 1.8, '#222'); p(10.5, 3.4, .5, 1.8, '#222'); } }
       if (L.shades && !side) { p(5, 3.6, 2.5, 1.4, '#111'); p(8.5, 3.6, 2.5, 1.4, '#111'); p(7.5, 4, 1, .5, '#111'); }
       if (L.shades && side) p(dir === 'left' ? 4 : 9, 3.6, 3, 1.4, '#111');
     }
@@ -736,7 +749,7 @@ const World = (() => {
         list.prepend(h('div.menu-row', h('span.mi', '🥃'), h('div.mn', h('b', `Your usual: ${usual}`), h('small', had ? 'Dolores already poured you one today' : 'On the house, once a day · 💧+40 ⚡+5')),
           h('button.btn.sm.primary', { disabled: had, onclick: () => { const st = App.state; st.flags.usualDay = st.day; st.thirst = Math.min(100, st.thirst + 40); st.stamina = Math.min(st.staminaMax + 40, st.stamina + 5); UI.toast(`🥃 "${usual}, just how you like it, sugar."`, 'good'); App.save(); Router.hud(); render(); } }, 'Free')));
       }
-      if (P.npc) list.append(h('div.menu-row', h('span.mi', CHARACTERS[P.npc].face), h('div.mn', h('b', `Talk to ${CHARACTERS[P.npc].name.split(',')[0]}`), h('small', 'Catch up, ask for advice, or ask if there\'s any work')),
+      if (P.npc) list.append(h('div.menu-row', h('span.mi', Portrait.el(P.npc)), h('div.mn', h('b', `Talk to ${CHARACTERS[P.npc].name.split(',')[0]}`), h('small', 'Catch up, ask for advice, or ask if there\'s any work')),
         h('button.btn.sm', { onclick: () => { pop.close(); Chat.open(P.npc); } }, 'Talk')));
       else if (STAFF_AT[placeId]) list.append(talkRow(STAFF_AT[placeId], () => pop.close()));
       if (P.job) list.append(h('div.menu-row', h('span.mi', '🧽'), h('div.mn', h('b', 'Work a shift washing glasses'), h('small', `Earn ${fmt(120 + App.state.chapter * 80)} · ⚡−40 🍔−15 💧−15`)),
@@ -750,7 +763,7 @@ const World = (() => {
   // a Talk row for whoever works the counter
   function talkRow(key, close) {
     const s = STAFF[key];
-    return h('div.menu-row', h('span.mi', s.face), h('div.mn', h('b', `Talk to ${s.name}`), h('small', 'Chat, ask questions, get the local gossip')),
+    return h('div.menu-row', h('span.mi', Portrait.el(s)), h('div.mn', h('b', `Talk to ${s.name}`), h('small', 'Chat, ask questions, get the local gossip')),
       h('button.btn.sm', { onclick: () => { close(); Chat.open(Crowd.staff(key)); } }, '💬 Talk'));
   }
   function sleepMenu(options, label) {
@@ -831,8 +844,8 @@ const World = (() => {
     draw(now);
     const f = !p.moving && !S.busy ? facing() : null;
     const pr = S.root.querySelector('.w-prompt');
-    const txt = f ? (f.kind === 'table' ? `${GAMES[f.game].icon} ${f.label} · ${fmt(VENUES[m.venue].limits.min)}–${fmt(VENUES[m.venue].limits.max, { short: true })}` : f.label) : '';
-    if (pr.dataset.t !== txt) { pr.dataset.t = txt; pr.innerHTML = ''; if (txt) pr.append(h('span', txt), h('kbd', 'A')); pr.classList.toggle('show', !!txt); }
+    const txt = f ? (f.kind === 'table' ? `${f.label} · ${fmt(VENUES[m.venue].limits.min)}–${fmt(VENUES[m.venue].limits.max, { short: true })}` : f.label) : '';
+    if (pr.dataset.t !== txt) { pr.dataset.t = txt; pr.innerHTML = ''; if (txt) pr.append(f.kind === 'table' && GameArt.has(f.game) ? GameArt.el(f.game, 'ga-pr') : '', h('span', txt), h('kbd', 'A')); pr.classList.toggle('show', !!txt); }
   }
 
   function draw(now) {
@@ -912,10 +925,13 @@ const World = (() => {
     for (const tb of m.tables) {
       const g = GAMES[tb.game];
       c.font = `bold ${fs * .95}px "Trebuchet MS", sans-serif`;
-      const label = `${g.icon} ${g.name.replace("Ultimate Texas Hold'em", "Ultimate Hold'em")}`;
-      const tw = c.measureText(label).width + 6 * u;
-      c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(sx(tb.x + tb.w / 2) - tw / 2, sy(tb.y + tb.h) + 1 * u, tw, fs * 1.4);
-      c.fillStyle = '#ffe9a8'; c.fillText(label, sx(tb.x + tb.w / 2), sy(tb.y + tb.h) + 1 * u + fs * .72);
+      // a drawn crest beside the game's name, once its image has loaded
+      const art = GameArt.img(tb.game), ic = art ? fs * 1.25 : 0, gap = art ? 3 * u : 0;
+      const label = art ? g.name.replace("Ultimate Texas Hold'em", "Ultimate Hold'em") : `${g.icon} ${g.name.replace("Ultimate Texas Hold'em", "Ultimate Hold'em")}`;
+      const tw = c.measureText(label).width + 6 * u + ic + gap, cx0 = sx(tb.x + tb.w / 2), top = sy(tb.y + tb.h) + 1 * u;
+      c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(cx0 - tw / 2, top, tw, fs * 1.4);
+      if (art) c.drawImage(art, cx0 - tw / 2 + 3 * u - ic * .05, top + fs * .7 - ic / 2, ic, ic);
+      c.fillStyle = '#ffe9a8'; c.fillText(label, cx0 + (ic + gap) / 2, top + fs * .72);
     }
     for (const L of m.labels) {
       if (L.street) continue;
@@ -947,5 +963,5 @@ const World = (() => {
   function clock() { return App.state.clock || 540; }
   function isNight() { const t = clock() % 1440; return t >= 1200 || t < 360; }
   function clockText() { const t = Math.floor(clock()) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); }
-  return { mount, unmount, townMap, refreshGoal: () => updateGoal(), roomName: k => (ROOMS[k] || {}).name || 'indoors', savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
+  return { mount, unmount, townMap, drawPerson, refreshGoal: () => updateGoal(), roomName: k => (ROOMS[k] || {}).name || 'indoors', savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
 })();

@@ -181,7 +181,7 @@ class Table {
     this.el = h('div.table-screen',
       h('div.table-top',
         h('button.btn.ghost.sm', { onclick: () => Router.leaveTable() }, '← Leave table'),
-        h('div.tt-title', h('b', game.name), h('span', `${ctx.venue.name} · ${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`)),
+        h('div.tt-title', GameArt.has(game.id) ? GameArt.el(game.id, 'tt-ga') : '', h('b', game.name), h('span', `${ctx.venue.name} · ${fmt(ctx.limits.min)}–${fmt(ctx.limits.max, { short: true })}`)),
         h('div.tt-right',
           this.plEl = h('div.pl'),
           this.extraEl = h('div.tt-extra'),
@@ -388,7 +388,7 @@ UI.dialog = async function (lines, choices) {
     const last = i === lines.length - 1;
     const text = typeof L.text === 'function' ? L.text() : L.text;
     const body = h('div.dialog',
-      h('div.portrait', { style: { background: ch.color } }, ch.face),
+      h('div.portrait', Portrait.el(CHARACTERS[L.who] ? L.who : 'narrator')),
       h('div.d-text', h('div.d-name', ch.name), h('p', { html: UI.esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') })));
     const btns = last && choices ? choices.map(c => ({ label: c.label, value: c.value, cls: c.cls || 'primary' })) : [{ label: last ? 'Okay' : 'Next ›', cls: 'primary', value: 'next' }];
     const v = await UI.modal({ body, buttons: btns, closable: false, cls: 'dlg' });
