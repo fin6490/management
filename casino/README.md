@@ -141,6 +141,13 @@ the map) holds the case board: clues, statements and a timeline.
 Rivals have their own arcs too: challenge any of them to a heads-up blackjack match from their
 chat window.
 
+**The Seventeen Postcards.** Once Oscar talks, postcards signed only "17" start reaching you.
+- Each one is a different puzzle that points somewhere in town: a jukebox, a pawn ticket, a wine
+  bin, a piano.
+- Each one you solve gives up a keepsake from Sal's life and the next card.
+- The trail ends with a tape Sal recorded for you. It only plays once you know the truth about him.
+- Postcards and keepsakes live in the case file's **Postcards** tab, with a nudge if you're stuck.
+
 ### Your file
 
 ☰ → Your file lets you tell the town a few real things about yourself: first name, hometown,
@@ -288,12 +295,36 @@ your bankroll and needs, what they sell, and the state of the game you're playin
 
 ### Voice
 
-☰ → AI chat → **Voice** turns on spoken replies: every character has their own voice, picked from
-the voices on your device. Tap 🎤 in any chat to talk instead of typing, or turn on **Hands-free** and
-the mic reopens after each reply so you can just talk back and forth. Tap 🔊 in a chat to mute it.
-Voice uses your browser's built-in speech features: Chrome, Edge and Safari all work. The microphone
-works best in the installed app; inside claude.ai the browser may block it, but replies can still be
-read aloud.
+☰ → AI chat → **Voice** turns on spoken replies. Story scenes can be read aloud too: the narrator,
+Dolores, Kessler, Sal and the rest each get their own voice. Tap 🎤 in any chat to talk instead of
+typing, or turn on **Hands-free** and the mic reopens after each reply. Tap 🔊 in a chat to mute it.
+
+- **Device voices (free):**
+  - Every character is cast to a different voice installed on your phone that fits their accent: a
+    British voice for Kessler, Irish for Mick, French for Margot and Philippe.
+  - Joke voices are skipped.
+  - If the browser won't list its voices (common in iPhone home-screen apps), characters are still
+    told apart by accent.
+  - For better voices on iPhone, go to Settings → Accessibility → Spoken Content → Voices → English
+    and download a few **Enhanced** or **Premium** voices in different accents.
+- **Natural voices (optional):**
+  - These use OpenAI's text-to-speech with your own key, and every character gets acting directions
+    (accent, age, mood).
+  - Paste the key under ☰ → AI chat → Voice. It stays in this browser and is never saved to save
+    files or exports.
+- **🎭 Voice cast** lets you hear each character and pick their voice yourself.
+
+### Background sound
+
+Each place has its own quiet soundscape, generated live:
+- the Spur's murmur and clinking glasses
+- the Riverboat's water and paddle thump
+- the Palace's slot chimes
+- the clock ticking in Vinnie's shop
+- the motel sign's buzz
+- wind in town by day, crickets at night
+
+Turn it off with ☰ → Background sound.
 
 ### At the tables
 

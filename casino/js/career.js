@@ -102,6 +102,7 @@ const ITEMS = {
   feltRed: { cat: 'Table Style', name: 'Crimson Felt', icon: '🟥', price: 300, felt: 'red', desc: 'Very Monte Carlo.' },
   feltBlack: { cat: 'Table Style', name: 'Black & Gold Felt', icon: '⬛', price: 5000, felt: 'black', desc: 'High-limit room energy.' },
   backBlue: { cat: 'Table Style', name: 'Blue Card Backs', icon: '🂠', price: 150, back: 'blue', desc: 'Classic blue diamond backs.' },
+  backSal: { cat: 'Table Style', name: "Sal's Seventeen Backs", icon: '📼', price: 0, back: 'sal', award: 'tape', desc: 'Midnight blue with a gold 17. Only for the one who heard the tape.' },
   backGold: { cat: 'Table Style', name: 'Gilded Card Backs', icon: '🌟', price: 4000, back: 'gold', desc: 'Gold leaf. Probably not real gold.' },
   // Deeds (story)
   spurDeed: { cat: 'Deeds', name: 'Deed to The Rusty Spur', icon: '📜', price: 1000000, swagger: 40, income: 8000, requiresChapter: 3, desc: 'Buy back the bar Sal lost. Pays $8,000 a day.' },
@@ -176,6 +177,7 @@ const ACHIEVEMENTS = [
   { id: 'bj10', name: 'Twenty-One Club', desc: 'Get 10 blackjacks', test: () => App.counter('blackjacks') >= 10, reward: 250, swagger: 2 },
   { id: 'spot1', name: 'Human Calculator', desc: 'Nail a perfect count for Doc\'s team', test: () => App.counter('spotPerfect') >= 1, reward: 100, swagger: 1 },
   { id: 'spot10', name: 'Team Player', desc: 'Ten perfect counts for Doc\'s team', test: () => App.counter('spotPerfect') >= 10, reward: 2500, swagger: 3 },
+  { id: 'postcards', name: 'Seventeen Postcards', desc: 'Follow every postcard signed 17 and hear the tape', test: () => !!(App.state.mystery && App.state.mystery.pc && App.state.mystery.pc.heard), reward: 1717, swagger: 5 },
   { id: 'side25', name: 'Side Hustle', desc: 'Win a side bet paying 25 to 1 or better', test: () => App.counter('bigSide') >= 1, reward: 100, swagger: 1 },
   { id: 'prog', name: 'On the Meter', desc: 'Win any progressive payout', test: () => App.counter('progHits') >= 1, reward: 100 },
   { id: 'jackpot', name: 'JACKPOT', desc: 'Hit a percentage jackpot tier', test: () => App.counter('jackpots') >= 1, reward: 5000, swagger: 10 },
@@ -530,6 +532,7 @@ const Career = {
         h('button.btn.sm', { onclick: () => Chat.newspaper() }, '📰 Read the morning paper')),
     });
     await this.collections();
+    await Postcards.morning();
     Router.refresh();
   },
 
@@ -619,7 +622,7 @@ const Career = {
   },
   itemAvailable(id) {
     const it = ITEMS[id], st = App.state;
-    if (it.award) return st.items[id] ? null : 'Earned in the Justice ending, not for sale';
+    if (it.award) return st.items[id] ? null : it.award === 'tape' ? 'Somewhere in town, a tape is waiting for you' : 'Earned in the Justice ending, not for sale';
     if (it.requires && !st.items[it.requires]) return `Requires ${ITEMS[it.requires].name}`;
     if (it.requiresFlag && !st.flags[it.requiresFlag] && st.mode === 'career') return 'Meet Doc on the Riverboat first';
     if (it.requiresChapter && st.chapter < it.requiresChapter && st.mode === 'career') return 'Not for sale yet (story)';
