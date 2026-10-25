@@ -411,9 +411,9 @@ and bonus:
 | Machine | Where | Bets | Bonuses |
 | --- | --- | --- | --- |
 | Dusty Dollars | Rusty Spur | $0.25–$10 | Gold Rush Hold & Spin coins; Wanted poster pick-em; free spins with ×2/×3 wilds |
-| Paddlewheel Gold | Riverboat | $1–$50 | The Paddlewheel wheel bonus (cash, 8 free spins, MAJOR, GRAND); free spins with a multiplier that grows with every win |
+| Paddlewheel Gold | Riverboat | $1–$50 | The Paddlewheel (cash, 8 free spins, or ⬆ UP to the Captain's Wheel with 100×–500×, the MAJOR and the GRAND); free spins with a multiplier that grows with every win |
 | Gilded Dragon | Palace | $5–$250 | Free spins with sticky expanding wild reels; Dragon Pearl Hold & Spin |
-| Kessler's Vault | Salon | $25–$2,500 | Crack the Vault: open safes until three jackpots match; free spins with ×2/×3 wilds |
+| Kessler's Vault | Salon | $25–$2,500 | Crack the Vault: open safes until three jackpots match, and maybe take Kessler's buy-out; free spins with ×2/×3 wilds |
 
 - **243 ways**: symbols pay left to right on adjacent reels, in any row. Wilds on reels 2 to 4.
 - **Bonus symbols** on each of reels 1, 2 and 3 start the machine's bonus game. Each outcome is
@@ -421,6 +421,19 @@ and bonus:
 - **Hold & Spin**: 6 or more coins or pearls lock in with cash values and give you 3 respins, reset
   whenever one lands. They can carry the MINI (20× bet), MINOR (50×) or MAJOR (250×); fill all 15 for
   the GRAND (1,000×).
+  - First pick one of three boxes for a **booster**:
+    - +1 respin (4 every time)
+    - a **Collector** straight away
+    - every starting coin **doubled**
+  - While respinning, a coin can land as a **Collector**, which scoops up the value of every cash coin
+    showing, or a **Doubler**, which doubles them all.
+  - The screen shows your respins (●●○), the running total and how many spots are left for the GRAND.
+- **Wanted posters**: one of the twelve posters is special. A **×2** doubles every bounty so far; the
+  **Sheriff's Star** blocks the next COLLECT.
+- **The Paddlewheel**: hold the button to wind it up and let go. Land on **⬆ UP** to spin the Captain's
+  Wheel in the middle, where every wedge is 100× or better and the jackpots live.
+- **Crack the Vault**: after four safes Kessler slides an envelope across the table: a cash buy-out, a
+  little under what the vault is worth on average from there. Take the deal, or keep cracking.
 - **Sal's Lucky 17**: at random, one or two middle reels turn completely wild.
 - **Gamble** ordinary wins on red or black (a fair 50/50), and **autoplay** 10 to 100 spins.
 - **Mystery jackpots to target**: each casino has four must-hit-by meters (Copper, Silver, Gold,
