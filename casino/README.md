@@ -337,6 +337,42 @@ Investments) and a door opens behind the Spur's bar. Inside are real no-limit ho
 | High Roller | $500,000 + $25,000 | 18 | From the Salon chapter |
 | Super High Roller | $5,000,000 + $100,000 | 9 | After the story ends |
 
+**Who you're playing.** Every opponent has a personality:
+
+| Personality | How they play |
+| --- | --- |
+| Nit | Hardly plays a hand |
+| Rock | Tight and passive; a big bet means a big hand |
+| Tight-aggressive regular | Solid, aggressive play |
+| Loose-aggressive | Plays lots of hands and pushes them |
+| Calling station | Calls you down with anything |
+| Maniac | Raises everything; bets biggest when bluffing |
+| Trapper | Slow-plays monsters and check-raises |
+| Shark | Balanced, and adapts to you |
+
+The rivals have their own versions: Tex is a wild cowboy who tilts, Mei is a calculating shark, the
+Baron is a stiff aristocrat and Rico is a showman.
+
+Opponents mix their play:
+- continuation bets and second barrels
+- semi-bluffs with draws
+- slow-played monsters and check-raises
+- floats and bluff-raises
+- bet sizes that vary from player to player
+
+They respect bets, folding more against bigger ones.
+
+**How to read them.**
+- **Stats.** After six hands each seat shows a quick read, for example **45/20 LAG**: plays 45% of
+  hands and raises 20%. Rock, Passive, Reg, Fish and LAG describe how they play. Table talk spells
+  it out.
+- **Tilt.** A player who loses a big pot can go on tilt (😤) and play wilder for a few hands.
+- **Tells.** When someone bets after the flop you may notice a tell, such as "stares right at you"
+  or "stacks their chips neatly". Each player has one habit for strength and one for weakness. Nits
+  and rocks are honest; sharks fake theirs.
+- **They read you too.** Good players adapt: raise too often and they play back at you, fold too
+  often and they bluff you more.
+
 When everyone left in a hand is all in, the hole cards turn face up and the board runs out one
 street at a time, slowly enough to sweat. A showdown you played in waits for you to tap **Next
 hand** (or press Space). Blinds and antes rise on a schedule. Players at the other tables bust out, and survivors move to
