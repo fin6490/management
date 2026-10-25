@@ -197,6 +197,61 @@ A happy player tires more slowly. A miserable one tires faster.
   dealer's name at any table to chat; they know the table's rules and how your sitting is going.
 - **Talk to anyone in your own words** with Claude. See [AI chat](#ai-chat) below.
 
+### Friends
+
+Dolores, Doc, Lucky Lou, Mick, Sparky and Margot each keep a friendship level with you:
+Stranger → Acquaintance → Friend → Close friend → Family. The hearts in their chat window show
+where you stand. You earn friendship by:
+
+- stopping to talk (once a day)
+- buying them something they like, such as Dolores's good bourbon or Doc's pie and coffee (once a
+  day; the price grows with the story)
+- finishing their side jobs
+- hearing their whispers
+
+Once they're your friend they treat you better:
+
+| Person | Friend | Close friend |
+| --- | --- | --- |
+| Dolores | Spur drinks on the house | Shifts pay half as much again |
+| Doc | You wake up in a better mood | The degen meter cools twice as fast |
+| Lou | Paddlewheel Lounge drinks free | Lounge food free too |
+| Mick | Steadier darts arm | Steadier still |
+| Sparky | +$100 a day in slot tech tips | +$300 a day |
+| Margot | Palace drinks free | +5 swagger |
+
+Every Friend level also adds swagger, and so does every Close friend level. Friends open up in AI
+chat, and each one has a personal side job that only appears once you're friends (the chat shows
+🔒 until then). The status screen lists everyone you know. Achievements: Regular, Inner Circle and
+Family.
+
+### Side jobs
+
+| From | Job | What to do |
+| --- | --- | --- |
+| Dolores | Twenty-One at the Spur | Win 15 blackjack hands at the Spur |
+| Dolores | Big Night | Finish a day $5,000 up |
+| Dolores | The Back Room | Refit the Spur's poker room |
+| Dolores (friend) | Dolores's Night Off | Cover three of her bar shifts |
+| Doc | Doc's sweet tooth | Bring him cherry pie |
+| Doc | Three Card Monte | Win Pair Plus with a straight or better |
+| Doc | Cash in the Back | Finish in the money in a Back Room tournament |
+| Doc (friend) | A Letter for Lou | Carry his letter to Lou |
+| Lou | Hot shooter | Make three points on one shooter |
+| Lou | The Hard Way | Win a hardways bet |
+| Lou (friend) | Storm Watch | Play 20 Riverboat rounds between 10 PM and 4 AM |
+| Vinnie | Tex owes Vinnie | Beat the table while Tex is there |
+| Vinnie | Vinnie's Number | Hit 17 straight up at roulette |
+| Margot | Humble the Baron | Win three hands against him |
+| Margot | Royal Treatment | Win UTH Trips with a flush or better |
+| Margot (friend) | The Banker's Daughter | Win five Banker bets at the Palace |
+| Mick | Darts ladder | Four darts jobs, ending in the Golden Arrow |
+| Mick (friend) | Bar Legend | Win three darts money matches in a row |
+| Sparky | Slots ladder | Four slots jobs |
+| Sparky (friend) | Field Survey | 50 spins in each of three casinos |
+
+Finish ten side jobs for the Odd Jobs achievement.
+
 ### The Seventeenth Card
 
 The story is a four-act mystery about what happened at Sal's last game. ☰ → Case file (or 🔎 on
@@ -282,7 +337,9 @@ Investments) and a door opens behind the Spur's bar. Inside are real no-limit ho
 | High Roller | $500,000 + $25,000 | 18 | From the Salon chapter |
 | Super High Roller | $5,000,000 + $100,000 | 9 | After the story ends |
 
-Blinds and antes rise on a schedule. Players at the other tables bust out, and survivors move to
+When everyone left in a hand is all in, the hole cards turn face up and the board runs out one
+street at a time, slowly enough to sweat. A showdown you played in waits for you to tap **Next
+hand** (or press Space). Blinds and antes rise on a schedule. Players at the other tables bust out, and survivors move to
 your table until it's the final table. Side pots, minimum raises and short all-ins follow the real
 rules. Opponents play differently (nits, tight-aggressive regulars, calling stations, maniacs), and the rivals buy in
 when they can afford it. The controls show pot odds, and you can size bets with the slider or the
