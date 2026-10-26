@@ -523,6 +523,23 @@ with a last scene with your doctor.
 **Playing for real money.** You can sit down at the tables and slots with the money in your
 wallet. Your dream bankroll is kept safe and comes back when you return to the dream.
 
+**Floor games.** Three games built for the 3D casino. Walk up to one and the camera moves in on
+it while your bets slide up from the bottom of the screen.
+- **Big Six money wheel.** A 54-segment wheel with a leather flapper. Bet on $1, $2, $5, $10, $20,
+  Joker or Meridian, and the dealer gives it a pull.
+- **Sic Bo.** Three dice rattle under a glass dome. Bets include Small and Big, Odd and Even, any
+  triple or a specific triple, totals from 4 to 17, and single numbers.
+- **High Tide and Low Tide coin pushers.** Real shelf physics: time the dropper, and coins that
+  fall in the middle land in your tray. Every 60th coin the machine adds a gold token worth 10
+  coins. Each shelf is saved, so a machine you've loaded up is still loaded when you come back.
+
+They return 96–98%, like the rest of the game. Big Six and Sic Bo are worked out exactly and the
+pusher is simulated:
+
+```
+node casino/tools/l2-odds.js
+```
+
 **AI chat.** Delia and Margaux can talk freely if AI chat is on.
 
 **Getting there and back:**
