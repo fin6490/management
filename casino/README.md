@@ -562,6 +562,17 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
     Detective Mori when it gets loud (she's eleven years sober), and turn down three drinks you're
     offered: Delia's, Margaux's and the minibar's.
   - **Last Call.** Six drinks, and you stop fighting.
+- **The Barman.** If you don't kick the habit, a hallucination comes for you. He's a gaunt figure in
+  a stained bar apron, lit red from behind, and he walks straight through walls.
+  - **When he hunts you:** when the craving has been screaming for a while, or every few minutes
+    once you've given in. A heartbeat thuds louder as he gets closer.
+  - **Escaping:** outrun him for half a minute (hold Shift, though the shakes slow you down), get
+    out through a door, or call Mori.
+  - **Getting caught:** you go down. The third time you don't get up, and that's the 🥀 **Closing
+    Time** ending. You can wake up in the clinic and try the night again, with your story
+    progress kept.
+  - **Getting sober** sends him away for good. There are achievements for outrunning him and for
+    the death ending.
 - **Effect on the story.** The endings remember which way it went, but nothing in the main story
   depends on it. The notebook's **The bottle** tab tracks it.
 
