@@ -297,6 +297,17 @@ your own words. These secrets are called whispers.
   The game only counts it if your own question was actually about that topic, so you can't trick
   someone into handing it over.
 
+### Fragments
+
+Seventeen small things are hidden around the town and inside the buildings: a child's drawing, a
+theatre ticket, a recipe card, a cassette and more. They don't belong in the dream.
+
+- **Finding them.** Every few seconds a hidden item gives off a faint glint. Stand next to it and
+  press Space (or tap ✋) to pick it up. There are seven in town and one in each casino and room.
+- **Where they're kept.** The **Fragments** panel on the Status screen lists what you've found.
+- **Achievements.** Something Familiar for your first, Remember for all seventeen.
+- **What they're for.** You'll find out later.
+
 ### Your file
 
 ☰ → Your file lets you tell the town a few real things about yourself: first name, hometown,
