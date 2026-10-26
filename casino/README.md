@@ -158,7 +158,9 @@ A happy player tires more slowly. A miserable one tires faster.
   - Tipsy makes the screen sway.
   - Drunk drops the dealer hints, makes your darts wobble, and gets you turned away by the bouncers
     at the Gilded Palace and the Salon.
-  - Drinking too much makes you black out.
+  - Drinking too much makes you black out. You wake up the next morning somewhere random outside in
+    town (in a flowerbed, on the dock, in a doorway), with no idea how you got there and a lighter
+    wallet.
   - Water and food sober you up, and buzz wears off by the hour.
   - Going to bed with a big buzz means a hangover in the morning.
 - **Coffee.** Four caffeinated drinks in a day make you jittery: the HUD shakes, your mood dips and
@@ -377,6 +379,24 @@ They respect bets, folding more against bigger ones.
 - **Stats.** After six hands each seat shows a quick read, for example **45/20 LAG**: plays 45% of
   hands and raises 20%. Rock, Passive, Reg, Fish and LAG describe how they play. Table talk spells
   it out.
+- **Table talk.** Players react to the actual hands.
+  - **After a pot nobody called:** if you folded, the winner may show their cards (the loose ones
+    love to show a bluff) or say what they had. If you bet someone off a hand, they may tell you what
+    they laid down. What they say is only as honest as they are: nits mostly tell the truth, and
+    sharks and maniacs lie.
+  - **In AI chat:** they know the hand in play (the board, the pot and every action so far) and
+    their own cards, which they won't honestly reveal while the hand is live. They also remember
+    the last hand: what they held, whether you folded to them, and what they claimed, true or not.
+  - **Your play:** they know your stats at the table, so ask what they had, needle them, or try to
+    talk them out of a call.
+- **Quick bets.** One tap bets a standard size, and each button shows the amount:
+  - **Opening preflop:** 2, 2.5, 3 or 4 big blinds, plus one big blind per limper on the 3 BB
+    button.
+  - **Facing a raise:** a 3× or 4× re-raise.
+  - **After the flop:** ⅓, ½, ⅔ or a full pot.
+  - **All-in** is always there.
+
+  The slider and the amount box are still there for anything else.
 - **Tilt.** A player who loses a big pot can go on tilt (😤) and play wilder for a few hands.
 - **Tells.** When someone bets after the flop you may notice a tell, such as "stares right at you"
   or "stacks their chips neatly". Each player has one habit for strength and one for weakness. Nits
@@ -529,6 +549,21 @@ for all three.
 
 **Playing for real money.** You can sit down at the tables and slots with the money in your
 wallet. Your dream bankroll is kept safe and comes back when you return to the dream.
+
+**The bottle.** You had a drinking problem before the dream, and the dream didn't help.
+- **Withdrawal.** In Level 2 the craving builds while you play. First a cold sweat, then nausea
+  (the view sways and sours), then the shakes: the view trembles, you walk slower, and cards and
+  coins get harder to handle.
+- **Severity.** How hard it hits depends on how much you drank in Level 1: drinks, tipsy nights
+  and hangovers, per day played.
+- **Drinking.** A drink stops it for a while, and each drink brings the next craving sooner.
+- **The side story ends one of two ways:**
+  - **One Day at a Time.** Tell Dr. Okafor the truth, pour out the flask in your glovebox, call
+    Detective Mori when it gets loud (she's eleven years sober), and turn down three drinks you're
+    offered: Delia's, Margaux's and the minibar's.
+  - **Last Call.** Six drinks, and you stop fighting.
+- **Effect on the story.** The endings remember which way it went, but nothing in the main story
+  depends on it. The notebook's **The bottle** tab tracks it.
 
 **Floor games.** Three games built for the 3D casino. Walk up to one and the camera moves in on
 it while your bets slide up from the bottom of the screen.

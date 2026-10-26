@@ -1,9 +1,9 @@
 /* Offline support: every file the app needs is cached on first visit. Files are served from the
    cache and refreshed in the background, so a new version shows up on the next launch.
    Bump VERSION when the file list changes. */
-const VERSION = 'high-roller-v27';
+const VERSION = 'high-roller-v28';
 const FILES = [
-  './', 'index.html', 'manifest.webmanifest', 'css/style.css', 'css/reality.css', 'vendor/three.min.js', 'js/reality/engine.js', 'js/reality/games.js', 'js/reality/world.js', 'js/reality/story.js',
+  './', 'index.html', 'manifest.webmanifest', 'css/style.css', 'css/reality.css', 'vendor/three.min.js', 'js/reality/engine.js', 'js/reality/games.js', 'js/reality/world.js', 'js/reality/story.js', 'js/reality/bottle.js',
   'js/core.js', 'js/poker.js', 'js/paytables.js', 'js/rtp.js', 'js/ui.js', 'js/state.js', 'js/career.js',
   'js/games/blackjack.js', 'js/games/uth.js', 'js/games/stud.js', 'js/games/baccarat.js',
   'js/games/craps.js', 'js/games/roulette.js', 'js/voice.js', 'js/npcs.js', 'js/meta.js', 'js/portraits.js', 'js/looks.js', 'js/gameart.js', 'js/spotter.js', 'js/postcards.js', 'js/ambient.js', 'js/music.js', 'js/mood.js', 'js/duel.js', 'js/mystery.js', 'js/whispers.js', 'js/relations.js', 'js/fragments.js', 'js/holdem.js', 'js/darts.js', 'js/slotart.js', 'js/slots.js', 'js/world.js', 'js/main.js',
