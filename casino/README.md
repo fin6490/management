@@ -389,6 +389,15 @@ They respect bets, folding more against bigger ones.
     the last hand: what they held, whether you folded to them, and what they claimed, true or not.
   - **Your play:** they know your stats at the table, so ask what they had, needle them, or try to
     talk them out of a call.
+- **Short stacks.**
+  - **Calling a short all-in:** if everyone left is all-in for less than the bet, you only have to
+    match what they put in. If the big blind went all-in for 30 when the blind is 50, you're asked
+    for 30, or nothing if you've already put it in.
+  - **Shoving:** players with fewer than 12 big blinds shove or fold, and shove wider the shorter
+    they get. At 10 big blinds they shove only good hands; at 3 they shove nearly anything.
+  - **Calling an all-in** is decided on equity against pot odds. A big blind with a few chips
+    left calls with anything, and a big stack calls a short shove with A-7 but folds 7-2 to a big
+    one.
 - **Quick bets.** One tap bets a standard size, and each button shows the amount:
   - **Opening preflop:** 2, 2.5, 3 or 4 big blinds, plus one big blind per limper on the 3 BB
     button.
