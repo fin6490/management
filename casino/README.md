@@ -485,6 +485,59 @@ go up to $1,000,000 a hand.
 
 **Free Play** opens every venue with all helpers on, no hunger or tiredness, and a refillable $10,000 bankroll (☰ → Status).
 
+## Level 2: The Meridian
+
+When the dream's story ends, you wake up. Level 2 is a first-person 3D mystery set in the real
+world. The bright little town was a dream. The Meridian is a real casino in a rain-soaked city.
+
+**The story.** A year ago your wife Nora and your children Ellie and Sam were killed at home
+while you were away on a work trip. The police blamed a drifter and closed the case. Tonight is
+the anniversary, and you go back to the casino where you used to work to find out what really
+happened. The story is told gently and never shown.
+
+**Where you go:**
+- the sleep clinic
+- the car park under the casino, where your car has waited all year
+- the casino floor and the Low Tide bar
+- the surveillance room (The Eye)
+- the high-limit Salon
+- the 17th floor of the hotel, room 1717
+- the roof
+- the cemetery
+
+**Puzzles:**
+- **The count.** Count a shoe of cards with Hi-Lo to get your old badge switched back on.
+- **The footage.** Pick the three camera log entries that break a man's alibi.
+- **The ledger.** Spot the laundering sessions in the high-limit ledger.
+- **The password.** Your daughter set it. Her drawing has the answer.
+- **What you know.** Put the whole case together before you go up to the roof.
+
+**Endings.** There are three: Eyes Open, Five Million Reasons and Back to Sleep. Each one ends
+with a last scene with your doctor.
+
+**The dream echoes the real world.** Everyone in the dream was someone from your waking life.
+- The **Notebook** (📓) lists your evidence, the people you've met and who each one was in the
+  dream.
+- The **fragments** you found in the dream are waiting in a box in your car.
+
+**Playing for real money.** You can sit down at the tables and slots with the money in your
+wallet. Your dream bankroll is kept safe and comes back when you return to the dream.
+
+**AI chat.** Delia and Margaux can talk freely if AI chat is on.
+
+**Getting there and back:**
+- Level 2 is offered when the dream's story ends.
+- Once a save has reached it, the title screen shows a **Level 2** button and the ☰ menu shows
+  **Level 2: The Meridian**.
+- You can go back to the dream from Level 2's menu at any time.
+
+**Controls:**
+- **Computer:** WASD or the arrow keys to walk, Shift to hurry, and the mouse to look (click to
+  capture it). Press E, Space or Enter to use things.
+- **Phone:** your left thumb walks, dragging on the right looks around, and ✋ uses things.
+
+The 3D engine is [three.js](https://threejs.org) (MIT licence), bundled in `vendor/`.
+
 ## AI chat
 
 Everyone in town can talk back in their own voice: story characters, rivals, dealers (the 💬 button

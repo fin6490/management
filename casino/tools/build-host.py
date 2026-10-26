@@ -23,7 +23,7 @@ bridge = sys.argv[4] if len(sys.argv) > 4 else '../bridge.js'
 if os.path.exists(out):
     shutil.rmtree(out)
 os.makedirs(out)
-for d in ('css', 'js', 'icons'):
+for d in ('css', 'js', 'icons', 'vendor'):
     shutil.copytree(os.path.join(root, d), os.path.join(out, d))
 
 html = open(os.path.join(root, 'index.html')).read()
@@ -38,7 +38,7 @@ def bust(m):
         return m.group(0)
     v = hashlib.sha1(open(path, 'rb').read()).hexdigest()[:10]
     return f'{m.group(1)}="{m.group(2)}?v={v}"'
-html = re.sub(r'(src|href)="((?:js|css)/[^"?]+)"', bust, html)
+html = re.sub(r'(src|href)="((?:js|css|vendor)/[^"?]+)"', bust, html)
 first = html.index('<script src=')
 html = html[:first] + stub + html[first:]
 open(os.path.join(out, 'index.html'), 'w').write(html)
