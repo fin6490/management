@@ -512,8 +512,15 @@ happened. The story is told gently and never shown.
 - **The password.** Your daughter set it. Her drawing has the answer.
 - **What you know.** Put the whole case together before you go up to the roof.
 
-**Endings.** There are three: Eyes Open, Five Million Reasons and Back to Sleep. Each one ends
-with a last scene with your doctor.
+**Endings.** On the roof the paths split three ways. Each ending closes with a scene with your
+doctor.
+- 🌅 **Good: Eyes Open.**
+- 🩸 **Horror: The House Always Wins.** A seventeenth floor where every door is 1717.
+- 🃏 **Mystery: The Seventeenth Card.** The Rusty Spur, real, where the roof should be.
+
+After an ending you can go **back to the roof** and choose again, from the ending screen or the ☰
+menu. The ending screen shows which ones you've found. There are achievements for each ending and
+for all three.
 
 **The dream echoes the real world.** Everyone in the dream was someone from your waking life.
 - The **Notebook** (📓) lists your evidence, the people you've met and who each one was in the
@@ -543,10 +550,15 @@ node casino/tools/l2-odds.js
 **AI chat.** Delia and Margaux can talk freely if AI chat is on.
 
 **Getting there and back:**
-- Level 2 is offered when the dream's story ends.
-- Once a save has reached it, the title screen shows a **Level 2** button and the ☰ menu shows
-  **Level 2: The Meridian**.
-- You can go back to the dream from Level 2's menu at any time.
+- **Into Level 2.** When the dream's story ends, you wake up in the clinic.
+- **Back to the dream.** Sleep in the Meridian and a fever dream takes you back to town, with all
+  your Level 1 progress intact, so you can keep chasing its end-game achievements. You can sleep
+  in the clinic bed, your car, room 1717 or from the ☰ menu.
+- **Choosing each night.** From then on, every bed in town asks whether to stay in the dream or
+  wake up to reality. If you wake, that night in town finishes the next time you fall asleep in
+  the Meridian.
+- **Older saves.** Saves that finished the dream before Level 2 existed get a **Wake up** button on
+  the title screen.
 
 **Controls:**
 - **Computer:** WASD or the arrow keys to walk, Shift to hurry, and the mouse to look (click to
