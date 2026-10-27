@@ -259,6 +259,20 @@ out.lir = { bonus3: rtpTable(PAY.lir.bonus3, p3c) };
   };
 }
 
+// ---------- Crazy 4 Poker: Queens Up over every 5-card hand ----------
+{
+  const qu = tierMap(PAY.c4.queensUp), cnt = {}; let n = 0;
+  for (let a = 0; a < 52; a++) for (let b = a + 1; b < 52; b++) for (let c = b + 1; c < 52; c++) for (let d = c + 1; d < 52; d++) for (let e = d + 1; e < 52; e++) {
+    const h = Poker.best4([deck[a], deck[b], deck[c], deck[d], deck[e]]);
+    let k = h.key === 'aces4' ? 'quads' : h.key;
+    if (k === 'pair') k = h.groups[0] >= 12 ? 'qup' : null;
+    if (k === 'high') k = null;
+    if (k) cnt[k] = (cnt[k] || 0) + 1; n++;
+  }
+  let r = 0; for (const k in cnt) if (qu[k]) r += cnt[k] / n * (qu[k].pays + 1);
+  out.c4 = { queensUp: r, probs: Object.fromEntries(Object.entries(cnt).map(([k, v]) => [k, v / n])) };
+}
+
 // ---------- report ----------
 const lines = [];
 const show = (name, v) => lines.push(name.padEnd(34) + (typeof v === 'number' ? pct(v) : v));
@@ -267,7 +281,7 @@ show('bj.perfectPairs', out.bj.perfectPairs); show('bj.plus3', out.bj.plus3); sh
 show('uth.trips', out.uth.trips); show('uth.pocket', out.uth.pocket); showProg('uth.prog', out.uth.prog);
 show('ms.bonus3', out.ms.bonus3); showProg('ms.prog', out.ms.prog);
 show('tcp.pairPlus', out.tcp.pairPlus); show('tcp.six', out.tcp.six); showProg('tcp.prog', out.tcp.prog);
-show('lir.bonus3', out.lir.bonus3); show('war.tie', out.war.tie);
+show('lir.bonus3', out.lir.bonus3); show('war.tie', out.war.tie); show('c4.queensUp', out.c4.queensUp);
 for (const k of ['player', 'banker', 'bankerEZ', 'tie', 'pair', 'dragon7', 'panda8']) show('bac.' + k, out.bac[k]);
 showProg('bac.prog', out.bac.prog);
 for (const k of ['fire', 'small', 'tall', 'all']) show('craps.' + k, out.craps[k]);
@@ -280,7 +294,7 @@ const rtp = {
   'bj.perfectPairs': out.bj.perfectPairs, 'bj.plus3': out.bj.plus3,
   'uth.trips': out.uth.trips, 'uth.pocket': out.uth.pocket,
   'ms.bonus3': out.ms.bonus3, 'tcp.pairPlus': out.tcp.pairPlus, 'tcp.six': out.tcp.six,
-  'lir.bonus3': out.lir.bonus3, 'war.tie': out.war.tie,
+  'lir.bonus3': out.lir.bonus3, 'war.tie': out.war.tie, 'c4.queensUp': out.c4.queensUp,
   'bac.player': out.bac.player, 'bac.banker': out.bac.banker, 'bac.bankerEZ': out.bac.bankerEZ, 'bac.tie': out.bac.tie,
   'bac.pair': out.bac.pair, 'bac.dragon7': out.bac.dragon7, 'bac.panda8': out.bac.panda8,
   'craps.fire': out.craps.fire, 'craps.small': out.craps.small, 'craps.tall': out.craps.tall, 'craps.all': out.craps.all,

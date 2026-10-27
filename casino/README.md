@@ -31,6 +31,22 @@ Saves live on the phone. Export a backup from **☰ → Export save file** now a
 | Craps | Odds up to 100x, come bets, place bets, true-odds props, Fire Bet, All/Tall/Small |
 | Roulette (American, European, French La Partage) | Inside and outside bets |
 | Casino War | Tie / suited tie |
+| Crazy 4 Poker (best four of five; the Salon only, and Level 2's Meridian) | Super Bonus up to 200:1, Queens Up |
+
+### Crazy 4 Poker
+
+You and the dealer each get five cards, and the best four play.
+- **Betting:** an equal Super Bonus bet goes out with your Ante. Then you fold, play 1x, or play 3x
+  with a pair of aces or better.
+- **The dealer** needs king high to qualify. If it doesn't, the Ante pushes and the Play bet still
+  goes against the dealer's hand.
+- **Super Bonus:** a straight or better pays whatever the dealer has: Four Aces 200, Straight Flush
+  50, Four of a Kind 40, Flush 2, Straight 1. Otherwise it pushes when you beat or tie the dealer.
+- **Queens Up** is an optional side bet on your own hand and returns 99.9%.
+- **Odds:** the main game's house edge is about 3% of the Ante with the simple strategy, which Doc's
+  hint shows: 3x with aces or better, 1x with any pair or K-Q-8-4 and up, fold the rest.
+- **Where to play:** in the dream it's only dealt at the Monte Royale Salon Privé. In the waking
+  world it has its own table on the Meridian floor.
 
 ### Player-friendly odds
 
