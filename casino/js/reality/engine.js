@@ -344,7 +344,9 @@ const R3 = (() => {
     if (el) el.host.classList.add('fading'); await new Promise(r => setTimeout(r, el ? 450 : 0));
     clearArea(); root = new THREE.Group(); scene.add(root); area = name;
     const info = build(api) || {};
-    environment(info); keyLight(info.shadow);
+    const hi = !App.state || App.state.settings.gfx !== 'low'; // ☰ Graphics: low skips shadows and reflections for older phones
+    if (hi) { environment(info); keyLight(info.shadow); } else { scene.environment = null; for (const key in mats) mats[key].envMapIntensity = 0; }
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, !hi ? 1 : lowPower ? 1.25 : 1.75));
     scene.background = new THREE.Color(info.bg || '#050608');
     scene.fog = new THREE.FogExp2(info.fogColor || info.bg || '#050608', info.fog != null ? info.fog : .045);
     renderer.toneMappingExposure = info.exposure || 1;

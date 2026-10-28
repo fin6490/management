@@ -669,6 +669,8 @@ about forty minutes) and a bit more for every round at a table. They show under 
   has ceiling pipes and rain standing in puddles;
 - you speed up and slow down instead of starting and stopping dead, and your footsteps sound
   different on concrete and carpet.
+- if it runs slowly on an older phone, **☰ → Graphics: low** turns off the shadows and reflections
+  and draws at a lower resolution.
 
 **The man on Calder Street (a hidden story).** The police said a drifter did it. Nobody ever asked
 who he was. Underneath the main story there's another one, and only conversation and the dream can

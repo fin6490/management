@@ -762,13 +762,14 @@ const L2 = (() => {
       got.length === ws.length ? h('p.l2-mem', 'You know what happened on Calder Street. So, now, does Mori.') : null);
   }
   async function menu() {
-    const opts = [['back', 'Back'], ['sound', `Sound: ${App.state.settings.sound !== false ? 'on' : 'off'}`], ['sleep', '😴 Sleep (back to the dream)']];
+    const opts = [['back', 'Back'], ['sound', `Sound: ${App.state.settings.sound !== false ? 'on' : 'off'}`], ['gfx', `Graphics: ${App.state.settings.gfx === 'low' ? 'low (faster)' : 'high'}`], ['sleep', '😴 Sleep (back to the dream)']];
     if (L2Bottle.ready()) opts.splice(1, 0, ['mori', '📞 Call Detective Mori']);
     if (S().clues.rabbit || has('okafor')) opts.splice(1, 0, ['phone', '💬 Phone someone to talk']);
     if (Object.keys(found()).length) opts.push(['roof', '↺ Back to the roof: choose again']);
     opts.push(['title', 'Title screen']);
     const c = await choose('Menu', opts);
     if (c === 'sound') { App.state.settings.sound = App.state.settings.sound === false; App.save(); }
+    if (c === 'gfx') { App.state.settings.gfx = App.state.settings.gfx === 'low' ? 'high' : 'low'; App.save(); const P = R3.player; await R3.go(R3.area, L2World[R3.area], [P.x, P.z, P.yaw]); toast(App.state.settings.gfx === 'low' ? 'Graphics: low. No shadows or reflections, so it runs faster.' : 'Graphics: high. Shadows and reflections on.'); }
     if (c === 'mori') await L2Bottle.callMori();
     if (c === 'phone') { const who = await choose('Who do you call?', [...(has('okafor') ? [['okafor', 'Dr. Okafor']] : []), ...(S().clues.rabbit ? [['mori', 'Detective Mori']] : []), ['back', 'Nobody']]); if (who !== 'back') chat(who); }
     if (c === 'sleep') await feverDream();
