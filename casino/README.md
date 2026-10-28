@@ -434,6 +434,15 @@ They respect bets, folding more against bigger ones.
     the last hand: what they held, whether you folded to them, and what they claimed, true or not.
   - **Your play:** they know your stats at the table, so ask what they had, needle them, or try to
     talk them out of a call.
+  - **Folding face up:** now and then a player who folds to a bet lays their cards down face up,
+    to show you it was a real laydown or that they had nothing. That one is always the truth.
+  - **Show or muck:** at showdown the best hand is turned over, and so is any hand that's all in or
+    could still win a side pot. A hand that's beaten can go into the muck unseen ("mucks"), unless
+    its owner likes to show.
+  - **Reads:** talk to someone who's still in the hand (💬 Table talk) and, more often than not,
+    you notice something while they answer: they go very still, or talk too fast, or keep glancing
+    at their stack. It reads as strength or weakness, and it's right as often as that player is
+    honest. Sharks and actors fake it, and the read says so. The AI plays the same tell in its reply.
 - **Short stacks.**
   - **Calling a short all-in:** if everyone left is all-in for less than the bet, you only have to
     match what they put in. If the big blind went all-in for 30 when the blind is 50, you're asked
@@ -790,6 +799,13 @@ themselves, and they ask you things back. Most have something to offer:
   Sergeant Hanley and Terry (sleeping it off) at the police station, Father Tom and Ruth at St
   Brigid's, Bree with her tray, Hollis, Glenda and Tiffany on the Meridian floor, Mr. Chen in the
   Salon, Lupe on the 17th floor, Nurse Adeyemi at the clinic and Stan in the car park booth.
+
+**The card games.** Ask Lou Marino at the Low Tide about a card game and he'll tell you about the
+Thursday game in the back room at Sully's: six-handed no-limit hold'em, $500 to sit, top two paid,
+against Lou, Big Sean, Mags, Dale and Sully himself (each plays their own way, and 💬 Table talk
+reaches them as themselves). Win it and Mr. Chen in the Salon offers you a seat at his private game:
+$5,000 to sit, against an art dealer, a restaurateur, a surgeon and a property developer.
+Achievements: The Thursday Game and Private Table.
 
 **Starting again.** ☰ → **Start Level 2 again** goes back to waking up in the clinic, keeping the
 dream and the endings you've found. A save from before Level 2 was rebuilt is offered a fresh start.
