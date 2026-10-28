@@ -166,6 +166,7 @@ const L2Games = (() => {
         const d = [1 + RNG.int(6), 1 + RNG.int(6), 1 + RNG.int(6)]; await S.roll(d);
         let back = 0; for (const k in B.bets) { const p = sicboPays(k, d); if (p >= 0) back += B.bets[k] * (1 + p); }
         const triple = d[0] === d[1] && d[1] === d[2];
+        if (triple) App.count('l2_triple');
         settle(api, staked, back, `${d.join(' · ')}: ${triple ? 'a triple!' : 'total ' + (d[0] + d[1] + d[2]) + '.'}`);
         B.clear(); api.busy = false; rollBtn.disabled = false; rollBtn.textContent = 'Roll (same bets)';
       };

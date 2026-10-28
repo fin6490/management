@@ -269,3 +269,17 @@ body.l2-hunted .l2-grain { opacity: .16; }
 .l2-scareface { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 89; pointer-events: none; }
 /* in the isometric world the prompt sits low, out of the way of your character */
 .r3-prompt { top: auto !important; bottom: calc(max(28px, env(safe-area-inset-bottom)) + 84px); }
+
+/* Level 2 money: the torch in the HUD, goals, promotions, and Rosie's sink */
+.l2-torch { font-size: .8rem; color: #ffe9a8; white-space: nowrap; } .l2-torch:empty { display: none; }
+.l2-goal { height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); margin-top: .35rem; overflow: hidden; }
+.l2-goal i { display: block; height: 100%; background: linear-gradient(90deg, #c9a14a, #ffe08a); }
+.l2-clue.got b { color: #8fd18f; }
+.l2-promos .l2-btn { margin-top: .45rem; }
+b.l2-sub2 { display: block; margin-top: 1rem; color: #e8d7a8; font-size: .9rem; }
+.l2-sink { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; padding: .6rem 0; }
+.l2-plate { aspect-ratio: 1; border-radius: 50%; border: 3px solid #e8e8e8; cursor: pointer; min-height: 56px;
+  background: radial-gradient(circle at 50% 50%, rgba(120,90,40,calc(var(--dirt) * .9)) 0 40%, rgba(90,70,40,calc(var(--dirt) * .6)) 41% 60%, transparent 61%), radial-gradient(circle, #fff 0 62%, #dfe6ea 63%); transition: transform .08s; }
+.l2-plate:active { transform: scale(.93); } .l2-plate.clean { box-shadow: 0 0 14px rgba(200,240,255,.7); cursor: default; }
+/* on a phone the right-hand chips wrap under each other, so the objective keeps a readable width */
+@media (max-width: 560px) { .l2-left { flex: 1 1 46%; min-width: 46%; } .l2-right { flex-wrap: wrap; justify-content: flex-end; row-gap: 6px; } .l2-torch { padding: .35rem .5rem; border-radius: 20px; background: var(--l2-glass); border: 1px solid var(--l2-line); } }

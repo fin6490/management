@@ -26,7 +26,7 @@ const L2Bottle = (() => {
   const stepsDone = () => { const d = st(); return ['admit', 'flask', 'sponsor'].filter(k => d.steps[k]).length; };
   const refusals = () => Object.keys(st().refused).length;
   // craving per second: severe ~3½ minutes to the shakes, mild ~10; every recovery step eases it
-  const rate = () => { const d = st(); return [0, 100 / 600, 100 / 360, 100 / 210][d.sev] * (1 - .15 * stepsDone()) * (d.path === 'gaveIn' ? 1.3 : 1) * (1 + .04 * d.drinks) * (needs().thirst < 25 ? 1.4 : 1); };
+  const rate = () => { const d = st(); return [0, 100 / 600, 100 / 360, 100 / 210][d.sev] * (1 - .15 * stepsDone()) * (d.path === 'gaveIn' ? 1.3 : 1) * (1 + .04 * d.drinks) * (needs().thirst < 25 ? 1.4 : 1) * L2Money.craveMul(); };
 
   /* ---------- food, water and sleep: the same bars as in the dream, carried over ---------- */
   // Level 2 uses the dream's own hunger, thirst and energy, so you wake up as hungry as you went to
@@ -46,7 +46,7 @@ const L2Bottle = (() => {
     const s = App.state, mx = s.staminaMax || 100;
     s.hunger = Math.max(0, (s.hunger == null ? 80 : s.hunger) - sec * 100 / 1800);
     s.thirst = Math.max(0, (s.thirst == null ? 80 : s.thirst) - sec * 100 / 1350);
-    s.stamina = Math.max(0, (s.stamina == null ? mx : s.stamina) - sec * mx / 2400);
+    s.stamina = Math.max(0, (s.stamina == null ? mx : s.stamina) - sec * mx / 2400 * L2Money.soak());
     const n = needs(), say = { hunger: ['🍔 Your stomach turns over. You can\'t remember the last thing you ate.', '🍔 Light-headed with hunger. The floor keeps tilting.'], thirst: ['💧 Your mouth is dry. A dry mouth makes the craving louder.', '💧 Parched. Your head is pounding.'], energy: ['⚡ You\'re running on empty. A coffee would help.', '⚡ Exhausted. Your legs won\'t run any more.'] };
     for (const k in say) { const lvl = n[k] <= 0 ? 2 : n[k] < 20 ? 1 : 0; if (lvl > (warned[k] || 0) && !R3.busy) L2.toast(say[k][lvl - 1]); warned[k] = lvl; }
   }
@@ -57,7 +57,7 @@ const L2Bottle = (() => {
     stop(); init(); apply();
     timer = setInterval(() => {
       if (Router.screen !== 'reality' || document.hidden || !App.state || !App.state.l2) return;
-      const d = st(); tick++;
+      const d = st(); tick++; L2Money.tick(!!hunt);
       if (sober()) { drainNeeds(R3.busy ? .35 : 1); d.crave = 0; d.buzz = 0; apply(); L2.hud(); return; }
       drainNeeds(R3.busy ? .35 : 1);
       if (d.buzz > 0) d.buzz = Math.max(0, d.buzz - 100 / 180);
@@ -79,7 +79,7 @@ const L2Bottle = (() => {
     const d = st(), c = sober() ? 0 : d.crave, b = d.buzz, root = document.querySelector('.l2');
     const n = needs(), weak = n.hunger <= 0 || n.thirst <= 0 || n.energy <= 0;
     const body = (n.hunger < 20 ? .88 : 1) * (n.energy < 20 ? .85 : 1) * (weak ? .85 : 1);
-    if (R3.setFx) R3.setFx({ shake: c >= 80 ? .006 + (c - 80) / 20 * .014 : 0, sway: (c >= 60 ? .01 + (c - 60) / 40 * .012 : 0) + b / 100 * .03 + (n.hunger <= 0 ? .012 : 0), slow: (c >= 80 ? .72 : b > 50 ? .85 : 1) * body, noRun: n.energy <= 0 });
+    if (R3.setFx) R3.setFx({ shake: c >= 80 ? .006 + (c - 80) / 20 * .014 : 0, sway: (c >= 60 ? .01 + (c - 60) / 40 * .012 : 0) + b / 100 * .03 + (n.hunger <= 0 ? .012 : 0), slow: (c >= 80 ? .72 : b > 50 ? .85 : 1) * body, noRun: n.energy <= 0, run: L2Money.runBoost() });
     document.body.classList.toggle('l2-weak', weak && (Router.screen === 'reality'));
     const cls = { 'l2-sweats': c >= 35, 'l2-nausea': c >= 60, 'l2-shakes': c >= 80, 'l2-drunk': b > 30 };
     const on = Router.screen === 'reality' || App.inReality(); // the shakes follow you to the tables
@@ -93,7 +93,7 @@ const L2Bottle = (() => {
   // catch it standing still in the dark spots of a place, and it's gone when you get near or the
   // light finds it. When the craving has been screaming for a while (or every few minutes once you've
   // given in) it hunts you, flat through the air and straight through walls. Light slows it: get
-  // under a streetlamp. Outrun it for half a minute, get out of the place, or call Mori. If it
+  // under a streetlamp, or carry a torch (wallet.js). Outrun it for half a minute, get out of the place, or call Mori. If it
   // catches you, you see its face; the third time, you don't get up.
   const NO_HUNT = ['cemetery', 'spur', 'clinic'];
   let stalkCool = 40, stalking = null;
@@ -103,7 +103,7 @@ const L2Bottle = (() => {
     huntCool = Math.max(0, huntCool - 1); stalkCool = Math.max(0, stalkCool - 1);
     if (!d.glimpsed && d.crave >= 80) { d.glimpsed = 1; stalk(true); return; }
     // the bad hours: it watches you from the dark
-    if (!stalking && !stalkCool && (d.crave >= 65 || d.path === 'gaveIn') && Math.random() < .04) { stalkCool = 35 + Math.random() * 40; stalk(false); }
+    if (!stalking && !stalkCool && (d.crave >= 65 || d.path === 'gaveIn') && Math.random() < (L2Money.torchOn() ? .02 : .04)) { stalkCool = 35 + Math.random() * 40; stalk(false); }
     if (d.path === 'gaveIn') { d.hn = (d.hn == null ? 120 : d.hn) - 1; if (d.hn <= 0) { d.hn = 150 + Math.random() * 90; startHunt(); } return; }
     maxedFor = d.crave >= 95 ? maxedFor + 1 : 0;
     if (maxedFor >= 25 && !huntCool) { maxedFor = 0; startHunt(); }
@@ -155,12 +155,12 @@ const L2Bottle = (() => {
       H.t += dt;
       const dx = R3.player.x - g.x, dy = R3.player.y - g.y, dist = Math.hypot(dx, dy) || .01;
       g.update(t, dt, dist);
-      const speed = (2.6 + Math.min(1, H.t * .04)) * g.pace; // faster than a walk, slower than a run (less with the shakes)
+      const speed = (2.6 + Math.min(1, H.t * .04)) * g.pace * (L2Money.torchOn() ? .8 : 1); // faster than a walk, slower than a run (less with the shakes, or a torch in its face)
       g.vx = dx / dist * speed; g.vy = dy / dist * speed; g.x += g.vx * dt; g.y += g.vy * dt;
       L2Demon.tick(dt, Math.max(0, 1 - dist / 12));
       H.beat -= dt; if (H.beat <= 0) { H.beat = .35 + Math.min(.7, dist / 12); thump(Math.max(.2, 1 - dist / 12)); }
       if (dist < .7) caught();
-      else if (H.t > 28) endHunt('outran');
+      else if (H.t > (L2Money.torchOn() ? 20 : 28)) endHunt('outran');
     });
   }
   function endHunt(how) {

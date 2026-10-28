@@ -19,6 +19,7 @@ const R3 = (() => {
   let cam = { x: 0, y: 0 }, camTarget = null, fade = 0;
   const P = { x: 0, y: 0, yaw: 0, pitch: 0, vx: 0, vy: 0, dir: 1, step: 0, moving: false, path: null, goal: null };
   Object.defineProperty(P, 'z', { get: () => P.y, set: v => { P.y = v; } }); // the story still speaks in x and z
+  let lamp = null; // the light you carry: a function giving { r, i, color } (a torch), or null for the faint glow round you
   const keys = new Set(), stick = { on: false, x: 0, y: 0, run: false };
   let runLock = false;
   const low = () => App.state && App.state.settings.gfx === 'low';
@@ -132,7 +133,7 @@ const R3 = (() => {
     dctx.fillStyle = M.info.darkColor || 'rgba(6,9,22,1)'; dctx.globalAlpha = amb; dctx.fillRect(0, 0, W, H); dctx.globalAlpha = 1;
     dctx.globalCompositeOperation = 'destination-out';
     const glows = [];
-    const lit = M.lights.concat([{ x: P.x, y: P.y, z: 1.2, r: 2.6, i: .55, color: '#b8c4e0' }]);
+    const lit = M.lights.concat([{ x: P.x, y: P.y, z: 1.2, r: 2.6, i: .55, color: '#b8c4e0', ...(lamp ? lamp() : null) }]);
     for (const l of lit) {
       const i = l.flicker ? l.base * (1 - l.flicker * (Math.sin(t * 13 + l.x) > .7 || Math.random() < .03 ? 1 : 0)) : l.i;
       const [sx, sy] = toScreen(l.x, l.y, 0), r = l.r * TW * .7 * zoom; if (sx < -r || sx > W + r || sy < -r || sy > H + r) continue;
@@ -197,7 +198,7 @@ const R3 = (() => {
       else { mx = dx / d; my = dy / d; }
     }
     const l = Math.hypot(mx, my); if (l > 1) { mx /= l; my /= l; }
-    const top = (running() ? 4.4 : 2.2) * (FX && FX.slow || 1);
+    const top = (running() ? 4.4 * (FX && FX.run || 1) : 2.2) * (FX && FX.slow || 1);
     const k = 1 - Math.exp(-dt * (l > .05 ? 10 : 14)); P.vx += (mx * top - P.vx) * k; P.vy += (my * top - P.vy) * k;
     const stuck = !free(P.x, P.y);
     const nx = P.x + P.vx * dt, ny = P.y + P.vy * dt;
@@ -321,7 +322,7 @@ const R3 = (() => {
   function view(pos) { camTarget = pos ? [pos[0], pos[2]] : null; }
 
   return {
-    mount, unmount, go, api, view, walkTo, setFx(v) { FX = v; }, get area() { return area; }, get busy() { return busy; }, set busy(v) { busy = v; }, player: P,
+    mount, unmount, go, api, view, walkTo, setFx(v) { FX = v; }, set lamp(f) { lamp = f; }, get area() { return area; }, get busy() { return busy; }, set busy(v) { busy = v; }, player: P,
     freeze(v) { busy = v; if (v) { keys.clear(); stick.on = false; stick.run = false; P.vx = P.vy = 0; P.path = null; } }, activate, get focus() { return focus; },
     get stuck() { return !free(P.x, P.y); }, get running() { return running(); }, get hfov() { return 1.2; }, touch: lowPower,
     toScreen, toWorld, iso, get zoom() { return zoom; }, get map() { return M; }, TW, TH, V, free,

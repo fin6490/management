@@ -555,7 +555,8 @@ happened. The story is told gently and never shown.
   the roof
 - Calder Street: the house that used to be yours (number 17), the bus shelter and the payphone
   across the road
-- Harbour Road: the Low Tide bar, Rosie's all-night diner and the Kwik Mart
+- Harbour Road: the Low Tide bar, Rosie's all-night diner, the Kwik Mart and Sully's Pawn &
+  Hardware
 - the police station, St Brigid's chapel and the park, the river embankment, and Greenhill
   cemetery
 People are out in the rain, and the places you'd expect are open all night.
@@ -671,6 +672,33 @@ about forty minutes) and a bit more for every round at a table. They show under 
   pot of coffee in the clinic.
 - **Other places that help:** St Brigid's chapel (light a candle, or sit in the circle of chairs
   where the Thursday meeting happens) and the river take the edge off the craving.
+
+**Money, awake.** In the dream, money was the whole game. Awake, it's what gets you through the
+night, and the Meridian is still the only place in the city where it can turn into more: the tables,
+the slots and the floor games all use your real wallet (you wake with $2,400). The 📓 notebook's
+Money page keeps track.
+- **Kit**, at Sully's Pawn & Hardware: a 🔦 torch ($120: your own light, so the Barman slows down
+  and you only have to outlast it for 20 seconds, not 30, and it hides less often; the batteries run
+  down, faster while it hunts you, and new ones are $15 at Sully's or $18 at the Kwik Mart), 👟
+  running shoes ($220: run a quarter faster) and a 🧥 raincoat ($160: without one, the rain wears
+  your energy down half as fast again). Dr. Okafor can prescribe 💊 naltrexone so the craving comes
+  on slower, but your insurance lapsed while you slept, so it's $300.
+- **Things worth buying back:** 💍 your wedding ring ($9,500), pawned the week after the funeral and
+  kept out of the window by Sully ever since (it makes the craving come slower and takes back one of
+  the times the Barman caught you), and, once you know who Eddie Marsh was, a 🪦 headstone for the
+  numbered marker he was buried under at Greenhill ($4,500).
+- **Meridian Rewards:** tonight's promotions pay cash bounties, claimed at the Rewards desk on the
+  casino floor: land the Joker or the Meridian on the Big Six wheel ($1,500), push a gold token off a
+  coin pusher ($500), be at Sic Bo with a bet down when the dice roll a triple ($2,500), leave a
+  table or the slots up three times ($1,000), and win $5,000 in one sitting ($2,000).
+- **Losing hurts more awake:** walk away from a table down hard and the craving surges.
+- **A cab** (☰ menu, out on the street) takes you anywhere in the city for a fare by distance, even
+  with the Barman behind you.
+- **Broke?** Rosie needs someone to wash up ($40 and a bowl of soup for a sinkful of plates), and the
+  cage will advance you $5,000 against the insurance cheque (it won't cash it: that's the bank's
+  job, and five working days).
+- Achievements: Eyes Open, N. (the ring), He Called for Help (the headstone), Comped (every
+  promotion), Ready for the Dark (all the kit) and Honest Work (a shift at Rosie's).
 
 **How it looks.** Everything is drawn on a canvas, nothing is downloaded:
 - the ground first, then everything that stands up (buildings, walls, furniture, people) back to

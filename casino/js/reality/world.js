@@ -94,7 +94,9 @@ const L2World = (() => {
     A.block(44, 43, 6, 7, { height: 4, style: 'glass', door: [47, 49, 's'], shop: 's', shopColor: '#d8f0ff' });
     A.sign(47, 50, 'KWIK MART 24H', { color: '#5aff9a', z: 2.7, size: 9, depth: 100.7 });
     A.use(47.5, 50.6, 'The Kwik Mart', act('enter', 'shop'), { r: 1.6 });
-    A.block(29, 29, 9, 9, { height: 7, style: 'brick', lit: .35 }); A.block(40, 29, 9, 11, { height: 9, style: 'stucco', lit: .4 });
+    A.block(29, 29, 9, 9, { height: 7, style: 'brick', lit: .35, door: [33, 37, 's'], doorColor: '#ffd27a', shop: 's', shopColor: '#e0b060' });
+    A.sign(33, 38, 'SULLY\'S PAWN · HARDWARE', { color: '#ffd27a', z: 2.9, size: 10, depth: 75.7 });
+    A.use(33.5, 38.6, 'Sully\'s Pawn & Hardware', act('enter', 'pawn'), { r: 1.6 }); A.block(40, 29, 9, 11, { height: 9, style: 'stucco', lit: .4 });
     for (const x of [30, 38, 46]) A.prop('bin', x, 50.3);
     lamp(A, 36, 50.5, '#ffb45a'); lamp(A, 44, 50.5, '#ffb45a');
 
@@ -122,7 +124,7 @@ const L2World = (() => {
     walker(A, [[30, 53.5], [70, 53.5]], { coat: '#2a3a2a', skin: '#c48a64', hair: '#3a2a1e' });
     walker(A, [[53.5, 30], [53.5, 50]], { coat: '#1f2a3a', skin: '#f0c9a8', hair: '#999', glasses: true });
     // the dark: a little light from windows, more from the streetlamps
-    return { spawn: [12.5, 23.6, 0], entries: { hospital: [12.5, 23.6, 0], casino: [39.5, 23.7, 0], garage: [32.5, 23.7, 0], hotel: [46.5, 23.7, 0], police: [62.5, 22.6, 0], house: [24, 35.5, 0], lowtide: [33.5, 50.7, 0], diner: [40.5, 50.7, 0], shop: [47.5, 50.7, 0], chapel: [62.5, 46.7, 0], cemetery: [12.5, 53.4, 0] },
+    return { spawn: [12.5, 23.6, 0], entries: { hospital: [12.5, 23.6, 0], casino: [39.5, 23.7, 0], garage: [32.5, 23.7, 0], hotel: [46.5, 23.7, 0], police: [62.5, 22.6, 0], house: [24, 35.5, 0], lowtide: [33.5, 50.7, 0], pawn: [33.5, 38.8, 0], diner: [40.5, 50.7, 0], shop: [47.5, 50.7, 0], chapel: [62.5, 46.7, 0], cemetery: [12.5, 53.4, 0] },
       rain: true, dark: .62, bg: '#05070c', name: 'the city' };
   }
   const dash = c => { c.fillStyle = 'rgba(220,210,170,.35)'; c.beginPath(); c.moveTo(0, 15); c.lineTo(20, 25); c.lineTo(17, 26.5); c.lineTo(-3, 16.5); c.fill(); };
@@ -200,6 +202,10 @@ const L2World = (() => {
     A.prop('cage', 20, 14, { w: 3, d: 1.4 }); A.person({ x: 21.5, y: 14.6, face: 1, skin: '#c48a64', hair: '#111', coat: '#111', pants: '#111', shirt: '#f4f4f4', tie: '#c9a14a' });
     A.use(21.5, 16, 'The cashier', act('cashier'), { r: 1.6 });
     for (const [x, y] of [[13, 13], [7, 13]]) A.prop('pillar', x, y, { h: 3.6, color: '#c9b48a' });
+    // Meridian Rewards: tonight's promotions, and a host to pay the bounties
+    A.prop('counter', 15.6, 17.4, { w: 2.4, d: .8, color: '#3a1020', top: '#c9a14a' }); A.person({ x: 16.8, y: 18.6, face: -1, back: true, skin: '#f0c9a8', hair: '#c9a070', coat: '#7a1030', pants: '#111', longHair: true });
+    A.prop('screens', 15.4, 16.6, { w: 2.6 });
+    A.use(16.8, 16.6, 'Meridian Rewards: tonight\'s promotions', act('rewards'), { r: 1.6 });
     A.person({ x: 14, y: 16, face: -1, skin: '#d9a07a', hair: '#141010', coat: '#4a1030', pants: '#1a0a12', longHair: true, skirt: true }); // punters
     A.person({ x: 18, y: 12, face: 1, skin: '#f0d0b0', hair: '#ddd', coat: '#222', pants: '#111', shirt: '#eee', tie: '#7a0f1e' });
     exit(A, 12, 19, 'Out to Meridian Avenue', act('toStreet', 'casino'));
@@ -321,6 +327,17 @@ const L2World = (() => {
     return { spawn: [4.5, 7.4, 0], dark: .15, bg: '#0a0a0a', name: 'the Kwik Mart' };
   }
 
+  // Sully's Pawn & Hardware: guitars on the wall, watches under glass, and a safe
+  function pawn(A, mk) {
+    room(A, mk, 10, 8, { floor: 'wood', wall: '#4a3a2a', hangN: [{ kind: 'picture', at: 1.5, w: 3, y: 1.2, h: 1.2, color: '#2a1e14', label: '🎸 🎸 🎸', labelColor: '#e8c070' }, { kind: 'picture', at: 6, w: 3, y: 1.4, h: .8, color: '#1a1410', label: 'WE BUY GOLD', labelColor: '#ffd27a' }] });
+    A.prop('counter', 1, 2, { w: 5, d: .9, color: '#5a4030', top: '#c8d8e0' }); A.prop('shelf', 7, .4, { w: 2.4 }); A.prop('crate', 8.4, 4.6); A.prop('shelf', .3, 4.6, { w: 2 });
+    A.person({ x: 3.4, y: 1.2, face: 1, skin: '#e8c4a8', hair: '#ccc', coat: '#6a5a40', pants: '#3a3226', glasses: true, build: 'broad' });
+    A.use(3.4, 3.3, 'Sully, behind the counter', act('pawn'), { r: 1.8 });
+    exit(A, 4, 7, 'Out to Harbour Road', act('toStreet', 'pawn'));
+    A.light(4, 3, { r: 7, color: '#ffe0a0', i: .95 });
+    return { spawn: [4.5, 6.4, 0], dark: .25, bg: '#0a0806', name: 'Sully\'s' };
+  }
+
   /* ======================= the police station, the chapel ======================= */
   function police(A, mk) {
     room(A, mk, 12, 9, { floor: 'lino', wall: '#5a6470', hangN: [{ kind: 'picture', at: 6, w: 3, y: 1, h: 1.4, color: '#8a7a5a', label: 'NOTICES', labelColor: '#e8e2d4' }] });
@@ -351,7 +368,7 @@ const L2World = (() => {
     for (const [n, x] of names) A.prop('grave', x, 4, { name: n, h: 1.2 });
     for (let i = 0; i < 14; i++) A.prop('grave', 1 + (i * 7) % 16, 8 + (i % 3) * 2.4, { h: .7 + (i % 3) * .25 });
     for (const [x, y] of [[1, 1], [15, 2], [3, 14], [16, 13]]) A.prop('tree', x, y);
-    if (S().clues.call) { A.prop('grave', 13, 6, { name: 'E. MARSH', h: .9 }); A.prop('tree', 14.5, 5); }
+    if (S().clues.call || S().clues.eddie) { const stone = L2Money.state.stone; A.prop('grave', 13, 6, stone ? { name: 'E. MARSH', h: .9 } : { name: '417', h: .45 }); A.prop('tree', 14.5, 5); A.use(13.5, 7.2, stone ? 'Eddie Marsh' : 'A numbered marker', act('eddieGrave'), { r: 1.4 }); }
     A.use(6.5, 5.2, 'Kneel by the stones', act('graves'), { r: 2 });
     exit(A, 8, 15, 'Back to the city', act('toStreet', 'cemetery'));
     const morning = S().ending === 'good';
@@ -367,5 +384,5 @@ const L2World = (() => {
     return { spawn: [5.5, 8.4, 0], dark: .25, bg: '#0a0604', soft: true, name: 'the Rusty Spur' };
   }
 
-  return { city, clinic, garage, floor, eye, salon, corridor, room: hotelRoom, roof, house, lowtide, diner, shop, police, chapel, cemetery, spur };
+  return { city, clinic, garage, floor, eye, salon, corridor, room: hotelRoom, roof, house, lowtide, diner, shop, pawn, police, chapel, cemetery, spur };
 })();
