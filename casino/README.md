@@ -105,7 +105,12 @@ phone), **Space / A** to talk, sit down or buy, and hold **Shift / B** to run.
 - **Lucky Park** and **Prime Cut Steakhouse** to the south.
 
 Walk through a door to go in. Inside a casino, walk up to a dealer and press A to sit down at that
-table; the bar is on the left wall, and the story characters are on the floor.
+table; the bar is on the left wall, with a bartender behind it in every casino (Dolores, Skip,
+Vivienne, Mr. Ash), and the story characters are on the floor. Each casino has its own back wall
+(wanted posters and longhorns at the Spur, portholes and a ship's wheel on the Riverboat, gilt
+paintings and drapes at the Palace, dark panelling and sconces in the Salon), rugs under its tables
+and warm light pooled over them. The Spur has a jukebox: a dollar a song changes what the band
+plays (honky-tonk, doo-wop, lounge jazz, slow noir or ragtime).
 
 Every other building has an inside too, each with its own staff, locals and things to poke at:
 
@@ -501,10 +506,17 @@ and bonus:
 - **Hold & Spin**: 6 or more coins or pearls lock in with cash values and give you 3 respins, reset
   whenever one lands. They can carry the MINI (20× bet), MINOR (50×) or MAJOR (250×); fill all 15 for
   the GRAND (1,000×).
-  - First pick one of three boxes for a **booster**:
+  - First pick one of three boxes for a **booster**. Three of six are in the boxes each time, in a
+    random order:
     - +1 respin (4 every time)
     - a **Collector** straight away
     - every starting coin **doubled**
+    - **two more coins** land straight away
+    - a **MINI** jackpot coin lands straight away
+    - **big coins**: every starting coin is worth half as much again
+  - You spin every respin yourself: tap **SPIN** (or Space), or **AUTO** for the rest. The empty spots
+    spin and the reels stop left to right, and a reel that's about to drop a coin (or might) holds
+    on a moment, glowing.
   - While respinning, a coin can land as a **Collector**, which scoops up the value of every cash coin
     showing, or a **Doubler**, which doubles them all.
   - The screen shows your respins (●●○), the running total and how many spots are left for the GRAND.
@@ -853,6 +865,7 @@ Every casino has its own band, generated live in the browser (no audio files):
 | The Gilded Palace | Lounge jazz on electric piano and vibes |
 | The Salon Privé | Slow minor-key noir |
 | Mel's Diner | Jukebox doo-wop |
+| The Spur's jukebox | Whatever you put on |
 
 The tunes follow each venue's chord changes and are built from short phrases that repeat and vary,
 so they never loop exactly. The street stays quiet.
