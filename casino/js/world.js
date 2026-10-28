@@ -148,9 +148,9 @@ const World = (() => {
     // whoever keeps the bar stands behind it (Dolores does at the Spur; she's a story character)
     const bk = STAFF_AT[I.bar];
     if (bk && STAFF[bk]) { const s2 = STAFF[bk]; m.npcs.push({ x: 2, y: 6, dir: 'right', name: s2.name, look: { shirt: '#f4f4f4', vest: s2.color, pants: '#1d1d1d', bow: true, skin: ['#f0c19a', '#c68863', '#8d5524', '#e0ac69'][bk.length % 4], hair: ['#3a2a1e', '#111', '#a0522d', '#ccc'][bk.length % 4] }, crowd: () => Crowd.staff(bk) }); }
-    // a rug under every table, plants by the door, and at the Spur a jukebox in the corner
+    // a rug under every table, a plant by the door, and at the Spur a jukebox in the corner
     m.tables.forEach(tb => m.props.unshift({ type: 'furn', kind: 'rug', x: tb.x - 1, y: tb.y - 1, w: tb.w + 2, h: tb.h + 2 }));
-    for (const [px2, py2] of [[1, H - 2], [W - 3, H - 2]]) { m.props.push({ type: 'furn', kind: 'plant', x: px2, y: py2, w: 1, h: 1 }); m.blockRect(px2, py2, 1, 1); }
+    for (const [px2, py2] of [[1, H - 2]]) { m.props.push({ type: 'furn', kind: 'plant', x: px2, y: py2, w: 1, h: 1 }); m.blockRect(px2, py2, 1, 1); }
     if (venueId === 'spur') { m.props.push({ type: 'furn', kind: 'jukebox', x: 1, y: 12, w: 1, h: 1 }); m.blockRect(1, 12, 1, 1); m.act(1, 12, { fn: 'spurJukebox', label: '🎵 Jukebox' }); }
     m.decor = venueId;
     const n = I.npc, ch = CHARACTERS[n.who];
@@ -551,6 +551,7 @@ const World = (() => {
   function backdrop(c, cv, m, u, ox, oy, TS) {
     const th = m.theme || {}, wall = th.wall || '#3a2a20', trim = th.trim || '#1d140c';
     c.fillStyle = wall; c.fillRect(0, 0, cv.width, cv.height);
+    if (![ox, oy, TS, u].every(Number.isFinite) || !TS) return; // not laid out yet
     c.fillStyle = trim; c.globalAlpha = .3; for (let x = ox % (12 * u); x < cv.width; x += 12 * u) c.fillRect(x, 0, 2 * u, cv.height); c.globalAlpha = 1;
     // the back wall carries on up, lit near the room and fading into shadow; the floor's edge drops away below
     const top = Math.max(0, oy - 4 * TS), g = c.createLinearGradient(0, top, 0, oy);
@@ -638,7 +639,7 @@ const World = (() => {
     const cv = root.querySelector('canvas');
     const m = getMap(w.map);
     populate(m);
-    if (m.solid(w.x, w.y) && !m.doors[w.x + ',' + w.y]) [w.x, w.y] = m.start;
+    if (!Number.isFinite(w.x) || !Number.isFinite(w.y) || (m.solid(w.x, w.y) && !m.doors[w.x + ',' + w.y])) [w.x, w.y] = m.start;
     S = { root, cv, c: cv.getContext('2d'), m, p: { x: w.x, y: w.y, dir: w.dir || 'down', fx: w.x, fy: w.y, moving: null, frame: 0 }, keys: new Set(), run: false, area: null, lastStep: 0, steps: 0, raf: 0, busy: false };
     resize();
     bindInput();
