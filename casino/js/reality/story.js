@@ -112,9 +112,9 @@ const L2 = (() => {
     if (!has('woke')) return 'Wake up.';
     if (!has('okafor')) return 'Talk to Dr. Okafor.';
     if (!has('drove')) return 'Leave the clinic.';
-    if (!S().clues.badge) return 'Your car is in bay 17. Open the boot.';
-    if (!S().clues.delia) return R3.area === 'garage' ? 'Take the lift up to the casino.' : 'Find Delia at the Low Tide bar, along the left wall.';
-    if (!S().clues.count) return 'Find Tommy Quinn in the blackjack pit.';
+    if (!S().clues.badge) return R3.area === 'garage' ? 'Your car is in bay 17. Open the boot.' : 'Your car is in the Meridian car park, bay 17. The Meridian is across Meridian Avenue.';
+    if (!S().clues.delia) return 'Find Delia at the Low Tide, on Harbour Road (down Calder Street).';
+    if (!S().clues.count) return 'Find Tommy Quinn in the blackjack pit at the Meridian.';
     if (!S().clues.cctv) return 'Use your badge on the staff door: The Eye.';
     if (!S().clues.confession) return 'Confront Tommy with the footage.';
     if (!S().clues.ledger) return 'Margaux Reyes is waiting in the Salon (high limit).';
@@ -206,8 +206,8 @@ const L2 = (() => {
     },
     async leaveClinic() {
       if (!has('okafor')) return say([{ who: 'narr', text: '*Dr. Okafor is watching you. You should talk to her first.*' }]);
-      await say([{ who: 'narr', text: '*The bus, then a taxi. Then the long ramp down into the Meridian\'s car park, the rain hammering on the concrete above.*' }]);
-      set('drove'); await goArea('garage');
+      await say([{ who: 'narr', text: '*The doors hiss open and the city hits you all at once: rain, sodium light, a bus going by with nobody on it. The Meridian is right there across the avenue, lit up like nothing ever happened.*' }]);
+      set('drove'); await goArea('city', 'hospital');
     },
     async trunk() {
       if (await carStart()) return;
@@ -273,13 +273,65 @@ const L2 = (() => {
     },
     async callMori() { await L2Bottle.callMori(); },
     async rain() { await say([{ who: 'narr', text: RNG.pick(['*Rain on the city. In the dream it never rained.*', '*Out there, a year of ordinary days happened without you.*', '*You count the drops for a while, the way you used to count cards.*']) }]); },
-    async exitGarage() { await say([{ who: 'narr', text: '*You could leave. Drive somewhere. Sleep again, and go back to the town where everyone is only missing.*' }, { who: 'you', text: 'No. Not tonight.' }]); },
+    async exitGarage() { await goArea('city', 'garage'); },
     async toFloor(from) {
-      if (!S().clues.badge) return say([{ who: 'narr', text: '*Your car is right there. Bay 17. You haven\'t opened the boot yet.*' }]);
-      await goArea('floor', from === 'eye' ? [20.5, 8, -Math.PI / 2] : from === 'salon' ? [16.75, -11.6, 0] : from === 'lift' ? [18, 15.2, Math.PI] : null);
+      if (!S().clues.badge) return say([{ who: 'narr', text: from === 'street' ? '*Not yet. Your things are in the car: the Meridian car park, the ramp round to the left. Bay 17.*' : '*Your car is right there. Bay 17. You haven\'t opened the boot yet.*' }]);
+      await goArea('floor', ['eye', 'salon', 'lift', 'garage'].includes(from) ? from : 'street');
       if (!has('floorIntro')) { set('floorIntro'); await say([{ who: 'narr', text: '*The Meridian. Gold columns, red carpet, the electric hum of four hundred slot machines. Nothing has changed. That\'s the worst part.*' }]); }
     },
-    async toGarage() { await goArea('garage', [14.4, 0, -Math.PI / 2]); },
+    async toGarage(from) { await goArea('garage', from === 'street' ? 'street' : 'lift'); },
+    // the city: in and out of its buildings
+    async toStreet(from) { await goArea('city', from); },
+    async enterClinic() { await goArea('clinic', 'street'); },
+    async enter(place) { await goArea(place); if (!has('in_' + place)) { set('in_' + place); const first = { lowtide: '*The Low Tide hasn\'t changed: the same sticky floor, the same jukebox nobody plays, the same smell of beer and rain.*', diner: '*Rosie\'s. Chrome and red vinyl and a pie case that hums. Open all night, the sign says, and it means it.*', shop: '*Strip lights, a fridge that buzzes, a radio playing to nobody.*', police: '*The police station smells of floor polish and burnt coffee.*', chapel: '*St Brigid\'s. Candles, and the rain on the windows, and the quiet.*' }[place]; if (first) await say([{ who: 'narr', text: first }]); } },
+    async toCemetery() { await goArea('cemetery'); if (!has('cemeteryIntro')) { set('cemeteryIntro'); await say([{ who: 'narr', text: '*Greenhill. You haven\'t been since the funeral. You can\'t remember the funeral.*' }]); } },
+    async house() {
+      await say([{ who: 'narr', text: '*17 Calder Street. The police tape is still on the gatepost, sun-bleached and torn. Your key still fits.*' }]);
+      const c = await choose('Go in?', [['in', 'Go in'], ['no', 'Not yet']]); if (c === 'in') await goArea('house');
+    },
+    async houseMemory(k) {
+      const lines = { sofa: ['*The sofa, under a dust sheet. Sam used to build forts out of its cushions and make you pay a toll to get in.*', '*You sit down on the edge of it, and for a while you don\'t do anything at all.*'],
+        photo: ['*The four of you on a beach, squinting into the sun. Nora is laughing at something you said. You can\'t remember what. You\'d give anything to remember what.*'],
+        drawing: ['*Another one of Ellie\'s: a house, a dog that you never got, a purple sun. Under it: OUR HOUSE. The tape has gone yellow.*'],
+        table: ['*The kitchen table. Four chairs. Somebody, the police or Nora\'s sister, has stacked the post in a neat pile. Eleven months of letters addressed to people who don\'t live here any more.*', '*On top: a reminder from the dentist, for Ellie. You put it in your pocket. You don\'t know why.*'] }[k] || [];
+      await say(lines.map(text => ({ who: 'narr', text })));
+      if (k === 'sofa') { L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 10); App.count('l2_home'); }
+    },
+    async shelter() { await say([{ who: 'narr', text: S().clues.eddie ? '*The bus shelter where Eddie sheltered that night. From here you can see your front door, plain as day. He saw everything.*' : '*A bus shelter across the road from your house. Somebody has scratched a name into the perspex: EDDIE WAS HERE.*' }]); },
+    async payphone() {
+      if (!S().clues.eddie) return say([{ who: 'narr', text: '*A payphone, the kind nobody uses any more. The receiver is warm, as if someone just hung up.*' }]);
+      await say([{ who: 'narr', text: '*The payphone Eddie used. You pick up the receiver and you can almost hear it: a frightened voice, 9:47, asking for help that came too late.*' }]);
+      const who = await choose('Call someone?', [...(has('okafor') ? [['okafor', 'Dr. Okafor']] : []), ...(S().clues.rabbit ? [['mori', 'Detective Mori']] : []), ['back', 'Hang up']]); if (who !== 'back') chat(who);
+    },
+    async river() { L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 6); await say([{ who: 'narr', text: RNG.pick(['*The river, black and fast and full of the city\'s lights. Ellie wanted a boat. Next summer, you said.*', '*You lean on the railing and watch the rain hit the water, and breathe, and breathe.*']) }]); },
+    // Rosie's: food, like the diner in the dream, only real
+    async diner() {
+      const M = [['burger', '🍔 Cheeseburger and fries', 14, { hunger: 60, energy: 6 }], ['soup', '🥣 Soup of the day', 7, { hunger: 35, thirst: 10 }], ['pie', '🥧 A slice of cherry pie', 6, { hunger: 25 }], ['coffee', '☕ Coffee (refills free)', 3, { energy: 25, thirst: 5 }], ['water', '💧 A glass of water', 0, { thirst: 35 }]];
+      const c = await choose(`Rosie pulls a pencil from her hair. "What'll it be, love?" (${fmt(S().cash)})`, [...M.map(([k, l, p]) => [k, p ? `${l} (${fmt(p)})` : l]), ['no', 'Nothing, thanks']]);
+      const it = M.find(m => m[0] === c); if (!it) return;
+      if (S().cash < it[2]) return toast('Not enough money.');
+      S().cash -= it[2]; L2Bottle.feed(it[3]); hud(); App.count('l2_meals');
+      await say([{ name: 'Rosie', who: 'x', text: RNG.pick(['There you go. Eat it while it\'s hot.', 'You look like you need it, love.', 'On the house if you finish it. ...I\'m joking. Mostly.']) }]);
+    },
+    async shop(k) {
+      const W = { fridge: [['water', '💧 Bottle of water', 2, { thirst: 40 }], ['energy', '⚡ Energy drink', 4, { energy: 35, thirst: 10 }], ['cola', '🥤 Cola', 2, { thirst: 30, energy: 8 }]], food: [['sandwich', '🥪 Sandwich', 5, { hunger: 35 }], ['choc', '🍫 Chocolate bar', 2, { hunger: 18, energy: 5 }], ['crisps', 'Crisps', 2, { hunger: 12, thirst: -5 }]] }[k];
+      if (k === 'booze') { if (L2Bottle.path() === 'sober') return say([{ who: 'narr', text: '*The booze aisle. You walk past it. It\'s getting easier. A bit.*' }]); return L2Bottle.offer('kwikmart', 'Your brand, on the bottom shelf, where it always is. Twelve dollars.', 12); }
+      if (k === 'till') return say([{ name: 'The cashier', who: 'x', text: RNG.pick(['Quiet night. Every night\'s a quiet night.', 'Rain\'s not stopping. Radio says all week.', 'You need a bag?']) }]);
+      const c = await choose(`${fmt(S().cash)} in your wallet.`, [...W.map(([key, l, p]) => [key, `${l} (${fmt(p)})`]), ['no', 'Nothing']]);
+      const it = W.find(m => m[0] === c); if (!it) return;
+      if (S().cash < it[2]) return toast('Not enough money.');
+      S().cash -= it[2]; L2Bottle.feed(it[3]); hud(); toast(`${it[1].split(' ')[0]} Bought.`);
+    },
+    async police(k) {
+      if (k === 'desk') return say([{ name: 'The desk sergeant', who: 'x', text: S().clues.rabbit ? 'Mori? She\'s out. Call her mobile, she always picks up. Always.' : S().met.mori ? 'Detective Mori\'s out on a call.' : 'If it\'s not an emergency, take a seat. If it is, why are you here and not on the phone?' }]);
+      if (S().clues.rabbit) return chat('mori');
+      await say([{ who: 'narr', text: '*A tidy desk. A photo of an old dog. A thick file with no label, pushed to the back. On a sticky note: "17/10 — WHO CALLED IT IN?"*' }]);
+    },
+    async chapel(k) {
+      if (k === 'candle') { L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 15); L2Bottle.apply(); return say([{ who: 'narr', text: '*You light three candles, and then, after a moment, a fourth. You don\'t know who the fourth is for. Yes you do.*' }]); }
+      L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 20); L2Bottle.apply();
+      await say([{ who: 'narr', text: '*A circle of plastic chairs and a box of leaflets: "One day at a time." It\'s not Thursday. You sit in one of the chairs anyway, and the craving gets a little quieter, the way a room does when someone else is in it.*' }]);
+    },
     async portrait() { await say([{ who: 'narr', text: '*Augustin Vale, painted larger than life, smiling at his casino like a man who owns the weather.*' }, { who: 'narr', text: '*In the dream he had another name. He wore a top hat and rigged a card game. Your mind is not subtle.*' }]); },
     async slots() {
       if (!S().clues.badge) return;
@@ -403,7 +455,7 @@ const L2 = (() => {
     },
     async hotelLift() {
       if (!S().clues.drive) return say([{ who: 'narr', text: '*The hotel lift needs a room key. You haven\'t got one. Not yet.*' }]);
-      await goArea('corridor');
+      await goArea('corridor', 'lift');
     },
     async room1717() { await goArea('room'); if (!has('roomIntro')) { set('roomIntro'); await say([{ who: 'narr', text: '*The door is open. The room is empty and very tidy, like nobody has ever lived in it.*' }]); } },
     async roomDesk() {
@@ -420,14 +472,14 @@ const L2 = (() => {
     async horrorLift() { await say([{ who: 'narr', text: '*The lift has one button. It says 17.*' }]); },
     async sal() { await salAtBar(); },
     async spurJukebox() { await say([{ who: 'narr', text: '*The same three songs the jukebox always played in the dream. You know every word. You never knew you knew them.*' }]); },
-    async toCorridor(from) { await goArea('corridor', from === 'roof' ? [0, -38.4, 0] : [-1, -2 - 8 * 3.6, -Math.PI / 2]); },
+    async toCorridor(from) { await goArea('corridor', from === 'roof' ? 'roof' : 'room'); },
     async toRoof() {
       if (!S().clues.photo) return say([{ who: 'narr', text: '*The roof door. Not yet.*' }]);
       if (!has('deduced')) { const ok = await deduce(); if (!ok) return; }
       set('finaleStarted'); await goArea('roof');
     },
     async finale() { await finale(); },
-    async graves() { await epilogue(); },
+    async graves() { if (S().ending === 'good' && !has('done')) return epilogue(); await say([{ who: 'narr', text: '*NORA. ELLIE. SAM. Somebody has been leaving flowers. Delia, probably. Or Mori.*' }, { who: 'you', text: has('done') ? 'They know now. Everybody knows.' : 'Not yet. I\'m going to find out. I promise.' }]); },
   };
   async function act(name, arg) { if (A[name]) await A[name](arg); hud(); }
 
@@ -599,7 +651,7 @@ const L2 = (() => {
     Object.keys(st).forEach(k => { if (k !== 'checkpoint') delete st[k]; });
     Object.assign(st, JSON.parse(JSON.stringify(cp)), { cash: keepCash, games: keepGames, endings: keepEndings, ending: null, atTable: false });
     document.querySelectorAll('.l2-over').forEach(n => n.remove()); R3.freeze(false);
-    await goArea('roof', [0, -2.5, Math.PI]);
+    await goArea('roof', 'stairs');
     await say([{ who: 'narr', text: 'The rain. The roof. The two of them, waiting. You have been here before, and you will be here again, until you choose.' }]);
   }
   async function finale() {
@@ -623,7 +675,7 @@ const L2 = (() => {
     }
     if (c === 'horror') {
       await say([{ who: 'narr', text: '*You hand him the drive. He hands you a phone with a bank app open and more zeros than you can read through the rain.*' }, { who: 'vale', text: 'A sensible man. They\'d have wanted you to live well.' }, { who: 'narr', text: '*Rourke holds the stairwell door open for you. Politely. Too politely.*' }]);
-      await goArea('corridor', [0, -38.4, 0]);
+      await goArea('corridor', 'roof');
       await say([{ who: 'narr', text: '*The stairs should go down to the street. They come out on the seventeenth floor. The lights have gone the colour of a wound.*' }, { who: 'narr', text: '*Every door says 1717.*' }]);
       return;
     }
@@ -694,7 +746,7 @@ const L2 = (() => {
     const st = S(), d = st.drink || {};
     st.drink = { sev: d.sev || 2, crave: 40, buzz: 0, drinks: 0, refused: {}, steps: {}, path: null, stage: 0, called: 0, strikes: 0, glimpsed: 1, hunts: d.hunts || 0 };
     st.ending = null; st.flags.done = false; App.save();
-    await goArea('clinic', [-2.1, .2, 2.2]);
+    await goArea('clinic');
     await say([{ who: 'narr', text: 'beep. beep. beep.' }, { who: 'okafor', text: `${first()}? You're back. Your heart stopped for two minutes. Two minutes.` }, { who: 'okafor', text: 'Whatever you saw, you don\'t have to see it again. But you can\'t do this alone. Let me help this time.' }]);
     L2Bottle.start();
   }
@@ -738,7 +790,7 @@ const L2 = (() => {
       const tab = h('div.l2-tabs'), body = h('div.l2-jb');
       const show = k => {
         tab.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); body.innerHTML = '';
-        if (k === 'now') { const seen = found(); const nd = L2Bottle.needs(); body.append(h('p.l2-obj2', objective()), h('p.l2-read', `${fmt(S().cash)} in your wallet. It\'s the 17th of October, a year to the night.`), h('p.l2-read', `🍔 ${Math.round(nd.hunger)}% · 💧 ${Math.round(nd.thirst)}% · ⚡ ${Math.round(nd.energy)}%. Food, water and sleep carry over from the dream. Eat at the Low Tide, drink water anywhere you can find it (the clinic cooler, the vending machine by the car park lift, Delia), and coffee or an energy drink keeps you on your feet.`), Object.keys(seen).length ? h('p.l2-read', 'Endings found: ' + Object.keys(ENDINGS).map(e => seen[e] ? `${ENDINGS[e].icon} ${ENDINGS[e].title}` : '? ???').join(' · ')) : null); }
+        if (k === 'now') { const seen = found(); const nd = L2Bottle.needs(); body.append(h('p.l2-obj2', objective()), h('p.l2-read', `${fmt(S().cash)} in your wallet. It\'s the 17th of October, a year to the night.`), h('p.l2-read', `🍔 ${Math.round(nd.hunger)}% · 💧 ${Math.round(nd.thirst)}% · ⚡ ${Math.round(nd.energy)}%. Food, water and sleep carry over from the dream. Eat at Rosie\'s diner or the Low Tide, buy water and snacks at the Kwik Mart on Harbour Road (or the vending machine in the car park), and coffee or an energy drink keeps you on your feet.`), Object.keys(seen).length ? h('p.l2-read', 'Endings found: ' + Object.keys(ENDINGS).map(e => seen[e] ? `${ENDINGS[e].icon} ${ENDINGS[e].title}` : '? ???').join(' · ')) : null); }
         if (k === 'clues') { const ks = Object.keys(S().clues); body.append(ks.length ? h('div', ks.map(c => h('div.l2-clue', h('b', CLUES[c][0]), h('p', CLUES[c][1])))) : h('p.l2-read', 'Nothing yet.')); }
         if (k === 'people') { const ks = Object.keys(S().met); body.append(ks.length ? h('div', ks.map(w => h('div.l2-clue', h('b', PEOPLE[w].name), h('small', PEOPLE[w].role), h('p', `In the dream: ${PEOPLE[w].echo}`)))) : h('p.l2-read', 'Nobody yet.')); }
         if (k === 'bottle') body.append(L2Bottle.panel());
@@ -769,7 +821,7 @@ const L2 = (() => {
     opts.push(['title', 'Title screen']);
     const c = await choose('Menu', opts);
     if (c === 'sound') { App.state.settings.sound = App.state.settings.sound === false; App.save(); }
-    if (c === 'gfx') { App.state.settings.gfx = App.state.settings.gfx === 'low' ? 'high' : 'low'; App.save(); const P = R3.player; await R3.go(R3.area, L2World[R3.area], [P.x, P.z, P.yaw]); toast(App.state.settings.gfx === 'low' ? 'Graphics: low. No shadows or reflections, so it runs faster.' : 'Graphics: high. Shadows and reflections on.'); }
+    if (c === 'gfx') { App.state.settings.gfx = App.state.settings.gfx === 'low' ? 'high' : 'low'; App.save(); const P = R3.player; await R3.go(R3.area, L2World[R3.area], [P.x, P.z, P.yaw]); toast(App.state.settings.gfx === 'low' ? 'Graphics: low. Simpler lighting and lighter rain, so it runs faster.' : 'Graphics: high. Full lighting and rain.'); }
     if (c === 'mori') await L2Bottle.callMori();
     if (c === 'phone') { const who = await choose('Who do you call?', [...(has('okafor') ? [['okafor', 'Dr. Okafor']] : []), ...(S().clues.rabbit ? [['mori', 'Detective Mori']] : []), ['back', 'Nobody']]); if (who !== 'back') chat(who); }
     if (c === 'sleep') await feverDream();

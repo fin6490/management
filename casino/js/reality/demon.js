@@ -2,68 +2,59 @@
    shape the size of a person, black as a hole in the air, with a red glow round its edges like
    heat off a stove. It hides: you catch it at the corner of your eye, standing very still at the
    far end of a room, and when you turn to look there's nothing there. When it hunts you it comes
-   flat through the air, head first, arms out, like something swimming, and it slows and thins to
-   almost nothing while you're looking straight at it, and comes on fast when you look away.
+   flat through the air, head first, arms out, like something swimming, straight through walls.
+   It doesn't like the light: under a streetlamp or a lit window it slows to a crawl.
    When it catches you, you see its face for the first time. It's yours: your skin, your hair, your
    glasses, a few years and a lot of bottles from now. Grey, gaunt, eyes sunk into the skull,
    lips cracked. Dead.
    Everything it sounds like is made here with Web Audio (no files): a low drone that swells as it
    closes in, wet ragged breathing, scraping whispers, and a scream when it gets you. */
 const L2Demon = (() => {
-  const mix = (a, b, k) => '#' + new THREE.Color(a).lerp(new THREE.Color(b), k).getHexString();
+  const mix = (a, b, k) => { const p = h => [1, 3, 5].map(i => parseInt(h.replace('#', '').padEnd(6, '0').slice(i - 1, i + 1), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
   const looks = () => (typeof Looks !== 'undefined' ? Looks.get() : { skin: '#f0c19a', hair: '#3a2a1e', style: 'short', beard: '', glasses: false, shirt: '#4a7a46' });
 
   /* ---------- the shape ---------- */
+  // a thing in the world (engine.js draws it in depth order with everything else)
   function make() {
-    const T = THREE, g = new T.Group(), body = new T.Group(); g.add(body);
-    const dark = new T.MeshBasicMaterial({ color: '#030000', transparent: true, opacity: 1, fog: false });
-    const rim = new T.MeshBasicMaterial({ color: '#ff1a0a', transparent: true, opacity: .55, side: T.BackSide, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false });
-    const mats = [dark, rim];
-    // every part twice: the black shape, and a slightly bigger red shell behind it that reads as a glowing edge
-    const part = (geo, x, y, z, parent = body, rx = 0, rz = 0) => { const grp = new T.Group(); grp.position.set(x, y, z); grp.rotation.set(rx, 0, rz); parent.add(grp); grp.add(new T.Mesh(geo, dark)); const r = new T.Mesh(geo, rim); r.scale.setScalar(1.13); grp.add(r); return grp; };
-    const cap = (r, l) => new T.CapsuleGeometry(r, l, 4, 10);
-    const torso = part(cap(.19, .5), 0, 1.15, 0); torso.scale.set(1, 1, .7);
-    const head = part(new T.SphereGeometry(.14, 16, 12), 0, 1.68, .02); head.scale.set(.9, 1.1, 1);
-    const arms = [-1, 1].map(sx => { const sh = new T.Group(); sh.position.set(sx * .25, 1.42, 0); body.add(sh); part(cap(.055, .62), 0, -.36, 0, sh); return { sh, sx }; });
-    const legs = [-1, 1].map(sx => { const hip = new T.Group(); hip.position.set(sx * .1, .88, 0); body.add(hip); part(cap(.075, .72), 0, -.42, 0, hip); return { hip, sx }; });
-    // the aura: a red glow behind it, a light that stains whatever it passes
-    const auraTex = R3.api.canvasTex('demonaura', 64, 128, (c, w, hh) => { const gr = c.createRadialGradient(w / 2, hh / 2, 2, w / 2, hh / 2, w * .95); gr.addColorStop(0, 'rgba(255,40,20,.55)'); gr.addColorStop(.5, 'rgba(160,0,0,.25)'); gr.addColorStop(1, 'rgba(80,0,0,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, hh); });
-    const aura = new T.Sprite(new T.SpriteMaterial({ map: auraTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false, opacity: .9 }));
-    aura.scale.set(1.6, 2.9, 1); aura.position.set(0, 1.1, -.2); body.add(aura);
-    const light = new T.PointLight('#ff1a0a', 2.2, 7, 2); light.position.set(0, 1.2, -.4); body.add(light);
-    // a smear of dark red it leaves in the air behind it when it flies
-    const trail = []; for (let i = 0; i < 8; i++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: auraTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0, toneMapped: false })); sp.scale.set(.9, .9, 1); R3.api.add(sp); trail.push({ sp, life: 0 }); }
-    let phase = Math.random() * 9, trailT = 0, ti = 0, fade = 1;
-    const U = g.userData;
-    U.mode = 'stand'; U.pace = 1;
-    // is it where you're looking?
-    U.seen = () => { const P = R3.player, dx = g.position.x - P.x, dz = g.position.z - P.z, d = Math.hypot(dx, dz) || 1; return Math.acos(Math.max(-1, Math.min(1, (dx * Math.sin(P.yaw) + dz * Math.cos(P.yaw)) / d))) < R3.hfov * .2; };
-    U.animate = (t, dt, dist = 9) => {
-      phase += dt;
-      const fly = U.mode === 'fly', seen = U.seen(), close = dist < 4;
-      // hiding: it thins almost to nothing while you look at it, unless it's already on you
-      const want = fly ? (seen && !close ? .55 + (Math.random() < .25 ? -.4 : 0) : 1) : (seen ? 0 : 1);
-      fade += (want - fade) * Math.min(1, dt * (want < fade ? 6 : 2.5));
-      U.pace = fly ? (seen && !close ? .55 : 1.25) : 1;
-      dark.opacity = fade; rim.opacity = .55 * fade * (.8 + Math.sin(t * 7) * .2); aura.material.opacity = .9 * Math.max(.25, fade) * (.85 + Math.random() * .15); light.intensity = 2.2 * Math.max(.2, fade);
-      if (fly) {
-        // flat through the air, head first, arms out ahead of it, legs trailing, rising and falling like breathing
-        body.rotation.x += (Math.PI / 2 - body.rotation.x) * Math.min(1, dt * 4);
-        body.position.y = 1.15 + Math.sin(phase * 2.1) * .12; body.position.z = -.95; // lying on the air at chest height, head towards you body.rotation.z = Math.sin(phase * 1.3) * .15;
-        for (const A of arms) { A.sh.rotation.x = Math.PI * .95 + Math.sin(phase * 3 + A.sx) * .12; A.sh.rotation.z = A.sx * (.2 + Math.sin(phase * 2.2) * .05); }
-        for (const L of legs) L.hip.rotation.x = Math.sin(phase * 5 + L.sx * 1.5) * .25;
-        trailT -= dt; if (trailT <= 0) { trailT = .12; const tr = trail[ti++ % trail.length], wp = new T.Vector3(); head.getWorldPosition(wp); tr.sp.position.copy(wp); tr.life = 1; }
-      } else {
-        // standing: perfectly still, head a little to one side, the way nothing alive stands
-        body.rotation.x += (0 - body.rotation.x) * Math.min(1, dt * 4); body.position.set(0, 0, 0); body.rotation.z = 0;
-        head.rotation.z = .28; for (const A of arms) { A.sh.rotation.set(0, 0, A.sx * .05); }
-      }
-      for (const tr of trail) { if (tr.life <= 0) continue; tr.life -= dt * 1.4; tr.sp.material.opacity = Math.max(0, tr.life) * .5 * fade; tr.sp.scale.setScalar(.9 + (1 - tr.life) * .8); }
+    const d = { kind: 'demon', x: 0, y: 0, mode: 'stand', fade: 0, want: 1, pace: 1, trail: [], phase: Math.random() * 9 };
+    d.inLight = () => (R3.map ? R3.map.lights : []).some(l => Math.hypot(l.x - d.x, l.y - d.y) < l.r * .55);
+    d.update = (t, dt, dist) => {
+      d.phase += dt;
+      const lit = d.inLight();
+      d.want = d.mode === 'fly' ? (lit && dist > 2.5 ? .45 : 1) : (dist < 5 || lit ? 0 : 1);
+      d.fade += (d.want - d.fade) * Math.min(1, dt * (d.want < d.fade ? 5 : 2));
+      d.pace = d.mode === 'fly' ? (lit && dist > 2.5 ? .45 : 1.2) : 1;
+      if (d.mode === 'fly') { d.trailT = (d.trailT || 0) - dt; if (d.trailT <= 0) { d.trailT = .1; d.trail.push({ x: d.x, y: d.y, life: 1 }); if (d.trail.length > 10) d.trail.shift(); } }
+      for (const p of d.trail) p.life -= dt * 1.5;
     };
-    U.dispose = () => { trail.forEach(tr => tr.sp.parent && tr.sp.parent.remove(tr.sp)); if (g.parent) g.parent.remove(g); };
-    U.fade = () => fade;
-    R3.api.add(g); return g;
+    d.draw = (c, sx, sy, z, t) => {
+      if (d.fade < .02) return;
+      c.save();
+      for (const p of d.trail) { if (p.life <= 0) continue; const [tx, ty] = R3.toScreen(p.x, p.y, 1.1); const g = c.createRadialGradient(tx, ty, 0, tx, ty, 26 * z); g.addColorStop(0, `rgba(120,0,0,${.35 * p.life * d.fade})`); g.addColorStop(1, 'rgba(60,0,0,0)'); c.fillStyle = g; c.fillRect(tx - 26 * z, ty - 26 * z, 52 * z, 52 * z); }
+      const fly = d.mode === 'fly', hover = fly ? (40 + Math.sin(d.phase * 2.1) * 5) * z : 0, cy = sy - hover - 36 * z;
+      // the red glow round it, like heat off a stove
+      const g = c.createRadialGradient(sx, cy, 4 * z, sx, cy, 60 * z); g.addColorStop(0, `rgba(255,40,20,${.55 * d.fade})`); g.addColorStop(.5, `rgba(150,0,0,${.25 * d.fade})`); g.addColorStop(1, 'rgba(60,0,0,0)');
+      c.globalCompositeOperation = 'lighter'; c.fillStyle = g; c.fillRect(sx - 60 * z, cy - 60 * z, 120 * z, 120 * z); c.globalCompositeOperation = 'source-over';
+      if (!fly) { c.fillStyle = `rgba(0,0,0,${.4 * d.fade})`; c.beginPath(); c.ellipse(sx, sy, 14 * z, 6 * z, 0, 0, 7); c.fill(); }
+      // the shape: black as a hole in the air, edged in red
+      c.translate(sx, sy - hover); c.scale(z * 1.3, z * 1.3);
+      if (fly) { const dir = d.vx - d.vy >= 0 ? 1 : -1; c.scale(dir, 1); c.translate(0, -34); c.rotate(Math.PI / 2 - .15 + Math.sin(d.phase * 1.3) * .08); c.translate(0, 34); }
+      c.globalAlpha = d.fade;
+      const body = new Path2D();
+      body.ellipse(0, -66, 8.5, 10, 0, 0, 7); // head
+      body.moveTo(-12, -56); body.quadraticCurveTo(0, -60, 12, -56); body.lineTo(9, -26); body.lineTo(-9, -26); body.closePath(); // body
+      const armUp = fly ? -1 : 0, sway = Math.sin(d.phase * 3) * 2;
+      for (const k of [-1, 1]) { body.moveTo(k * 12, -55); body.lineTo(k * (fly ? 9 : 16), fly ? -95 + sway * k : -22 + sway); body.lineTo(k * (fly ? 5 : 12), fly ? -95 + sway * k : -22 + sway); body.lineTo(k * 8, -52); body.closePath(); } // arms: hanging, or out ahead of it
+      for (const k of [-1, 1]) { body.moveTo(k * 3, -27); body.lineTo(k * (fly ? 4 + Math.sin(d.phase * 5 + k) * 3 : 6), fly ? 4 : 0); body.lineTo(k * (fly ? 9 + Math.sin(d.phase * 5 + k) * 3 : 10), fly ? 4 : 0); body.lineTo(k * 8, -27); body.closePath(); }
+      c.shadowColor = 'rgba(255,30,10,.9)'; c.shadowBlur = 14; c.fillStyle = '#030000'; c.fill(body);
+      c.shadowBlur = 0; c.strokeStyle = 'rgba(255,40,20,.55)'; c.lineWidth = 1.4; c.stroke(body);
+      if (!fly) { c.fillStyle = 'rgba(255,60,40,.9)'; c.fillRect(-4, -68, 2, 1.4); c.fillRect(2, -68, 2, 1.4); } // two points of light where eyes would be
+      c.restore();
+    };
+    d.vx = d.vy = 0; d.top = () => d.mode === 'fly';
+    R3.api.add(d); return d;
   }
+  function remove(d) { const M = R3.map; if (M) { const i = M.things.indexOf(d); if (i >= 0) M.things.splice(i, 1); } }
 
   /* ---------- its face, which is yours ---------- */
   // painted, not modelled: a close-up portrait of you, dead. Your skin drained grey-green, your hair
@@ -75,8 +66,8 @@ const L2Demon = (() => {
   function paintFace(L) {
     const key = [L.skin, L.hair, L.style, L.beard, L.glasses].join(); if (faceCache[key]) return faceCache[key];
     const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-    const cx = W / 2, skin = new THREE.Color(mix(mix(L.skin, '#7d8a76', .55), '#4b5048', .1));
-    const tone = (k, a = 1) => { const t = skin.clone().multiplyScalar(k); return `rgba(${t.r * 255 | 0},${t.g * 255 | 0},${t.b * 255 | 0},${a})`; };
+    const cx = W / 2, sk = mix(mix(L.skin, '#7d8a76', .55), '#4b5048', .1), rgb = [1, 3, 5].map(i => parseInt(sk.slice(i, i + 2), 16));
+    const tone = (k, a = 1) => `rgba(${Math.min(255, rgb[0] * k) | 0},${Math.min(255, rgb[1] * k) | 0},${Math.min(255, rgb[2] * k) | 0},${a})`;
     const blob = (x, y, rx, ry, col, col2 = 'rgba(0,0,0,0)') => { g.save(); g.translate(x, y); g.scale(1, ry / rx); const gr = g.createRadialGradient(0, 0, 0, 0, 0, rx); gr.addColorStop(0, col); gr.addColorStop(1, col2); g.fillStyle = gr; g.fillRect(-rx, -rx, rx * 2, rx * 2); g.restore(); };
     // the head: long and narrow, pinched at the temples and under the cheekbones
     const head = new Path2D(); head.moveTo(cx, 40); head.bezierCurveTo(cx + 175, 40, cx + 200, 200, cx + 168, 270); head.bezierCurveTo(cx + 150, 330, cx + 175, 400, cx + 150, 470);
@@ -114,45 +105,14 @@ const L2Demon = (() => {
     return (faceCache[key] = c);
   }
   // the eyes are separate so the lids can open over them: yellowed, bloodshot, the pupils pinned
+  let eyeCanvas = null;
   function paintEye() {
-    return R3.api.canvasTex('deadeye2', 128, 96, (g, w, h) => {
-      const gr = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w * .45); gr.addColorStop(0, '#e6dc9a'); gr.addColorStop(.7, '#b8a24a'); gr.addColorStop(1, '#5a1a10'); g.fillStyle = gr; g.beginPath(); g.ellipse(w / 2, h / 2, w * .42, h * .34, 0, 0, 7); g.fill();
-      g.strokeStyle = 'rgba(170,10,10,.8)'; g.lineWidth = 1; for (let i = 0; i < 30; i++) { const a = Math.random() * 7; let x = w / 2 + Math.cos(a) * w * .4, y = h / 2 + Math.sin(a) * h * .3; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (w / 2 - x) * .2 + (Math.random() - .5) * 6; y += (h / 2 - y) * .2 + (Math.random() - .5) * 6; g.lineTo(x, y); } g.stroke(); }
-      g.fillStyle = '#4a3a10'; g.beginPath(); g.arc(w / 2, h / 2, 13, 0, 7); g.fill(); g.fillStyle = '#000'; g.beginPath(); g.arc(w / 2, h / 2, 4, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(w / 2 + 7, h / 2 - 6, 3, 0, 7); g.fill();
-    });
-  }
-  // a plane bent back at the sides, so the face has a little depth to it
-  function curved(w, h, y0, y1, depth = .05) {
-    const geo = new THREE.PlaneGeometry(w, h * (y1 - y0), 24, 8), pos = geo.attributes.position, uv = geo.attributes.uv;
-    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i); pos.setZ(i, -depth * Math.pow(x / (w / 2), 2)); uv.setY(i, 1 - (y0 + (1 - uv.getY(i)) * (y1 - y0))); }
-    geo.computeVertexNormals(); return geo;
-  }
-  function face() {
-    const T = THREE, L = looks(), g = new T.Group(), fw = .27, fh = fw * H / W;
-    const tex = new T.CanvasTexture(paintFace(L)); tex.encoding = T.sRGBEncoding;
-    const m = new T.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true });
-    const upper = new T.Mesh(curved(fw, fh, 0, MOUTH), m); upper.position.y = fh * (.5 - MOUTH / 2); g.add(upper);
-    const jaw = new T.Group(); jaw.position.y = fh * (.5 - MOUTH); g.add(jaw);
-    const lower = new T.Mesh(curved(fw, fh, MOUTH, 1), m); lower.position.y = -fh * (1 - MOUTH) / 2; jaw.add(lower);
-    // behind the face: the inside of the mouth, which goes back further than it should
-    const voidM = new T.MeshBasicMaterial({ transparent: true, map: R3.api.canvasTex('deadmouth2', 128, 128, (c, w, hh) => { c.fillStyle = '#000'; c.beginPath(); c.ellipse(w / 2, hh / 2, w * .48, hh * .48, 0, 0, 7); c.fill(); const gr = c.createRadialGradient(w / 2, hh * .55, 2, w / 2, hh * .55, w * .5); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(.7, 'rgba(10,0,2,1)'); gr.addColorStop(1, 'rgba(70,6,14,1)'); c.globalCompositeOperation = 'source-atop'; c.fillStyle = gr; c.fillRect(0, 0, w, hh); }) });
-    const back = new T.Mesh(new T.PlaneGeometry(fw * .6, fh * .42), voidM); back.position.set(0, fh * (.5 - MOUTH) - fh * .12, -.03); g.add(back);
-    // skin stretched between the face and the dropped jaw, so it's one face pulling open, not two pieces
-    const sc = mix(mix(L.skin, '#7d8a76', .55), '#1e1e1e', .45);
-    const stretch = new T.Mesh(new T.PlaneGeometry(fw * .82, fh * .36), new T.MeshBasicMaterial({ transparent: true, toneMapped: false, map: R3.api.canvasTex('stretch' + sc, 128, 64, (c, w, hh) => { const gr = c.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.12, sc); gr.addColorStop(.88, sc); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, hh); c.strokeStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 14; i++) { c.beginPath(); c.moveTo(10 + Math.random() * 30, Math.random() * hh); c.lineTo(10 + Math.random() * 30, Math.random() * hh); c.moveTo(w - 10 - Math.random() * 30, Math.random() * hh); c.lineTo(w - 10 - Math.random() * 30, Math.random() * hh); c.stroke(); } }) }));
-    stretch.position.set(0, fh * (.5 - MOUTH) - fh * .12, -.036); g.add(stretch);
-    // the eyes, and the lids over them
-    const eyeM = new T.MeshBasicMaterial({ map: paintEye(), toneMapped: false, transparent: true });
-    const lidCol = mix(mix(L.skin, '#7d8a76', .55), '#141414', .55);
-    const lidTex = R3.api.canvasTex('deadlid' + lidCol, 128, 96, (c, w, hh) => { c.fillStyle = lidCol; c.beginPath(); c.ellipse(w / 2, hh / 2, w * .46, hh * .4, 0, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,.9)'; c.lineWidth = 4; c.beginPath(); c.ellipse(w / 2, hh * .52, w * .4, hh * .18, 0, .15, Math.PI - .15); c.stroke(); });
-    const lids = [];
-    for (const sx of [-1, 1]) {
-      const ex = sx * 72 / W * fw, ey = fh * (.5 - 296 / H);
-      const eye = new T.Mesh(new T.PlaneGeometry(fw * .17, fw * .12), eyeM); eye.position.set(ex, ey, .004 - .05 * Math.pow(ex / (fw / 2), 2)); g.add(eye);
-      const lid = new T.Mesh(new T.PlaneGeometry(fw * .19, fw * .14), new T.MeshBasicMaterial({ map: lidTex, transparent: true, toneMapped: false })); lid.position.set(ex, ey, .008 - .05 * Math.pow(ex / (fw / 2), 2)); g.add(lid); lids.push({ lid, y: ey });
-    }
-    g.userData = { jaw, lids, fh };
-    return g;
+    if (eyeCanvas) return eyeCanvas;
+    const c = document.createElement('canvas'); c.width = 128; c.height = 96; const g = c.getContext('2d'), w = 128, h = 96;
+    const gr = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w * .45); gr.addColorStop(0, '#e6dc9a'); gr.addColorStop(.7, '#b8a24a'); gr.addColorStop(1, '#5a1a10'); g.fillStyle = gr; g.beginPath(); g.ellipse(w / 2, h / 2, w * .42, h * .34, 0, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(170,10,10,.8)'; g.lineWidth = 1; for (let i = 0; i < 30; i++) { const a = Math.random() * 7; let x = w / 2 + Math.cos(a) * w * .4, y = h / 2 + Math.sin(a) * h * .3; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (w / 2 - x) * .2 + (Math.random() - .5) * 6; y += (h / 2 - y) * .2 + (Math.random() - .5) * 6; g.lineTo(x, y); } g.stroke(); }
+    g.fillStyle = '#4a3a10'; g.beginPath(); g.arc(w / 2, h / 2, 13, 0, 7); g.fill(); g.fillStyle = '#000'; g.beginPath(); g.arc(w / 2, h / 2, 4, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(w / 2 + 7, h / 2 - 6, 3, 0, 7); g.fill();
+    return (eyeCanvas = c);
   }
 
   /* ---------- the sound of it ---------- */
@@ -246,34 +206,43 @@ const L2Demon = (() => {
   // the dark goes out of it and there's a face an arm's length from yours: your own, dead. Its eyes
   // open. Its mouth opens too far. A flash, the scream, the screen shaking, then black. Then the words.
   async function scare() {
-    const P = R3.player, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, L = looks();
     R3.freeze(true); quiet();
-    const g = face(), fx = Math.sin(P.yaw), fz = Math.cos(P.yaw); P.pitch = 0;
-    g.position.set(P.x + fx * .4, P.y + .02, P.z + fz * .4); g.rotation.y = Math.atan2(fx, fz) + Math.PI; g.scale.setScalar(1.1); R3.api.add(g);
-    const under = new THREE.PointLight('#ff2a14', 2.4, 2.5, 2); under.position.set(0, -.35, .35); g.add(under); // lit from below, red
-    const flick = new THREE.PointLight('#dfe8ff', 0, 2.5, 2); flick.position.set(.3, .3, .5); g.add(flick);
-    const { jaw, lids, fh } = g.userData, jaw0 = jaw.position.y;
+    const face = paintFace(L), eye = paintEye(), lidCol = mix(mix(L.skin, '#7d8a76', .55), '#141414', .55), sc = mix(mix(L.skin, '#7d8a76', .55), '#1e1e1e', .45);
+    const cv = document.createElement('canvas'); cv.className = 'l2-scareface'; document.body.append(cv);
+    const dpr = Math.min(2, devicePixelRatio || 1), vw = innerWidth, vh = innerHeight; cv.width = vw * dpr; cv.height = vh * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
     const flash = h('div.l2-scare'); document.body.append(flash);
     scream(); if (navigator.vibrate) try { navigator.vibrate([90, 40, 220]); } catch (e) { }
-    R3.setFx({ shake: reduce ? 0 : .03, sway: 0, slow: 1 });
     const t0 = performance.now();
-    const anim = () => {
-      const k = (performance.now() - t0) / 1000;
-      lids.forEach(({ lid, y }) => { const o = Math.min(1, Math.max(0, k - .12) * 12); lid.position.y = y + o * fh * .05; lid.scale.y = 1 - o * .85; lid.material.opacity = 1 - o; }); // the eyes snap open
-      jaw.position.y = jaw0 - Math.min(1, Math.max(0, k - .22) * 3) * fh * .17; jaw.rotation.x = Math.min(.25, Math.max(0, k - .22)) ; // and the jaw drops, too far
-      g.scale.setScalar(1.1 + Math.min(.25, k * .5)); g.rotation.z = Math.sin(k * 23) * .04 * (reduce ? 0 : 1);
-      flick.intensity = Math.random() < .3 ? 2.5 : 0;
-      if (k < 1.4 && g.parent) requestAnimationFrame(anim);
-    };
-    anim();
-    await new Promise(r => setTimeout(r, 1250));
-    flash.classList.add('black');
+    await new Promise(done => {
+      const draw = () => {
+        const k = (performance.now() - t0) / 1000;
+        const fh = Math.min(vh * .92, vw * 1.25) * (1 + Math.min(.18, k * .35)), fw = fh * W / H, x0 = vw / 2 - fw / 2 + (reduce ? 0 : (Math.random() - .5) * 8), y0 = vh / 2 - fh / 2 + (reduce ? 0 : (Math.random() - .5) * 8);
+        const open = Math.min(1, Math.max(0, k - .22) * 3) * fh * .17, my = y0 + fh * MOUTH;
+        g.fillStyle = '#000'; g.fillRect(0, 0, vw, vh);
+        const vg = g.createRadialGradient(vw / 2, vh / 2, fh * .2, vw / 2, vh / 2, fh * .8); vg.addColorStop(0, 'rgba(90,0,0,.5)'); vg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = vg; g.fillRect(0, 0, vw, vh);
+        // the inside of the mouth, the skin stretched over it, then the jaw dropped below
+        const sg = g.createLinearGradient(x0 + fw * .17, 0, x0 + fw * .83, 0); sg.addColorStop(0, 'rgba(0,0,0,0)'); sg.addColorStop(.12, sc); sg.addColorStop(.88, sc); sg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = sg; g.fillRect(x0 + fw * .17, my - 6, fw * .66, open + 12);
+        g.fillStyle = '#000'; g.beginPath(); g.ellipse(vw / 2, my + open / 2, fw * .3, open / 2 + fh * .04, 0, 0, 7); g.fill();
+        g.drawImage(face, 0, H * MOUTH, W, H * (1 - MOUTH), x0, my + open, fw, fh * (1 - MOUTH));
+        g.drawImage(face, 0, 0, W, H * MOUTH, x0, y0, fw, fh * MOUTH);
+        // the eyes, and the lids snapping open over them
+        const lid = Math.min(1, Math.max(0, k - .12) * 12);
+        for (const sx of [-1, 1]) {
+          const ex = vw / 2 + sx * 72 / W * fw, ey = y0 + 296 / H * fh, ew = fw * .17, eh = fw * .12;
+          g.drawImage(eye, ex - ew / 2, ey - eh / 2, ew, eh);
+          if (lid < 1) { g.globalAlpha = 1 - lid; g.fillStyle = lidCol; g.beginPath(); g.ellipse(ex, ey - lid * eh * .4, ew * .55, eh * .55 * (1 - lid * .8), 0, 0, 7); g.fill(); g.globalAlpha = 1; }
+        }
+        if (Math.random() < .25) { g.fillStyle = 'rgba(255,40,20,.12)'; g.fillRect(0, 0, vw, vh); }
+        if (k < 1.25) requestAnimationFrame(draw); else done();
+      };
+      draw();
+    });
+    flash.classList.add('black'); cv.remove();
     await new Promise(r => setTimeout(r, 700));
-    if (g.parent) g.parent.remove(g);
-    R3.setFx(null);
     flash.classList.add('out'); setTimeout(() => flash.remove(), 600);
     R3.freeze(false);
   }
 
-  return { make, face, tick, quiet, scream, sting, scare };
+  return { make, remove, paintFace, tick, quiet, scream, sting, scare };
 })();

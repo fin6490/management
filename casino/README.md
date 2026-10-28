@@ -538,23 +538,27 @@ go up to $1,000,000 a hand.
 
 ## Level 2: The Meridian
 
-When the dream's story ends, you wake up. Level 2 is a first-person 3D mystery set in the real
-world. The bright little town was a dream. The Meridian is a real casino in a rain-soaked city.
+When the dream's story ends, you wake up. Level 2 is a mystery in the real world, and it looks
+nothing like the dream: an isometric city at night in the rain, drawn in a noir, illustrated style
+(ink outlines, flat shading, sodium streetlights, neon, wet reflections). The bright little town
+was a dream. The Meridian is a real casino in a real city, and you can walk all of it.
 
 **The story.** A year ago your wife Nora and your children Ellie and Sam were killed at home
 while you were away on a work trip. The police blamed a drifter and closed the case. Tonight is
 the anniversary, and you go back to the casino where you used to work to find out what really
 happened. The story is told gently and never shown.
 
-**Where you go:**
-- the sleep clinic
-- the car park under the casino, where your car has waited all year
-- the casino floor and the Low Tide bar
-- the surveillance room (The Eye)
-- the high-limit Salon
-- the 17th floor of the hotel, room 1717
-- the roof
-- the cemetery
+**The city.** Four blocks and a river, all of it walkable, most of it with an inside:
+- St Jude's, the sleep clinic where you wake
+- the Meridian: the casino floor, the surveillance room (The Eye), the high-limit Salon, the car
+  park underneath where your car has waited all year, and the hotel: the 17th floor, room 1717 and
+  the roof
+- Calder Street: the house that used to be yours (number 17), the bus shelter and the payphone
+  across the road
+- Harbour Road: the Low Tide bar, Rosie's all-night diner and the Kwik Mart
+- the police station, St Brigid's chapel and the park, the river embankment, and Greenhill
+  cemetery
+People are out in the rain, and the places you'd expect are open all night.
 
 **Puzzles:**
 - **The count.** Count a shoe of cards with Hi-Lo to get your old badge switched back on.
@@ -577,6 +581,8 @@ for all three.
 - The **Notebook** (📓) lists your evidence, the people you've met and who each one was in the
   dream.
 - The **fragments** you found in the dream are waiting in a box in your car.
+- **Home.** 17 Calder Street is still there, the police tape still on the gatepost. Your key still
+  fits. Nothing in it is needed for the story; it's there if you want it.
 
 **Playing for real money.** You can sit down at the tables and slots with the money in your
 wallet. Your dream bankroll is kept safe and comes back when you return to the dream.
@@ -595,11 +601,11 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
   - **Last Call.** Six drinks, and you stop fighting.
 - **The Barman.** If you don't kick the habit, the craving comes for you. You never get a good look at
   it: a shape the size of a person, black as a hole in the air, with a red glow round its edges.
-  - **It hides.** While the craving is bad you catch it at the edge of your view, standing very
-    still at the far end of a room. Turn to look and it's gone.
+  - **It hides.** While the craving is bad you catch it standing very still in the dark parts of a
+    place, a little way off. Walk towards it, or let the light find it, and it's gone.
   - **When it hunts you:** when the craving has been screaming for a while, or every few minutes
-    once you've given in. It comes flat through the air, head first, arms out. It slows and
-    flickers while you hold it in your eyes, and comes on fast when you look away. You hear it before you see it: a low drone that swells as it closes in,
+    once you've given in. It comes flat through the air, head first, arms out, straight
+    through walls. It doesn't like the light: under a streetlamp or a lit window it slows to a crawl. You hear it before you see it: a low drone that swells as it closes in,
     ragged breathing, whispers just behind you, and a heartbeat that gets louder. All of it is made
     in the browser, with no sound files.
   - **Escaping:** outrun it for half a minute (Shift on a computer; on a phone tap 🏃 or push the
@@ -616,8 +622,8 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
 - **Effect on the story.** The endings remember which way it went, but nothing in the main story
   depends on it. The notebook's **The bottle** tab tracks it.
 
-**Floor games.** Three games built for the 3D casino. Walk up to one and the camera moves in on
-it while your bets slide up from the bottom of the screen.
+**Floor games.** Three games that stand on the Meridian's floor. Walk up to one and the machine
+itself appears above your bets, drawn and animated, while they slide up from the bottom of the screen.
 - **Big Six money wheel.** A 54-segment wheel with a leather flapper. Bet on $1, $2, $5, $10, $20,
   Joker or Meridian, and the dealer gives it a pull.
 - **Sic Bo.** Three dice rattle under a glass dome. Bets include Small and Big, Odd and Even, any
@@ -633,7 +639,7 @@ pusher is simulated:
 node casino/tools/l2-odds.js
 ```
 
-**AI chat.** Delia and Margaux can talk freely if AI chat is on.
+**AI chat.** With AI chat on, the people you meet can talk freely (see **Everyone talks** below).
 
 **Getting there and back:**
 - **Into Level 2.** When the dream's story ends, you wake up in the clinic.
@@ -652,29 +658,32 @@ shakes stop, and it counts as a drink), drink the water (it takes the edge off),
 into the rain and drink the water (a step towards getting sober), or grip the wheel until it
 passes (that counts as turning a drink down).
 
-**Food, water and sleep.** Level 2 uses the dream's own hunger 🍔, thirst 💧 and energy ⚡ bars, so
+**Food, water and sleep**, and **buying them**, like in the dream. Level 2 uses the dream's own hunger 🍔, thirst 💧 and energy ⚡ bars, so
 you wake up as hungry as you went to sleep, and they come back with you when you dream again.
 Awake they drain in real time (hunger in about half an hour, thirst a little faster, energy in
 about forty minutes) and a bit more for every round at a table. They show under your objective.
 - **Thirst** makes the craving come on faster. **Hunger** and **tiredness** slow you down; with no
   energy left you can't run, and with any bar empty the edges of the screen go dark.
-- **Where to fix it:** the water cooler and a pot of coffee in the clinic; the vending machine by
-  the car park lift (water, a chocolate bar, an energy drink); the Low Tide bar (a burger and fries,
-  coffee, or water from Delia); and the minibar in room 1717 (water, nuts and chocolate).
+- **Where to fix it:** Rosie's diner (a cheeseburger and fries, soup, cherry pie, coffee with free
+  refills, water); the Kwik Mart (water, energy drinks, cola, sandwiches, chocolate, crisps, and a
+  booze aisle that counts as a drink you're offered); the Low Tide (food, coffee or water from
+  Delia); the vending machine in the car park; the minibar in room 1717; and the water cooler and a
+  pot of coffee in the clinic.
+- **Other places that help:** St Brigid's chapel (light a candle, or sit in the circle of chairs
+  where the Thursday meeting happens) and the river take the edge off the craving.
 
-**How it looks.** The waking world is meant to feel real, so the 3D engine does more than draw boxes:
-- every box has rounded edges, and concrete, carpet, wood and wallpaper have surface detail that
-  catches the light (normal maps worked out from their own textures);
-- each area bakes a soft reflection of itself, so cars, chrome, wet floors and puddles reflect,
-  and everything gets a gentle fill light;
-- one key light per area throws real shadows (on phones too, at a lower resolution), heavy things
-  have soft contact shadows where they meet the floor, and bright lights have a glow;
-- the cars are proper saloons with glass, wheels with rims, lights and number plates; the car park
-  has ceiling pipes and rain standing in puddles;
-- you speed up and slow down instead of starting and stopping dead, and your footsteps sound
-  different on concrete and carpet.
-- if it runs slowly on an older phone, **☰ → Graphics: low** turns off the shadows and reflections
-  and draws at a lower resolution.
+**How it looks.** Everything is drawn on a canvas, nothing is downloaded:
+- the ground first, then everything that stands up (buildings, walls, furniture, people) back to
+  front a tile at a time, so you walk in front of and behind things properly; anything tall between
+  you and the camera goes see-through so you never lose yourself;
+- buildings are built from one-metre cubes with lit and dark windows, doorways, shopfronts and
+  neon; rooms are cut away so you see into them;
+- night is a layer of darkness with every lamp, window and sign cut out of it, and its colour laid
+  back on top; rain falls across the screen and stands in puddles;
+- small rooms are framed whole; out in the city the camera follows you, a little ahead of where
+  you're going;
+- footsteps sound different on wet pavement, concrete and carpet;
+- **☰ → Graphics: low** uses simpler lighting and lighter rain on older phones.
 
 **The man on Calder Street (a hidden story).** The police said a drifter did it. Nobody ever asked
 who he was. Underneath the main story there's another one, and only conversation and the dream can
@@ -699,12 +708,11 @@ get you to it:
 been through their scene, and you can phone Mori and Dr. Okafor from the ☰ menu.
 
 **Controls:**
-- **Computer:** WASD or the arrow keys to walk, Shift to hurry, and the mouse to look (click to
-  capture it). Press E, Space or Enter to use things.
-- **Phone:** your left thumb walks (push it all the way out to run, or tap 🏃 to keep running),
-  dragging on the right looks around, and ✋ uses things.
-
-The 3D engine is [three.js](https://threejs.org) (MIT licence), bundled in `vendor/`.
+- **Tap or click** where you want to go and you walk there, finding your way round things. Tap
+  someone or something to walk up to it and use it.
+- **Drag** anywhere to steer like a joystick; drag further to run, or tap 🏃 to keep running.
+- **Computer:** WASD or the arrow keys walk too, Shift runs, and E, Space or Enter uses whatever
+  you're next to (so does the ✋ button).
 
 ## AI chat
 
