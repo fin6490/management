@@ -270,6 +270,24 @@ Family.
 
 Finish ten side jobs for the Odd Jobs achievement.
 
+**After the story.** Once the dream's story has an ending and you go back to the town, Kessler is
+gone and everyone you know has one more thing to ask (`js/afterstory.js`):
+
+| From | Job | What to do |
+| --- | --- | --- |
+| Vinnie | Victory Lap | Win a round in every casino in town |
+| Vinnie | Going Legit | Own two businesses that pay you every night |
+| Margot | The Charity Gala | Finish a day $25,000 up at the Gilded Palace |
+| Margot | A Seat at the Table | Buy a stake in the Palace or the Grand Hotel |
+| Lou | The Last Run of the Season | Play 40 rounds on the Riverboat |
+| Doc | The Final Table | Win a Back Room poker tournament |
+| Doc | High Roller | Win the High Roller or Super High Roller |
+| Mick | Joost Wants a Rematch | Win the Golden Arrow again |
+| Mick | Maximum! | Throw a 180 |
+| Sparky | Lost Property | Find all seventeen fragments |
+| Dolores | Everybody's Here | Become good friends with five people in town |
+| Dolores | Sal's Wake (For Real) | Put $20,000 behind the Spur's bar for the party |
+
 ### The Seventeenth Card
 
 The story is a four-act mystery about what happened at Sal's last game. ☰ → Case file (or 🔎 on
@@ -600,17 +618,20 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
     Detective Mori when it gets loud (she's eleven years sober), and turn down three drinks you're
     offered: Delia's, Margaux's and the minibar's.
   - **Last Call.** Six drinks, and you stop fighting.
-- **The Barman.** If you don't kick the habit, the craving comes for you. You never get a good look at
-  it: a shape the size of a person, black as a hole in the air, with a red glow round its edges.
+- **The Barman.** If you don't kick the habit, the craving comes for you: something too tall and
+  starved thin, hunched on legs that bend the wrong way, arms hanging past its knees, in a barman's
+  white jacket gone grey and stained. Where its face should be there's only black, two red points,
+  and a split that might be a grin. Smoke comes off it.
   - **It hides.** While the craving is bad you catch it standing very still in the dark parts of a
     place, a little way off. Walk towards it, or let the light find it, and it's gone.
-  - **When it hunts you:** when the craving has been screaming for a while, or every few minutes
-    once you've given in. It comes flat through the air, head first, arms out, straight
-    through walls. It doesn't like the light: under a streetlamp or a lit window it slows to a crawl. You hear it before you see it: a low drone that swells as it closes in,
-    ragged breathing, whispers just behind you, and a heartbeat that gets louder. All of it is made
-    in the browser, with no sound files.
-  - **Escaping:** outrun it for half a minute (Shift on a computer; on a phone tap 🏃 or push the
-    stick right out; the shakes slow you down, and with no energy left you can't run), get out through a door, or call Mori.
+  - **When it hunts you** (when the craving has been screaming for a while, or every few minutes
+    once you've given in), it hunts you for most of a minute. It steps out from somewhere you can't
+    see, round a corner or out of the dark, and comes at you in jerky stop-motion bursts. Then it goes
+    up in smoke and steps out again, a little closer. Light drives it off, and a torch slows it. You
+    hear it before you see it: a low drone, ragged breathing, whispers, a heartbeat that gets louder.
+    All of it is made in the browser, with no sound files.
+  - **Escaping:** keep moving and stay in the light until it gives up (walking is just faster than
+    it; running is safe), or get out through a door, take a cab, or call Mori.
   - **Getting caught:** then you see its face. It's yours, built from your look in the dream (your
     skin, hair, beard and glasses) a few years and a lot of bottles on: grey, gaunt, the eyes yellowed
     in black sockets, the lips shrunk back off the teeth. Its eyes snap open and its jaw drops too far,
@@ -710,7 +731,12 @@ Money page keeps track.
   back on top; rain falls across the screen and stands in puddles;
 - small rooms are framed whole; out in the city the camera follows you, a little ahead of where
   you're going;
-- footsteps sound different on wet pavement, concrete and carpet;
+- people are inked figures with faces, hats, aprons, uniforms and umbrellas, and they stand behind
+  counters and bars properly;
+- brick, stucco and stone are textured, windows have curtains, blinds and the odd silhouette,
+  shops have awnings and lit windows, and roofs have their air-conditioning units and water tanks;
+- signs and neon cast coloured light; cars go by with their headlights on and stop for you;
+- footsteps are soft and sound different on wet pavement, concrete and carpet;
 - **☰ → Graphics: low** uses simpler lighting and lighter rain on older phones.
 
 **The man on Calder Street (a hidden story).** The police said a drifter did it. Nobody ever asked
@@ -733,7 +759,28 @@ get you to it:
   what they asked you.
 
 **Everyone talks.** Dr. Okafor, Delia, Tommy, Margaux and Mori all have 💬 Talk freely once you've
-been through their scene, and you can phone Mori and Dr. Okafor from the ☰ menu.
+been through their scene, and you can phone Mori and Dr. Okafor from the ☰ menu. So does everyone
+else in the city (`js/reality/people.js`): tap someone and they say something, and 💬 Talk opens an
+AI chat with them. They don't know the answers to the mystery; they know the city, tonight, and
+themselves, and they ask you things back. Most have something to offer:
+- **On the street:** Marcus the busker under the Meridian's canopy (tip him, ask for a song), Ida
+  at the news stand (the late edition, and Lucky Sevens scratchcards), Gus's hot dog cart on the
+  embankment, Rajesh at the taxi rank, Shona smoking outside the Low Tide, Officer Danny Price on his
+  beat, Carla and Pete walking home in the rain, and a black cat with somewhere to be.
+- **The Low Tide:** Delia's full menu (beer, whisky, wine, soft drinks, burgers, chips, toasties),
+  **darts** with Big Sean (three rounds of three darts for $20, $50 or $100: hold on the board to
+  aim, let go to throw, and the shakes make your aim wander), **pool** with Lou Marino (pub rules,
+  reds and yellows; drag back like a catapult to shoot), the jukebox ($1 a song: it changes the
+  music), Mags at the bar and Old Walt in his corner.
+- **Rosie's:** a longer menu (pancakes, a BLT, milkshakes, juice, tea), Benny the cook, Dale the
+  trucker and Priya, a nurse from St Jude's on her break.
+- **Elsewhere:** Omar at the Kwik Mart (mints, batteries, a bigger fridge), Sully at the pawn shop,
+  Sergeant Hanley and Terry (sleeping it off) at the police station, Father Tom and Ruth at St
+  Brigid's, Bree with her tray, Hollis, Glenda and Tiffany on the Meridian floor, Mr. Chen in the
+  Salon, Lupe on the 17th floor, Nurse Adeyemi at the clinic and Stan in the car park booth.
+
+**Starting again.** ☰ → **Start Level 2 again** goes back to waking up in the clinic, keeping the
+dream and the endings you've found. A save from before Level 2 was rebuilt is offered a fresh start.
 
 **Controls:**
 - **Tap or click** where you want to go and you walk there, finding your way round things. Tap
