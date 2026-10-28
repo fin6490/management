@@ -292,6 +292,21 @@ gone and everyone you know has one more thing to ask (`js/afterstory.js`):
 | Sparky | Lost Property | Find all seventeen fragments |
 | Dolores | Everybody's Here | Become good friends with five people in town |
 | Dolores | Sal's Wake (For Real) | Put $20,000 behind the Spur's bar for the party |
+| Sal | Sal's Last Secret | Get Room 7 at the Starlite opened (Darlene's price is Mel's cherry pie) |
+| Sal | The Combination | Open the lock behind the Spur's longhorns |
+| Sal | The Seventeen Club | Go down the stairs and find Sal at the bottom |
+
+**Sal's Last Secret** (`js/salquest.js`) is the one job that opens a room you've never seen. Sal is
+behind the Spur's bar after the Justice or Double-Cross endings (at Mel's counter if you took
+Kessler's place). Room 7 holds a key and a note: "The year I won it all. The room I hid in. The
+number I never stopped betting." The note doesn't give the numbers; the town does (the Golden
+Arrow photo at Mel's, Darlene, and every 17 you've seen). The three dials behind the longhorns open
+a door to the **Seventeen Club**, a 1926 speakeasy under the Spur: a mahogany bar (Sal's coffee is
+free, his rye is $17), a player piano that changes the music, a wall of old photographs, Sal's safe
+($17,000 and his pocket watch, once he's shown you round) and a **faro** bank. Faro: put chips on
+any of the thirteen cards; each turn the first card drawn loses and the second wins (even money),
+a pair splits (the bank takes half), and with three cards left you can call their order for 4 to 1.
+The beads show how many of each rank are left.
 
 ### The Seventeenth Card
 
