@@ -299,21 +299,26 @@ chat window.
 
 ### Whispers
 
-Some people in town are holding a secret they'll only share if you ask about the right thing in
-your own words. These secrets are called whispers.
+Some people in town are holding a secret they'll only share once they trust you. These secrets are
+called whispers.
 
 - **Needs AI chat.** Each whisper needs AI chat switched on. None of them are needed to finish the
   story.
 - **Where to find them.** The case file's **Whispers** tab lists who is holding something back,
-  with a nudge about what to ask. Some only show up once the story has reached them.
+  with a lead (never the exact question). Some only show up once the story has reached them.
+- **They ask you back.** Bring the subject up in your own words and they won't just tell you: they
+  ask you something first, and only someone who has done the legwork knows the answer (a time on a
+  receipt, a name in the police report, an engraving on a chip). Answer well and they open up. Once
+  you've raised it, the Whispers tab shows the question you were asked.
 - **What you get.** Each one is a piece of the town's past, plus some cash or a perk. Perks include:
   - $500 off your debt
   - free pie at Mel's for good
   - a steadier darts arm
 - **Achievements.** Good Listener for your first whisper, All Ears for all nine.
-- **How the game checks it.** The character tells the secret when you ask about the right thing.
-  The game only counts it if your own question was actually about that topic, so you can't trick
-  someone into handing it over.
+- **How the game checks it.** The game follows the conversation itself, from what you type: whether
+  you've raised the subject, and whether your answer is right. Before each reply the character is
+  told where things stand, and the secret only counts once you've answered every question, so you
+  can't trick someone into handing it over.
 
 ### Fragments
 
@@ -324,7 +329,8 @@ theatre ticket, a recipe card, a cassette and more. They don't belong in the dre
   press Space (or tap ✋) to pick it up. There are seven in town and one in each casino and room.
 - **Where they're kept.** The **Fragments** panel on the Status screen lists what you've found.
 - **Achievements.** Something Familiar for your first, Remember for all seventeen.
-- **What they're for.** You'll find out later.
+- **What they're for.** Each one has a torn square of a photograph taped to the back. In Level 2
+  you put them together.
 
 ### Your file
 
@@ -587,13 +593,18 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
     Detective Mori when it gets loud (she's eleven years sober), and turn down three drinks you're
     offered: Delia's, Margaux's and the minibar's.
   - **Last Call.** Six drinks, and you stop fighting.
-- **The Barman.** If you don't kick the habit, a hallucination comes for you. He's a gaunt figure in
-  a stained bar apron, lit red from behind, and he walks straight through walls.
-  - **When he hunts you:** when the craving has been screaming for a while, or every few minutes
-    once you've given in. A heartbeat thuds louder as he gets closer.
-  - **Escaping:** outrun him for half a minute (hold Shift, though the shakes slow you down), get
-    out through a door, or call Mori.
-  - **Getting caught:** you go down. The third time you don't get up, and that's the 🥀 **Closing
+- **The Barman.** If you don't kick the habit, the craving comes for you in the shape of a monster:
+  a starved, hunched thing taller than a door, in a barman's apron rotted to strips, with arms that
+  drag on the floor, fingers like nails, four burning eyes and a jaw that opens too far. It lurches
+  and twitches, and walks straight through walls.
+  - **When it hunts you:** when the craving has been screaming for a while, or every few minutes
+    once you've given in. You hear it before you see it: a low drone that swells as it closes in,
+    ragged breathing, whispers just behind you, and a heartbeat that gets louder. All of it is made
+    in the browser, with no sound files.
+  - **Escaping:** outrun it for half a minute (Shift on a computer; on a phone push the stick all
+    the way out or tap 🏃; the shakes slow you down), get out through a door, or call Mori.
+  - **Getting caught:** a jump scare first, its face in yours with a flash and a scream (a steady
+    red tint instead of flashing if your device asks for reduced motion). Then you go down. The third time you don't get up, and that's the 🥀 **Closing
     Time** ending. You can wake up in the clinic and try the night again, with your story
     progress kept.
   - **Getting sober** sends him away for good. There are achievements for outrunning him and for
@@ -631,10 +642,33 @@ node casino/tools/l2-odds.js
 - **Older saves.** Saves that finished the dream before Level 2 existed get a **Wake up** button on
   the title screen.
 
+**The man on Calder Street (a hidden story).** The police said a drifter did it. Nobody ever asked
+who he was. Underneath the main story there's another one, and only conversation and the dream can
+get you to it:
+- **The newspaper cutting** in the box in your car names him: Eddie Marsh, arrested at the bus
+  shelter across the road, who died in custody.
+- **Nora's photograph.** Every fragment you found in the dream has a torn piece of it on the back.
+  Put them together in the box (tap a piece to pick it up, tap again to turn it, then tap where it
+  goes). It's what Nora saw out of the window at 9:38 that night, and the two middle pieces of the
+  bottom half carry the car's number plate. If you're missing either, the notebook tells you where
+  in the dream it is: sleep, find it, and come back.
+- **Three conversations, by AI chat.** Delia, Detective Mori and Dr. Okafor each know part of it.
+  Talk to them (💬 Talk freely, or phone Mori and Dr. Okafor from the ☰ menu), bring it up in your
+  own words, and expect to be asked something back. The answers are in your evidence: a time on a
+  voicemail, a street in the paper, a plate in the photograph.
+- **What it changes.** The good ending clears Eddie's name in court, and at the cemetery there's a
+  fourth stone. Achievements: The Man on Calder Street, and Seventeen Pieces for the whole photograph,
+  front and back. The **Loose threads** page in the notebook shows who is holding something back and
+  what they asked you.
+
+**Everyone talks.** Dr. Okafor, Delia, Tommy, Margaux and Mori all have 💬 Talk freely once you've
+been through their scene, and you can phone Mori and Dr. Okafor from the ☰ menu.
+
 **Controls:**
 - **Computer:** WASD or the arrow keys to walk, Shift to hurry, and the mouse to look (click to
   capture it). Press E, Space or Enter to use things.
-- **Phone:** your left thumb walks, dragging on the right looks around, and ✋ uses things.
+- **Phone:** your left thumb walks (push it all the way out to run, or tap 🏃 to keep running),
+  dragging on the right looks around, and ✋ uses things.
 
 The 3D engine is [three.js](https://threejs.org) (MIT licence), bundled in `vendor/`.
 

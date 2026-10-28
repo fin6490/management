@@ -121,7 +121,7 @@ const L2World = (() => {
     const cal = A.plane(.5, .62, new THREE.MeshBasicMaterial({ map: A.canvasTex('calendar', 160, 200, (g, w, h) => { g.fillStyle = '#f6f4ee'; g.fillRect(0, 0, w, h); g.fillStyle = '#b3222b'; g.fillRect(0, 0, w, 46); g.fillStyle = '#fff'; g.font = 'bold 30px Arial'; g.textAlign = 'center'; g.fillText('OCTOBER', w / 2, 34); g.fillStyle = '#222'; g.font = 'bold 96px Georgia'; g.fillText('17', w / 2, 150); g.strokeStyle = '#b3222b'; g.lineWidth = 4; g.beginPath(); g.ellipse(w / 2, 118, 58, 50, 0, 0, 7); g.stroke(); }) }), -3.88, 1.7, 1, 0); cal.rotation.y = Math.PI / 2;
     A.cyl(.18, .14, .3, A.mat('pot', { color: '#d8d2c8' }), 3.4, .15, -3.3); const leaf = A.mat('plant', { color: '#3f6a3a', roughness: .8 }); for (let i = 0; i < 7; i++) { const l = new THREE.Mesh(new THREE.SphereGeometry(.16, 8, 6), leaf); l.position.set(3.4 + Math.cos(i) * .12, .45 + (i % 3) * .14, -3.3 + Math.sin(i) * .12); l.scale.set(.6, 1.4, .3); l.rotation.z = Math.cos(i) * .6; A.add(l); }
     // Dr Okafor
-    A.person({ x: .4, z: -1, face: -2.4, skin: '#6b4430', hair: '#1a1210', coat: '#e9edf0', pants: '#2c3440', glasses: true, shirt: '#4a6b8a' });
+    A.person({ x: .4, z: -1, face: -2.4, skin: '#6b4430', hair: '#1a1210', coat: '#eef1f3', pants: '#2c3440', glasses: true, shirt: '#4a6b8a', labCoat: true, bun: true });
     A.use(.4, -1, 'Talk to Dr. Okafor', act('okafor'), { r: 2.2 });
     A.box(.9, .75, .6, A.mat('desk', { color: '#c8b89a', roughness: .7 }), 2.6, .375, 1.8, true);
     A.use(2.6, 1.8, 'Your discharge folder', act('folder'));
@@ -137,6 +137,7 @@ const L2World = (() => {
     A.plane(32, 26, floor, 0, 0, 0); A.plane(32, 26, A.mat('gceil', { map: A.TEX.concrete([6, 5]), roughness: 1 }), 0, 3.2, 0, Math.PI / 2);
     A.wall(-16, 13, 16, 13, 3.2, conc); A.wall(-16, -13, -16, 13, 3.2, conc); A.wall(16, -13, 16, 13, 3.2, conc);
     A.wall(-16, -13, -6, -13, 3.2, conc); A.wall(6, -13, 16, -13, 3.2, conc); A.box(12, .9, .3, conc, 0, 2.75, -13);
+    A.box(12, 1.05, .3, conc, 0, .52, -13, true); // a waist-high parapet along the open side: you can look out at the rain, not walk into it
     // concrete pillars with hazard stripes
     const hazard = A.mat('hazard', { map: A.canvasTex('hazard', 128, 32, (g) => { g.fillStyle = '#f2c200'; g.fillRect(0, 0, 128, 32); g.fillStyle = '#111'; for (let i = -1; i < 9; i++) { g.beginPath(); g.moveTo(i * 16, 32); g.lineTo(i * 16 + 8, 32); g.lineTo(i * 16 + 24, 0); g.lineTo(i * 16 + 16, 0); g.fill(); } }) });
     for (const x of [-9, 0, 9]) for (const z of [-5, 5]) { A.box(.7, 3.2, .7, conc, x, 1.6, z, true); A.box(.72, .45, .72, hazard, x, .23, z); A.shadowBlob(x, z, .8); }
@@ -453,6 +454,13 @@ const L2World = (() => {
     const sun = new THREE.DirectionalLight('#ffd9b0', 1.4); sun.position.set(-8, 7, 14); A.add(sun);
     A.add(new THREE.HemisphereLight('#ffe6c8', '#4a5a3a', .8));
     A.use(0, -2.2, 'Kneel by the stones', act('graves'), { r: 2.6 });
+    // second row from the gate, under a tree: the man they blamed
+    if (L2.state.clues.call) {
+      A.box(.7, .8, .16, stone, 5.6, .4, -6.2, true);
+      for (const [t, y, f] of [['EDWARD MARSH', .62, 'bold 64px Georgia'], ['He called for help', .42, 'italic 60px Georgia']]) { const tx = A.sign(t, { color: '#2a2a2a', w: .62, h: .14, font: f }); tx.material = new THREE.MeshBasicMaterial({ map: tx.material.map, transparent: true }); tx.position.set(5.6, y, -6.11); A.add(tx); }
+      A.cyl(.15, .2, 3, A.mat('trunk', { color: '#3a2a1e' }), 6.8, 1.5, -7.2); const crown = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 10), A.mat('leaves', { color: '#2e4a2a', roughness: 1 })); crown.position.set(6.8, 3.6, -7.2); A.add(crown);
+      const pansy = A.mat('pansy', { color: '#7a4ab0', roughness: .8 }); for (let i = 0; i < 7; i++) A.box(.07, .05, .07, pansy, 5.35 + i * .08, .03, -5.95 + (i % 2) * .06);
+    }
     return { spawn: [0, 4, Math.PI], bg: '#e9cfae', fog: .025, fogColor: '#e8d2b8' };
   }
 

@@ -10,7 +10,9 @@ const R3 = (() => {
   let renderer = null, scene = null, cam = null, root = null, raf = 0, last = 0, el = null;
   let area = null, colliders = [], uses = [], updaters = [], focus = null, busy = false, V = null, FX = null;
   const P = { x: 0, z: 0, y: 1.62, yaw: 0, pitch: 0, bob: 0 };
-  const keys = new Set(), stick = { x: 0, y: 0 }, look = { dx: 0, dy: 0 };
+  const keys = new Set(), stick = { x: 0, y: 0, run: false }, look = { dx: 0, dy: 0 };
+  let runLock = false; // the 🏃 button on touch screens
+  const running = () => keys.has('shift') || stick.run || runLock;
   const lowPower = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   /* ---------- textures drawn on canvases ---------- */
@@ -84,7 +86,7 @@ const R3 = (() => {
     const skin = mat('skin' + o.skin, { color: o.skin || '#c99b7a', roughness: .62 });
     const coat = mat('coat' + o.coat, { color: o.coat || '#333', roughness: .78 });
     const pants = mat('pants' + o.pants, { color: o.pants || '#222', roughness: .85 });
-    const hairM = mat('hair' + o.hair, { color: o.hair || '#2a1d14', roughness: .85 });
+    const hairM = mat('hair' + o.hair, { color: o.hair || '#2a1d14', roughness: .85, side: THREE.DoubleSide });
     const add = (geo, m, x, y, z, parent = g) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
     const cap = (r, len, seg = 10) => new THREE.CapsuleGeometry(r, len, 4, seg);
     // legs and shoes
@@ -93,13 +95,26 @@ const R3 = (() => {
     // torso: a tapered body with shoulders
     const torso = new THREE.Group(); torso.position.y = 1.18; g.add(torso);
     const tw = broad ? 1.22 : 1;
-    const body = add(new THREE.CylinderGeometry(.2 * tw, (o.skirt ? .2 : .17) * tw, .62, 18), coat, 0, 0, 0, torso); body.scale.z = .72;
+    // an open jacket (or a doctor's knee-length coat) is a real shell with a gap at the front, so the shirt and tie sit inside it
+    const open = !!o.shirt, shirtM = open ? mat('shirt' + o.shirt, { color: o.shirt, roughness: .72 }) : coat;
+    const body = add(new THREE.CylinderGeometry(.19 * tw, (o.skirt ? .2 : .165) * tw, .62, 18), shirtM, 0, 0, 0, torso); body.scale.z = .72;
     add(new THREE.SphereGeometry(.2 * tw, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), coat, 0, .3, 0, torso).scale.set(1, .38, .72);
     for (const sx of [-1, 1]) add(new THREE.SphereGeometry(.075, 10, 8), coat, sx * .2 * tw, .27, 0, torso);
-    // shirt and tie in the opening of the coat, lapels either side
-    if (o.shirt) { const v = add(new THREE.PlaneGeometry(.12, .26), mat('shirt' + o.shirt, { color: o.shirt, roughness: .7, side: THREE.DoubleSide }), 0, .17, .128 * tw, torso); v.rotation.x = -.18; }
-    if (o.tie) { const t = add(new THREE.BoxGeometry(.04, .26, .012), mat('tie' + o.tie, { color: o.tie, roughness: .5 }), 0, .13, .134 * tw, torso); t.rotation.x = -.16; }
-    if (o.shirt) for (const sx of [-1, 1]) { const l = add(new THREE.BoxGeometry(.06, .24, .012), mat('lapel' + o.coat, { color: new THREE.Color(o.coat || '#333').multiplyScalar(.75), roughness: .6 }), sx * .07, .16, .132 * tw, torso); l.rotation.set(-.18, 0, sx * .28); }
+    if (open) {
+      const gap = o.labCoat ? .62 : .78, len = o.labCoat ? 1.02 : .68, rTop = .212 * tw, rBot = (o.labCoat ? .26 : .19) * tw;
+      const shell = add(new THREE.CylinderGeometry(rTop, rBot, len, 28, 1, true, gap / 2, Math.PI * 2 - gap), mat('shell' + o.coat, { color: o.coat || '#333', roughness: .78, side: THREE.DoubleSide }), 0, .31 - len / 2, 0, torso);
+      shell.scale.z = .76;
+      // lapels fold back along both edges of the opening, a shade darker than the cloth
+      const lap = mat('lapel' + o.coat, { color: new THREE.Color(o.coat || '#333').multiplyScalar(.82), roughness: .6, side: THREE.DoubleSide });
+      for (const sx of [-1, 1]) { const l = add(new THREE.BoxGeometry(.05, .26, .01), lap, sx * Math.sin(gap / 2) * rTop * .96, .17, Math.cos(gap / 2) * rTop * .76 + .006, torso); l.rotation.set(-.12, sx * .5, sx * .22); }
+      // a collar at the neck, and for a lab coat, two pockets and a pen
+      const collar = add(new THREE.TorusGeometry(.07, .018, 6, 16, Math.PI * 1.3), mat('collar' + o.shirt, { color: o.shirt, roughness: .7 }), 0, .34, .01, torso); collar.rotation.set(Math.PI / 2 + .25, 0, -Math.PI * .15 + Math.PI);
+      if (o.labCoat) {
+        for (const sx of [-1, 1]) add(new THREE.BoxGeometry(.1, .09, .012), lap, sx * .15 * tw, -.36, Math.cos(.6) * rBot * .76 + .02, torso).rotation.y = sx * .45;
+        add(new THREE.CylinderGeometry(.007, .007, .09, 6), mat('pen', { color: '#1b3d8a', metalness: .4 }), .12 * tw, .1, .15, torso);
+      }
+    }
+    if (o.tie) { const t = add(new THREE.BoxGeometry(.045, .3, .014), mat('tie' + o.tie, { color: o.tie, roughness: .5 }), 0, .11, .133 * tw, torso); t.rotation.x = -.14; add(new THREE.BoxGeometry(.035, .03, .02), mat('tie' + o.tie, { color: o.tie }), 0, .27, .136 * tw, torso); }
     // arms hang from the shoulders so they can swing
     const arm = sx => { const p = new THREE.Group(); p.position.set(sx * .23 * tw, .26, 0); torso.add(p); add(cap(.058, .5), coat, 0, -.3, 0, p); add(new THREE.SphereGeometry(.05, 10, 8), skin, 0, -.62, .01, p).scale.set(.8, 1.15, .7); p.rotation.z = sx * .08; return p; };
     const armL = arm(-1), armR = arm(1);
@@ -107,10 +122,15 @@ const R3 = (() => {
     add(new THREE.CylinderGeometry(.048, .056, .12, 10), skin, 0, 1.56, 0);
     const head = new THREE.Group(); head.position.set(0, 1.72, 0); g.add(head);
     const skull = add(new THREE.SphereGeometry(.118, 24, 18), skin, 0, 0, 0, head); skull.scale.set(.92, 1.12, 1);
-    add(new THREE.SphereGeometry(.07, 14, 10), skin, 0, -.07, .035, head).scale.set(1.15, .8, 1); // jaw
+    add(new THREE.SphereGeometry(.07, 14, 10), skin, 0, -.066, .018, head).scale.set(1.12, .78, .92); // jaw
     for (const ex of [-1, 1]) add(new THREE.SphereGeometry(.024, 8, 6), skin, ex * .11, 0, -.005, head).scale.set(.5, 1, .8); // ears
-    const hair = add(new THREE.SphereGeometry(.124, 24, 12, 0, Math.PI * 2, 0, Math.PI * (o.bald ? .2 : .52)), hairM, 0, .018, -.008, head); hair.scale.set(.95, 1.13, 1.04);
-    if (o.longHair) { const back = add(new THREE.CylinderGeometry(.11, .135, .32, 16, 1, false, Math.PI * .6, Math.PI * .8), hairM, 0, -.12, -.025, head); back.scale.z = .9; }
+    if (!o.bald) {
+      const hair = add(new THREE.SphereGeometry(.127, 26, 14, 0, Math.PI * 2, 0, Math.PI * .56), hairM, 0, .02, -.012, head); hair.scale.set(.98, 1.1, 1.06); hair.rotation.x = -.62;
+      add(new THREE.SphereGeometry(.125, 26, 10, 0, Math.PI * 2, 0, Math.PI * .4), hairM, 0, .02, -.01, head).scale.set(.98, 1.1, 1.04); // over the temples
+      for (const ex of [-1, 1]) add(new THREE.BoxGeometry(.012, .05, .03), hairM, ex * .104, -.005, .02, head); // sideburns
+      if (o.bun) add(new THREE.SphereGeometry(.055, 14, 10), hairM, 0, .1, -.1, head);
+      if (o.longHair) { const back = add(new THREE.CylinderGeometry(.115, .135, .3, 16, 1, false, Math.PI * .62, Math.PI * .76), hairM, 0, -.12, -.03, head); back.scale.z = .9; }
+    } else add(new THREE.SphereGeometry(.122, 20, 8, 0, Math.PI * 2, Math.PI * .45, Math.PI * .2), hairM, 0, 0, -.01, head).scale.set(.97, 1.1, 1.03); // a fringe of hair round the back
     const white = mat('eyewhite', { color: '#eee8e0', roughness: .3 }), iris = mat('iris', { color: '#1d1610', roughness: .15 });
     for (const ex of [-.04, .04]) { add(new THREE.SphereGeometry(.017, 10, 8), white, ex, .018, .1, head).scale.set(1, .7, .5); add(new THREE.SphereGeometry(.009, 8, 6), iris, ex, .018, .108, head); add(new THREE.BoxGeometry(.04, .008, .01), mat('brow' + o.hair, { color: o.hair || '#2a1d14' }), ex, .048, .106, head).rotation.z = ex > 0 ? -.08 : .08; }
     const nose = add(new THREE.ConeGeometry(.014, .045, 6), skin, 0, -.008, .117, head); nose.rotation.x = Math.PI / 2.4;
@@ -159,7 +179,7 @@ const R3 = (() => {
     return best;
   }
   async function activate() {
-    if (busy || !focus) return; busy = true; keys.clear(); stick.x = stick.y = 0;
+    if (busy || !focus) return; busy = true; keys.clear(); stick.x = stick.y = 0; stick.run = false;
     try { await focus.fn(); } finally { busy = false; }
   }
 
@@ -174,12 +194,12 @@ const R3 = (() => {
     f += -stick.y; s += stick.x;
     P.yaw -= look.dx * .0042; P.pitch = Math.max(-1.1, Math.min(1.1, P.pitch - look.dy * .0036)); look.dx = look.dy = 0;
     const len = Math.hypot(f, s); if (len > 1) { f /= len; s /= len; }
-    const speed = (keys.has('shift') ? 3.6 : 2.1) * dt * (FX && FX.slow || 1);
+    const speed = (running() ? 3.6 : 2.1) * dt * (FX && FX.slow || 1);
     const dx = (Math.sin(P.yaw) * f - Math.cos(P.yaw) * s) * speed, dz = (Math.cos(P.yaw) * f + Math.sin(P.yaw) * s) * speed;
     // if you're already inside something (a spawn or a wake-up spot too close to furniture), you can always walk out
     const stuck = blocked(P.x, P.z);
     if (stuck || !blocked(P.x + dx, P.z)) P.x += dx; if (stuck || !blocked(P.x, P.z + dz)) P.z += dz;
-    if (len > .05) P.bob += dt * (keys.has('shift') ? 11 : 7.5); else P.bob *= .9;
+    if (len > .05) P.bob += dt * (running() ? 11 : 7.5); else P.bob *= .9;
   }
 
   /* ---------- the loop ---------- */
@@ -213,8 +233,8 @@ const R3 = (() => {
     renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
     scene = new THREE.Scene(); cam = new THREE.PerspectiveCamera(68, 1, .05, 220); scene.add(cam);
     const cv = renderer.domElement; cv.className = 'r3-cv';
-    el = { host, cv, prompt: h('div.r3-prompt'), useBtn: h('button.r3-use', { 'aria-label': 'Use', onclick: () => activate() }, '✋'), joy: h('div.r3-joy', h('i')), hint: h('div.r3-hint', lowPower ? 'Left thumb to walk, drag on the right to look, ✋ to use.' : 'Click (or drag) to look around. WASD to walk, Shift to hurry, E to use, Esc to let go of the mouse.') };
-    host.append(cv, h('div.r3-cross'), el.prompt, el.useBtn, el.joy, el.hint);
+    el = { host, cv, prompt: h('div.r3-prompt'), useBtn: h('button.r3-use', { 'aria-label': 'Use', onclick: () => activate() }, '✋'), runBtn: h('button.r3-run', { 'aria-label': 'Run', 'aria-pressed': 'false', onclick: e => { runLock = !runLock; e.currentTarget.classList.toggle('on', runLock); e.currentTarget.setAttribute('aria-pressed', runLock); } }, '🏃'), joy: h('div.r3-joy', h('i')), hint: h('div.r3-hint', lowPower ? 'Left thumb to walk (push it all the way out, or tap 🏃, to run), drag on the right to look, ✋ to use.' : 'Click (or drag) to look around. WASD to walk, Shift to hurry, E to use, Esc to let go of the mouse.') };
+    host.append(cv, h('div.r3-cross'), el.prompt, el.useBtn, el.runBtn, el.joy, el.hint);
     setTimeout(() => el && el.hint.classList.add('fade'), 6000);
     const resize = () => { const w = host.clientWidth, hh = host.clientHeight; renderer.setSize(w, hh, false); cam.aspect = w / Math.max(1, hh); cam.fov = cam.aspect < 1 ? 84 : 68; cam.updateProjectionMatrix(); }; // phones in portrait get a wider view
     el.resize = resize; window.addEventListener('resize', resize); resize();
@@ -231,8 +251,8 @@ const R3 = (() => {
     // touch: left half is a joystick from wherever your thumb lands, right half drags the view
     const touches = {};
     cv.addEventListener('touchstart', e => { for (const t of e.changedTouches) { const left = t.clientX < innerWidth / 2; touches[t.identifier] = { left, x: t.clientX, y: t.clientY, lx: t.clientX, ly: t.clientY }; if (left) { el.joy.style.left = t.clientX + 'px'; el.joy.style.top = t.clientY + 'px'; el.joy.classList.add('on'); } } e.preventDefault(); }, { passive: false });
-    cv.addEventListener('touchmove', e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (!s) continue; if (s.left) { const dx = (t.clientX - s.x) / 50, dy = (t.clientY - s.y) / 50; const l = Math.hypot(dx, dy); stick.x = l > 1 ? dx / l : dx; stick.y = l > 1 ? dy / l : dy; el.joy.firstChild.style.transform = `translate(${stick.x * 26}px, ${stick.y * 26}px)`; } else { look.dx += (t.clientX - s.lx) * 1.6; look.dy += (t.clientY - s.ly) * 1.6; s.lx = t.clientX; s.ly = t.clientY; } } e.preventDefault(); }, { passive: false });
-    const end = e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (s && s.left) { stick.x = stick.y = 0; el.joy.classList.remove('on'); el.joy.firstChild.style.transform = ''; } delete touches[t.identifier]; } };
+    cv.addEventListener('touchmove', e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (!s) continue; if (s.left) { const dx = (t.clientX - s.x) / 50, dy = (t.clientY - s.y) / 50; const l = Math.hypot(dx, dy); stick.x = l > 1 ? dx / l : dx; stick.y = l > 1 ? dy / l : dy; stick.run = l > 1.4; el.joy.classList.toggle('run', stick.run); el.joy.firstChild.style.transform = `translate(${stick.x * 26}px, ${stick.y * 26}px)`; } else { look.dx += (t.clientX - s.lx) * 1.6; look.dy += (t.clientY - s.ly) * 1.6; s.lx = t.clientX; s.ly = t.clientY; } } e.preventDefault(); }, { passive: false });
+    const end = e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (s && s.left) { stick.x = stick.y = 0; stick.run = false; el.joy.classList.remove('on', 'run'); el.joy.firstChild.style.transform = ''; } delete touches[t.identifier]; } };
     cv.addEventListener('touchend', end); cv.addEventListener('touchcancel', end);
     last = performance.now(); raf = requestAnimationFrame(frame);
     return true;
@@ -268,5 +288,5 @@ const R3 = (() => {
     V = { from, to: { p: d.position.clone(), q: d.quaternion.clone() }, t: 0 };
   }
   const api = { THREE: null, TEX, mat, box, cyl, plane, wall, light, sign, person, rain, use, shadowBlob, canvasTex, add: o => root.add(o), every: fn => updaters.push(fn), get root() { return root; }, get player() { return P; }, collide: r => colliders.push(r) };
-  return { mount, unmount, go, api, view, setFx(v) { FX = v; }, get area() { return area; }, get busy() { return busy; }, set busy(v) { busy = v; }, player: P, freeze(v) { busy = v; if (v) { keys.clear(); stick.x = stick.y = 0; if (document.pointerLockElement) document.exitPointerLock(); } }, activate, get focus() { return focus; }, get stuck() { return blocked(P.x, P.z); } };
+  return { mount, unmount, go, api, view, setFx(v) { FX = v; }, get area() { return area; }, get busy() { return busy; }, set busy(v) { busy = v; }, player: P, freeze(v) { busy = v; if (v) { keys.clear(); stick.x = stick.y = 0; stick.run = false; if (document.pointerLockElement) document.exitPointerLock(); } }, activate, get focus() { return focus; }, get stuck() { return blocked(P.x, P.z); }, get running() { return running(); }, touch: lowPower };
 })();
