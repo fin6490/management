@@ -170,7 +170,7 @@ const L2 = (() => {
     await say([{ who: 'narr', text: '*Bay 17. Your car, under a year of dust. Your hands won\'t stay still long enough to find the key.*' }, { who: 'narr', text: '*The door opens with a sigh. In the glovebox, where you left it: your hip flask, half full. In the door pocket, a bottle of water from the emergency kit, the seal still on.*' }]);
     const c = await choose('Your hands.', [['flask', '🥃 The flask. Just enough to steady them'], ['water', '💧 The water'], ['pour', 'Pour the flask out in the rain, then drink the water'], ['none', 'Neither. Grip the wheel until it passes']]);
     const d = L2Bottle.state;
-    if (c === 'flask') { d.flaskGone = 1; await L2Bottle.drink('flask'); }
+    if (c === 'flask') await L2Bottle.drink('flask');
     if (c === 'water' || c === 'pour') {
       if (c === 'pour') { await say([{ who: 'narr', text: 'You unscrew the cap and hold it out into the rain. It smells like every bad year you\'ve had. Then it\'s gone.' }]); await L2Bottle.step('flask'); }
       d.crave = Math.max(0, d.crave - 22); L2Bottle.feed({ thirst: 40 }); L2Bottle.apply();
@@ -239,11 +239,11 @@ const L2 = (() => {
     async glovebox() {
       if (await carStart(true)) return;
       const d = L2Bottle.state;
-      if (d.steps.flask || d.flaskGone) return say([{ who: 'narr', text: 'An empty glovebox. A parking ticket from last October. Ellie\'s hair bobble.' }]);
+      if (d.steps.flask) return say([{ who: 'narr', text: 'An empty glovebox. A parking ticket from last October. Ellie\'s hair bobble.' }]);
       await say([{ who: 'narr', text: 'The glovebox. Your flask is in there, half full, exactly where you left it a year ago. You never even took it out to the hospital.' }]);
       const c = await choose('The flask.', [['pour', 'Pour it out in the rain'], ['drink', 'Drink it'], ['leave', 'Leave it where it is']]);
       if (c === 'pour') { await say([{ who: 'narr', text: 'You unscrew the cap and hold it out of the window. The rain takes it. It smells like every bad year you\'ve had.' }]); await L2Bottle.step('flask'); }
-      if (c === 'drink') { L2Bottle.state.flaskGone = 1; await L2Bottle.drink('flask'); }
+      if (c === 'drink') await L2Bottle.drink('flask'); // a swallow; there's still some left, and you can still pour it out
     },
     async water() { L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 8); L2Bottle.feed({ thirst: 35 }); await say([{ who: 'narr', text: 'A glass of water. It doesn\'t help much. It helps a little.' }]); },
     async cooler() { L2Bottle.feed({ thirst: 30 }); await say([{ who: 'narr', text: 'Paper cups and a water cooler that glugs like it\'s laughing at you. You drink three.' }]); },
