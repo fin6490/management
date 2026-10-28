@@ -471,7 +471,7 @@ const Career = {
   },
   // drain the bars. kind = 'round' (k = rounds) or 'step'
   drain(kind, k = 1) {
-    if (App.inReality()) return;
+    if (App.inReality()) { if (typeof L2Bottle !== 'undefined') L2Bottle.roundNeeds(kind, k); return; } // the waking world keeps its own time
     const was = App.state ? (App.state.clock || 540) : 0;
     const mins = (kind === 'round' ? 4 : 0.25) * k;
     if (App.state) App.state.clock = (App.state.clock || 540) + mins;

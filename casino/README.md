@@ -642,6 +642,34 @@ node casino/tools/l2-odds.js
 - **Older saves.** Saves that finished the dream before Level 2 existed get a **Wake up** button on
   the title screen.
 
+**Your car, the first time.** Your hands are shaking before you've found the key. In the glovebox
+is your hip flask, half full; in the door pocket, a bottle of water. Drink from the flask (the
+shakes stop, and it counts as a drink), drink the water (it takes the edge off), pour the flask out
+into the rain and drink the water (a step towards getting sober), or grip the wheel until it
+passes (that counts as turning a drink down).
+
+**Food, water and sleep.** Level 2 uses the dream's own hunger 🍔, thirst 💧 and energy ⚡ bars, so
+you wake up as hungry as you went to sleep, and they come back with you when you dream again.
+Awake they drain in real time (hunger in about half an hour, thirst a little faster, energy in
+about forty minutes) and a bit more for every round at a table. They show under your objective.
+- **Thirst** makes the craving come on faster. **Hunger** and **tiredness** slow you down; with no
+  energy left you can't run, and with any bar empty the edges of the screen go dark.
+- **Where to fix it:** the water cooler and a pot of coffee in the clinic; the vending machine by
+  the car park lift (water, a chocolate bar, an energy drink); the Low Tide bar (a burger and fries,
+  coffee, or water from Delia); and the minibar in room 1717 (water, nuts and chocolate).
+
+**How it looks.** The waking world is meant to feel real, so the 3D engine does more than draw boxes:
+- every box has rounded edges, and concrete, carpet, wood and wallpaper have surface detail that
+  catches the light (normal maps worked out from their own textures);
+- each area bakes a soft reflection of itself, so cars, chrome, wet floors and puddles reflect,
+  and everything gets a gentle fill light;
+- one key light per area throws real shadows (on phones too, at a lower resolution), heavy things
+  have soft contact shadows where they meet the floor, and bright lights have a glow;
+- the cars are proper saloons with glass, wheels with rims, lights and number plates; the car park
+  has ceiling pipes and rain standing in puddles;
+- you speed up and slow down instead of starting and stopping dead, and your footsteps sound
+  different on concrete and carpet.
+
 **The man on Calder Street (a hidden story).** The police said a drifter did it. Nobody ever asked
 who he was. Underneath the main story there's another one, and only conversation and the dream can
 get you to it:

@@ -127,7 +127,10 @@ const L2 = (() => {
     const e = S().ending;
     return e === 'horror' ? 'Find a way out.' : e === 'mystery' ? 'The man behind the bar.' : 'Go and see them.';
   }
-  function hud() { const o = document.querySelector('.l2-obj'); if (o) o.textContent = objective(); const c = document.querySelector('.l2-cash'); if (c) c.textContent = fmt(S().cash); }
+  function hud() {
+    const o = document.querySelector('.l2-obj'); if (o) o.textContent = objective(); const c = document.querySelector('.l2-cash'); if (c) c.textContent = fmt(S().cash);
+    const n = L2Bottle.needs(); for (const k in n) { const b = document.querySelector('.l2-' + k); if (b) { b.style.width = Math.round(n[k]) + '%'; b.parentNode.classList.toggle('low', n[k] < 20); } }
+  }
 
   /* ---------- the screen ---------- */
   function screen(main) {
@@ -137,7 +140,7 @@ const L2 = (() => {
     if (st.atTable) { st.cash = App.state.bank; App.state.bank = st.dreamBank; App.state.venue = st.dreamVenue || App.state.venue; st.atTable = false; App.save(); }
     const host = h('div.r3');
     main.append(h('div.l2', host,
-      h('div.l2-hud', h('div.l2-obj'), h('div.l2-right', h('span.l2-crave'), h('span.l2-cash'), h('button.l2-ic', { onclick: journal, title: 'Notebook', 'aria-label': 'Notebook' }, '📓'), h('button.l2-ic', { onclick: menu, title: 'Menu', 'aria-label': 'Menu' }, '☰'))),
+      h('div.l2-hud', h('div.l2-left', h('div.l2-obj'), h('div.l2-needs', { title: 'Hunger · Thirst · Energy' }, [['hunger', '🍔'], ['thirst', '💧'], ['energy', '⚡']].map(([k, i]) => h('div.l2-nb', h('span', i), h('div.l2-bar', h('i.l2-' + k)))))), h('div.l2-right', h('span.l2-crave'), h('span.l2-cash'), h('button.l2-ic', { onclick: journal, title: 'Notebook', 'aria-label': 'Notebook' }, '📓'), h('button.l2-ic', { onclick: menu, title: 'Menu', 'aria-label': 'Menu' }, '☰'))),
       h('div.l2-sick'), h('div.l2-grain'), h('div.l2-vignette')));
     if (!R3.mount(host)) return;
     hud(); L2Bottle.start();
@@ -157,6 +160,24 @@ const L2 = (() => {
     close(o); set('woke'); S().area = 'clinic'; Career.checkAchievements();
     await R3.go('clinic', L2World.clinic); hud();
     await say([{ who: 'narr', text: '*White walls. A heart monitor. The smell of disinfectant and somebody\'s coffee. Your hands are older than you remember.*' }]);
+  }
+
+  /* ---------- your car, the first time ---------- */
+  // your hands are shaking before you've even found the key: the flask in the glovebox, or the water in the door
+  async function carStart(consume) {
+    if (has('carStart')) return false;
+    set('carStart');
+    await say([{ who: 'narr', text: '*Bay 17. Your car, under a year of dust. Your hands won\'t stay still long enough to find the key.*' }, { who: 'narr', text: '*The door opens with a sigh. In the glovebox, where you left it: your hip flask, half full. In the door pocket, a bottle of water from the emergency kit, the seal still on.*' }]);
+    const c = await choose('Your hands.', [['flask', '🥃 The flask. Just enough to steady them'], ['water', '💧 The water'], ['pour', 'Pour the flask out in the rain, then drink the water'], ['none', 'Neither. Grip the wheel until it passes']]);
+    const d = L2Bottle.state;
+    if (c === 'flask') { d.flaskGone = 1; await L2Bottle.drink('flask'); }
+    if (c === 'water' || c === 'pour') {
+      if (c === 'pour') { await say([{ who: 'narr', text: 'You unscrew the cap and hold it out into the rain. It smells like every bad year you\'ve had. Then it\'s gone.' }]); await L2Bottle.step('flask'); }
+      d.crave = Math.max(0, d.crave - 22); L2Bottle.feed({ thirst: 40 }); L2Bottle.apply();
+      await say([{ who: 'narr', text: 'The water is warm and tastes of the plastic. It doesn\'t stop the shaking. It takes the edge off, for now.' }]);
+    }
+    if (c === 'none') { L2Bottle.refuse('car'); await say([{ who: 'narr', text: 'You hold the wheel at ten and two until your knuckles go white and the worst of it rolls past, like a lorry on the motorway. It\'ll be back.' }]); }
+    hud(); return !!consume;
   }
 
   /* ---------- everything you can do ---------- */
@@ -189,6 +210,7 @@ const L2 = (() => {
       set('drove'); await goArea('garage');
     },
     async trunk() {
+      if (await carStart()) return;
       const n = typeof Fragments !== 'undefined' ? Fragments.count() : 0;
       await say([{ who: 'narr', text: '*A cardboard box. Your handwriting on the side: HOME. You never opened it. The police gave it to you in the hospital and you put it in the boot and you drove to work and you never came back out.*' }]);
       const items = [
@@ -210,19 +232,41 @@ const L2 = (() => {
       if (after === 'photo') await L2Photo.open();
     },
     async driverSeat() {
+      if (await carStart()) return;
       await say([{ who: 'narr', text: '*Ellie\'s booster seat is still in the back. A crushed juice box. One of Sam\'s socks.*' }, { who: 'narr', text: '*You sit for a long time. The rain doesn\'t stop. Eventually, neither do you.*' }]);
       await sleepHere('The rain on the roof of the car. You could close your eyes.');
     },
     async glovebox() {
+      if (await carStart(true)) return;
       const d = L2Bottle.state;
-      if (d.steps.flask) return say([{ who: 'narr', text: 'An empty glovebox. A parking ticket from last October. Ellie\'s hair bobble.' }]);
+      if (d.steps.flask || d.flaskGone) return say([{ who: 'narr', text: 'An empty glovebox. A parking ticket from last October. Ellie\'s hair bobble.' }]);
       await say([{ who: 'narr', text: 'The glovebox. Your flask is in there, half full, exactly where you left it a year ago. You never even took it out to the hospital.' }]);
       const c = await choose('The flask.', [['pour', 'Pour it out in the rain'], ['drink', 'Drink it'], ['leave', 'Leave it where it is']]);
       if (c === 'pour') { await say([{ who: 'narr', text: 'You unscrew the cap and hold it out of the window. The rain takes it. It smells like every bad year you\'ve had.' }]); await L2Bottle.step('flask'); }
-      if (c === 'drink') await L2Bottle.drink('flask');
+      if (c === 'drink') { L2Bottle.state.flaskGone = 1; await L2Bottle.drink('flask'); }
     },
-    async water() { L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 8); await say([{ who: 'narr', text: 'A glass of water. It doesn\'t help much. It helps a little.' }]); },
+    async water() { L2Bottle.state.crave = Math.max(0, L2Bottle.state.crave - 8); L2Bottle.feed({ thirst: 35 }); await say([{ who: 'narr', text: 'A glass of water. It doesn\'t help much. It helps a little.' }]); },
+    async cooler() { L2Bottle.feed({ thirst: 30 }); await say([{ who: 'narr', text: 'Paper cups and a water cooler that glugs like it\'s laughing at you. You drink three.' }]); },
+    async coffee() { L2Bottle.feed({ energy: 22, thirst: 5 }); await say([{ who: 'narr', text: 'Someone\'s left a pot on the hotplate. It tastes burnt and brown and it\'s the best thing you\'ve had in a year.' }]); },
+    async vending() {
+      const c = await choose(`A vending machine, humming. ${fmt(S().cash)} in your wallet.`, [['water', `💧 Water (${fmt(2)})`], ['bar', `🍫 A chocolate bar (${fmt(2)})`], ['energy', `⚡ An energy drink (${fmt(4)})`], ['no', 'Nothing']]);
+      const cost = { water: 2, bar: 2, energy: 4 }[c]; if (!cost) return;
+      if (S().cash < cost) return toast('Not enough money.');
+      S().cash -= cost; L2Bottle.feed({ water: { thirst: 40 }, bar: { hunger: 22, energy: 5 }, energy: { energy: 35, thirst: 10 } }[c]); SFX.chip && SFX.chip(); hud();
+      await say([{ who: 'narr', text: { water: 'Clunk. Cold, and it tastes of the plastic. You drink half of it standing there.', bar: 'Clunk. It\'s been in there so long the chocolate has gone grey at the edges. You eat it anyway.', energy: 'Clunk. It tastes like a battery and a boiled sweet. Your heart picks up a step.' }[c] }]);
+    },
+    async barFood() {
+      const c = await choose('Delia slides a menu across. "Kitchen\'s open till two."', [['burger', `🍔 A burger and fries (${fmt(16)})`], ['coffee', `☕ Coffee (${fmt(5)})`], ['water', '💧 Water (free)'], ['no', 'Nothing']]);
+      if (c === 'water') return A.water();
+      const cost = { burger: 16, coffee: 5 }[c]; if (!cost) return;
+      if (S().cash < cost) return toast('Not enough money.');
+      S().cash -= cost; L2Bottle.feed(c === 'burger' ? { hunger: 60, energy: 8 } : { energy: 25, thirst: 5 }); hud();
+      await say([{ who: 'delia', text: c === 'burger' ? 'Eat, hon. All of it. You look like a coat on a hanger.' : 'Black, no sugar. Some things I remember.' }]);
+    },
     async minibar() {
+      const snack = await choose('The minibar.', [['water', `💧 A bottle of water (${fmt(6)})`], ['food', `🥜 Nuts and a chocolate bar (${fmt(9)})`], ['look', 'Look at the rest of it'], ['no', 'Close it']]);
+      if (snack === 'no') return;
+      if (snack !== 'look') { const cost = snack === 'water' ? 6 : 9; if (S().cash < cost) return toast('Not enough money.'); S().cash -= cost; L2Bottle.feed(snack === 'water' ? { thirst: 40 } : { hunger: 30, energy: 4 }); hud(); return say([{ who: 'narr', text: snack === 'water' ? 'Hotel water, nine times what it\'s worth. Worth it.' : 'Salted nuts and a chocolate bar, eaten sitting on the edge of a bed nobody has slept in.' }]); }
       if (L2Bottle.path() || L2Bottle.state.refused.minibar) return say([{ who: 'narr', text: 'The minibar hums to itself.' }]);
       await say([{ who: 'narr', text: 'The minibar. Little bottles in neat rows, lit up like a shrine. Someone stocked it for you: every one of them is your brand.' }]);
       await L2Bottle.offer('minibar', 'Vale knew what you drink.', 0);
@@ -271,7 +315,8 @@ const L2 = (() => {
         clue('delia'); hud(); return;
       }
       if (!L2Bottle.path() && !L2Bottle.state.refused.delia) { await say([{ who: 'delia', text: 'The usual? Neat, like you used to. On the house, hon. Some things I remember.' }]); await L2Bottle.offer('delia', 'Delia\'s already poured it. It\'s right there.'); return; }
-      const c = await choose('Delia wipes the same glass for the third time.', [['drink', `Whisky, neat (${fmt(14)})`], ['water', 'A glass of water'], ['talk', '💬 Talk freely'], ['bye', 'Leave her be']]);
+      const c = await choose('Delia wipes the same glass for the third time.', [['drink', `Whisky, neat (${fmt(14)})`], ['water', 'A glass of water'], ['food', '🍔 Something to eat, or a coffee'], ['talk', '💬 Talk freely'], ['bye', 'Leave her be']]);
+      if (c === 'food') return A.barFood();
       if (c === 'drink') { await say([{ who: 'delia', text: RNG.pick(['Drink slow, hon.', 'Neat, like you used to.', '...You sure? All right. Your call.']) }]); await L2Bottle.drink('delia', 14); }
       if (c === 'water') await A.water();
       if (c === 'talk') chat('delia');
@@ -693,7 +738,7 @@ const L2 = (() => {
       const tab = h('div.l2-tabs'), body = h('div.l2-jb');
       const show = k => {
         tab.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k)); body.innerHTML = '';
-        if (k === 'now') { const seen = found(); body.append(h('p.l2-obj2', objective()), h('p.l2-read', `${fmt(S().cash)} in your wallet. It\'s the 17th of October, a year to the night.`), Object.keys(seen).length ? h('p.l2-read', 'Endings found: ' + Object.keys(ENDINGS).map(e => seen[e] ? `${ENDINGS[e].icon} ${ENDINGS[e].title}` : '? ???').join(' · ')) : null); }
+        if (k === 'now') { const seen = found(); const nd = L2Bottle.needs(); body.append(h('p.l2-obj2', objective()), h('p.l2-read', `${fmt(S().cash)} in your wallet. It\'s the 17th of October, a year to the night.`), h('p.l2-read', `🍔 ${Math.round(nd.hunger)}% · 💧 ${Math.round(nd.thirst)}% · ⚡ ${Math.round(nd.energy)}%. Food, water and sleep carry over from the dream. Eat at the Low Tide, drink water anywhere you can find it (the clinic cooler, the vending machine by the car park lift, Delia), and coffee or an energy drink keeps you on your feet.`), Object.keys(seen).length ? h('p.l2-read', 'Endings found: ' + Object.keys(ENDINGS).map(e => seen[e] ? `${ENDINGS[e].icon} ${ENDINGS[e].title}` : '? ???').join(' · ')) : null); }
         if (k === 'clues') { const ks = Object.keys(S().clues); body.append(ks.length ? h('div', ks.map(c => h('div.l2-clue', h('b', CLUES[c][0]), h('p', CLUES[c][1])))) : h('p.l2-read', 'Nothing yet.')); }
         if (k === 'people') { const ks = Object.keys(S().met); body.append(ks.length ? h('div', ks.map(w => h('div.l2-clue', h('b', PEOPLE[w].name), h('small', PEOPLE[w].role), h('p', `In the dream: ${PEOPLE[w].echo}`)))) : h('p.l2-read', 'Nobody yet.')); }
         if (k === 'bottle') body.append(L2Bottle.panel());
