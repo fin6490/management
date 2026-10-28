@@ -593,18 +593,22 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
     Detective Mori when it gets loud (she's eleven years sober), and turn down three drinks you're
     offered: Delia's, Margaux's and the minibar's.
   - **Last Call.** Six drinks, and you stop fighting.
-- **The Barman.** If you don't kick the habit, the craving comes for you in the shape of a monster:
-  a starved, hunched thing taller than a door, in a barman's apron rotted to strips, with arms that
-  drag on the floor, fingers like nails, four burning eyes and a jaw that opens too far. It lurches
-  and twitches, and walks straight through walls.
+- **The Barman.** If you don't kick the habit, the craving comes for you. You never get a good look at
+  it: a shape the size of a person, black as a hole in the air, with a red glow round its edges.
+  - **It hides.** While the craving is bad you catch it at the edge of your view, standing very
+    still at the far end of a room. Turn to look and it's gone.
   - **When it hunts you:** when the craving has been screaming for a while, or every few minutes
-    once you've given in. You hear it before you see it: a low drone that swells as it closes in,
+    once you've given in. It comes flat through the air, head first, arms out. It slows and
+    flickers while you hold it in your eyes, and comes on fast when you look away. You hear it before you see it: a low drone that swells as it closes in,
     ragged breathing, whispers just behind you, and a heartbeat that gets louder. All of it is made
     in the browser, with no sound files.
-  - **Escaping:** outrun it for half a minute (Shift on a computer; on a phone push the stick all
-    the way out or tap 🏃; the shakes slow you down), get out through a door, or call Mori.
-  - **Getting caught:** a jump scare first, its face in yours with a flash and a scream (a steady
-    red tint instead of flashing if your device asks for reduced motion). Then you go down. The third time you don't get up, and that's the 🥀 **Closing
+  - **Escaping:** outrun it for half a minute (Shift on a computer; on a phone tap 🏃 or push the
+    stick right out; the shakes slow you down, and with no energy left you can't run), get out through a door, or call Mori.
+  - **Getting caught:** then you see its face. It's yours, built from your look in the dream (your
+    skin, hair, beard and glasses) a few years and a lot of bottles on: grey, gaunt, the eyes yellowed
+    in black sockets, the lips shrunk back off the teeth. Its eyes snap open and its jaw drops too far,
+    with a flash and a scream (a steady red tint instead of flashing if your device asks for reduced
+    motion). Then you go down. The third time you don't get up, and that's the 🥀 **Closing
     Time** ending. You can wake up in the clinic and try the night again, with your story
     progress kept.
   - **Getting sober** sends him away for good. There are achievements for outrunning him and for

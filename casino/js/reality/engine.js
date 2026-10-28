@@ -11,7 +11,7 @@ const R3 = (() => {
   let area = null, colliders = [], uses = [], updaters = [], focus = null, busy = false, V = null, FX = null;
   const P = { x: 0, z: 0, y: 1.62, yaw: 0, pitch: 0, bob: 0, vx: 0, vz: 0 };
   const keys = new Set(), stick = { x: 0, y: 0, run: false }, look = { dx: 0, dy: 0 };
-  let runLock = false; // the 🏃 button on touch screens
+  let runLock = false, baseFov = 68; // the 🏃 button on touch screens
   const running = () => (keys.has('shift') || stick.run || runLock) && !(FX && FX.noRun);
   const lowPower = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
@@ -260,7 +260,7 @@ const R3 = (() => {
     f += -stick.y; s += stick.x;
     P.yaw -= look.dx * .0042; P.pitch = Math.max(-1.1, Math.min(1.1, P.pitch - look.dy * .0036)); look.dx = look.dy = 0;
     const len = Math.hypot(f, s); if (len > 1) { f /= len; s /= len; }
-    const top = (running() ? 3.6 : 2.1) * (FX && FX.slow || 1);
+    const top = (running() ? 4.3 : 1.9) * (FX && FX.slow || 1); // a walk, and a proper run
     const wx = (Math.sin(P.yaw) * f - Math.cos(P.yaw) * s) * top, wz = (Math.cos(P.yaw) * f + Math.sin(P.yaw) * s) * top;
     const k = 1 - Math.exp(-dt * (len > .05 ? 9 : 12)); P.vx += (wx - P.vx) * k; P.vz += (wz - P.vz) * k; // a body has weight: you speed up and slow down
     const dx = P.vx * dt, dz = P.vz * dt;
@@ -277,7 +277,9 @@ const R3 = (() => {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(.05, (now - last) / 1000 || 0); last = now; const t = now / 1000;
     step(dt);
-    cam.position.set(P.x, P.y + Math.sin(P.bob) * .035, P.z);
+    const sprint = running() && Math.hypot(P.vx, P.vz) > 2.5;
+    cam.position.set(P.x, P.y + Math.sin(P.bob) * (sprint ? .055 : .035), P.z);
+    const fov = baseFov + (sprint ? 7 : 0); if (Math.abs(cam.fov - fov) > .05) { cam.fov += (fov - cam.fov) * Math.min(1, dt * 6); cam.updateProjectionMatrix(); } // the view opens out when you run
     cam.rotation.set(P.pitch, P.yaw + Math.PI, 0, 'YXZ');
     if (V) { // a fixed camera for a game, eased in from wherever you were standing (and back out again)
       V.t = Math.min(1, V.t + dt * 1.6); const k = 1 - Math.pow(1 - V.t, 3);
@@ -304,10 +306,10 @@ const R3 = (() => {
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     scene = new THREE.Scene(); cam = new THREE.PerspectiveCamera(68, 1, .05, 220); scene.add(cam);
     const cv = renderer.domElement; cv.className = 'r3-cv';
-    el = { host, cv, prompt: h('div.r3-prompt'), useBtn: h('button.r3-use', { 'aria-label': 'Use', onclick: () => activate() }, '✋'), runBtn: h('button.r3-run', { 'aria-label': 'Run', 'aria-pressed': 'false', onclick: e => { runLock = !runLock; e.currentTarget.classList.toggle('on', runLock); e.currentTarget.setAttribute('aria-pressed', runLock); } }, '🏃'), joy: h('div.r3-joy', h('i')), hint: h('div.r3-hint', lowPower ? 'Left thumb to walk (push it all the way out, or tap 🏃, to run), drag on the right to look, ✋ to use.' : 'Click (or drag) to look around. WASD to walk, Shift to hurry, E to use, Esc to let go of the mouse.') };
+    el = { host, cv, prompt: h('div.r3-prompt'), useBtn: h('button.r3-use', { 'aria-label': 'Use', onclick: () => activate() }, '✋'), runBtn: h('button.r3-run', { 'aria-label': 'Run', 'aria-pressed': 'false', onclick: e => { runLock = !runLock; e.currentTarget.classList.toggle('on', runLock); e.currentTarget.setAttribute('aria-pressed', runLock); if (runLock && FX && FX.noRun && typeof L2 !== 'undefined') L2.toast('⚡ Too exhausted to run. Eat something, or find a coffee.'); } }, '🏃'), joy: h('div.r3-joy', h('i')), hint: h('div.r3-hint', lowPower ? 'Left thumb to walk (tap 🏃 to run, or push the stick right out), drag on the right to look, ✋ to use.' : 'Click (or drag) to look around. WASD to walk, Shift to hurry, E to use, Esc to let go of the mouse.') };
     host.append(cv, h('div.r3-cross'), el.prompt, el.useBtn, el.runBtn, el.joy, el.hint);
     setTimeout(() => el && el.hint.classList.add('fade'), 6000);
-    const resize = () => { const w = host.clientWidth, hh = host.clientHeight; renderer.setSize(w, hh, false); cam.aspect = w / Math.max(1, hh); cam.fov = cam.aspect < 1 ? 84 : 68; cam.updateProjectionMatrix(); }; // phones in portrait get a wider view
+    const resize = () => { const w = host.clientWidth, hh = host.clientHeight; renderer.setSize(w, hh, false); cam.aspect = w / Math.max(1, hh); baseFov = cam.fov = cam.aspect < 1 ? 84 : 68; cam.updateProjectionMatrix(); }; // phones in portrait get a wider view
     el.resize = resize; window.addEventListener('resize', resize); resize();
     // input
     el.kd = e => { if (document.querySelector('.modal-bg, .l2-over')) return; const k = e.key.toLowerCase(); if (k === 'e' || k === ' ' || k === 'enter') { e.preventDefault(); activate(); return; } if (['w', 'a', 's', 'd', 'shift', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); keys.add(k); } };
@@ -322,7 +324,7 @@ const R3 = (() => {
     // touch: left half is a joystick from wherever your thumb lands, right half drags the view
     const touches = {};
     cv.addEventListener('touchstart', e => { for (const t of e.changedTouches) { const left = t.clientX < innerWidth / 2; touches[t.identifier] = { left, x: t.clientX, y: t.clientY, lx: t.clientX, ly: t.clientY }; if (left) { el.joy.style.left = t.clientX + 'px'; el.joy.style.top = t.clientY + 'px'; el.joy.classList.add('on'); } } e.preventDefault(); }, { passive: false });
-    cv.addEventListener('touchmove', e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (!s) continue; if (s.left) { const dx = (t.clientX - s.x) / 50, dy = (t.clientY - s.y) / 50; const l = Math.hypot(dx, dy); stick.x = l > 1 ? dx / l : dx; stick.y = l > 1 ? dy / l : dy; stick.run = l > 1.4; el.joy.classList.toggle('run', stick.run); el.joy.firstChild.style.transform = `translate(${stick.x * 26}px, ${stick.y * 26}px)`; } else { look.dx += (t.clientX - s.lx) * 1.6; look.dy += (t.clientY - s.ly) * 1.6; s.lx = t.clientX; s.ly = t.clientY; } } e.preventDefault(); }, { passive: false });
+    cv.addEventListener('touchmove', e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (!s) continue; if (s.left) { const dx = (t.clientX - s.x) / 50, dy = (t.clientY - s.y) / 50; const l = Math.hypot(dx, dy); stick.x = l > 1 ? dx / l : dx; stick.y = l > 1 ? dy / l : dy; stick.run = l > 1.9; el.joy.classList.toggle('run', stick.run); el.joy.firstChild.style.transform = `translate(${stick.x * 26}px, ${stick.y * 26}px)`; } else { look.dx += (t.clientX - s.lx) * 1.6; look.dy += (t.clientY - s.ly) * 1.6; s.lx = t.clientX; s.ly = t.clientY; } } e.preventDefault(); }, { passive: false });
     const end = e => { for (const t of e.changedTouches) { const s = touches[t.identifier]; if (s && s.left) { stick.x = stick.y = 0; stick.run = false; el.joy.classList.remove('on', 'run'); el.joy.firstChild.style.transform = ''; } delete touches[t.identifier]; } };
     cv.addEventListener('touchend', end); cv.addEventListener('touchcancel', end);
     last = performance.now(); raf = requestAnimationFrame(frame);
@@ -397,5 +399,5 @@ const R3 = (() => {
     V = { from, to: { p: d.position.clone(), q: d.quaternion.clone() }, t: 0 };
   }
   const api = { THREE: null, TEX, mat, rbox, glow, contact, box, cyl, plane, wall, light, sign, person, rain, use, shadowBlob, canvasTex, add: o => root.add(o), every: fn => updaters.push(fn), get root() { return root; }, get player() { return P; }, collide: r => colliders.push(r) };
-  return { mount, unmount, go, api, view, setFx(v) { FX = v; }, get area() { return area; }, get busy() { return busy; }, set busy(v) { busy = v; }, player: P, freeze(v) { busy = v; if (v) { keys.clear(); stick.x = stick.y = 0; stick.run = false; P.vx = P.vz = 0; if (document.pointerLockElement) document.exitPointerLock(); } }, activate, get focus() { return focus; }, get stuck() { return blocked(P.x, P.z); }, get running() { return running(); }, touch: lowPower };
+  return { mount, unmount, go, api, view, setFx(v) { FX = v; }, get area() { return area; }, get busy() { return busy; }, set busy(v) { busy = v; }, player: P, freeze(v) { busy = v; if (v) { keys.clear(); stick.x = stick.y = 0; stick.run = false; P.vx = P.vz = 0; if (document.pointerLockElement) document.exitPointerLock(); } }, activate, get focus() { return focus; }, get stuck() { return blocked(P.x, P.z); }, get running() { return running(); }, get hfov() { return cam ? 2 * Math.atan(Math.tan(cam.fov * Math.PI / 360) * cam.aspect) : 1.2; }, touch: lowPower };
 })();

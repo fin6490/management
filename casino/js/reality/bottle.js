@@ -89,72 +89,83 @@ const L2Bottle = (() => {
   }
 
   /* ---------- the Barman: what comes for you if you don't stop ---------- */
-  // A hallucination in a stained white apron. He comes when the craving has been screaming for a while,
-  // or every few minutes once you've given in. He walks through walls. Outrun him for half a minute, get
-  // out of the room, or call Mori. If he catches you, you go down; the third time, you don't get up.
+  // A hallucination: a black shape with a red glow, the size of a person. While the craving is bad you
+  // catch it at the edge of your eye, standing still, and it's gone when you turn. When the craving
+  // has been screaming for a while (or every few minutes once you've given in) it hunts you, flat
+  // through the air and through walls. It slows to almost nothing while you look straight at it and
+  // comes on fast when you look away. Outrun it for half a minute, get out of the room, or call Mori.
+  // If it catches you, you see its face; the third time, you don't get up.
   const NO_HUNT = ['cemetery', 'spur', 'clinic'];
+  let stalkCool = 40, stalking = null;
   function demons(d) {
     if (hunt) { if (R3.area !== hunt.area) endHunt('door'); return; }
     if (R3.busy || NO_HUNT.includes(R3.area) || L2.has('done')) { maxedFor = 0; return; }
-    huntCool = Math.max(0, huntCool - 1);
-    if (!d.glimpsed && d.crave >= 80) { d.glimpsed = 1; glimpse(); return; }
+    huntCool = Math.max(0, huntCool - 1); stalkCool = Math.max(0, stalkCool - 1);
+    if (!d.glimpsed && d.crave >= 80) { d.glimpsed = 1; stalk(true); return; }
+    // the bad hours: it watches you from the far end of rooms
+    if (!stalking && !stalkCool && (d.crave >= 65 || d.path === 'gaveIn') && Math.random() < .04) { stalkCool = 35 + Math.random() * 40; stalk(false); }
     if (d.path === 'gaveIn') { d.hn = (d.hn == null ? 120 : d.hn) - 1; if (d.hn <= 0) { d.hn = 150 + Math.random() * 90; startHunt(); } return; }
     maxedFor = d.crave >= 95 ? maxedFor + 1 : 0;
     if (maxedFor >= 25 && !huntCool) { maxedFor = 0; startHunt(); }
   }
-  const makeBarman = () => L2Demon.make();
   let actx = null;
-  function thump(v) { // a heartbeat, louder as he gets closer
+  function thump(v) { // a heartbeat, louder as it gets closer
     if (App.state.settings.sound === false) return;
     try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const t = actx.currentTime;
       for (const [dt, f] of [[0, 62], [.16, 52]]) { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.0001, t + dt); g.gain.exponentialRampToValueAtTime(.35 * v, t + dt + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dt + .22); o.connect(g); g.connect(actx.destination); o.start(t + dt); o.stop(t + dt + .25); }
     } catch (e) { }
   }
-  // the first time: he's just standing there, at the edge of the light, and then he isn't
-  function glimpse() {
-    const P = R3.player, g = makeBarman(), id = {};
-    g.position.set(P.x + Math.sin(P.yaw + .5) * 9, 0, P.z + Math.cos(P.yaw + .5) * 9); g.rotation.y = Math.atan2(P.x - g.position.x, P.z - g.position.z);
-    let life = 0; R3.api.every((t, dt) => { if (!id) return; life += dt; if (g.parent) g.userData.animate(t, dt, 9, 0); g.visible = life < 2.4 && Math.random() > .05; if (life > 2.4 && g.parent) g.parent.remove(g); });
-    L2Demon.sting();
-    L2.toast('🍸 Something tall at the edge of the light, in a rotten barman\'s apron. Too many eyes. When you look again, it\'s gone.');
+  // standing very still at the corner of your eye, far off. Turn to look and it's gone.
+  function stalk(first) {
+    if (typeof THREE === 'undefined' || !R3.api.root) return;
+    const P = R3.player, g = L2Demon.make(), side = Math.random() < .5 ? -1 : 1, a = P.yaw + side * R3.hfov * (.3 + Math.random() * .12), r = 8 + Math.random() * 5; // on screen, but not where you're looking
+    g.position.set(P.x + Math.sin(a) * r, 0, P.z + Math.cos(a) * r); g.rotation.y = Math.atan2(P.x - g.position.x, P.z - g.position.z);
+    const S = stalking = { g, life: 0, seen: false, area: R3.area };
+    R3.api.every((t, dt) => {
+      if (stalking !== S) return;
+      S.life += dt; g.userData.animate(t, dt, 10);
+      if (g.userData.seen() && !S.seen) { S.seen = true; L2Demon.sting(); }
+      if ((S.seen && g.userData.fade() < .03) || S.life > 7 || R3.area !== S.area || hunt) { stalking = null; g.userData.dispose(); }
+    });
+    if (first) L2.toast('🍸 At the far end of the room, someone standing very still, black against a red glow. You turn to look. Nobody.');
   }
   function startHunt() {
     if (hunt || typeof THREE === 'undefined' || !R3.api.root) return;
-    const P = R3.player, g = makeBarman(), d = st();
-    g.position.set(P.x - Math.sin(P.yaw) * 11, 0, P.z - Math.cos(P.yaw) * 11);
+    if (stalking) { stalking.g.userData.dispose(); stalking = null; }
+    const P = R3.player, g = L2Demon.make(), d = st();
+    g.userData.mode = 'fly'; g.position.set(P.x - Math.sin(P.yaw) * 12, 0, P.z - Math.cos(P.yaw) * 12);
     const H = hunt = { g, area: R3.area, t: 0, beat: 0 };
     document.body.classList.add('l2-hunted'); App.count('l2_hunted');
-    L2.toast(d.hunts ? '🍸 He\'s back. Run.' : `🍸 Something is behind you. Footsteps that don't echo. Don't look. Run. (${R3.touch ? 'Push the stick all the way out, or tap 🏃' : 'Hold Shift'}. Get out of the room, or call Mori.)`);
+    L2.toast(d.hunts ? '🍸 It\'s back. Run.' : `🍸 Something behind you, coming through the air. It slows when you look at it. Run. (${R3.touch ? 'Tap 🏃, or push the stick right out' : 'Hold Shift'}. Get out of the room, or call Mori.)`);
     d.hunts = (d.hunts || 0) + 1;
     R3.api.every((t, dt) => {
       if (hunt !== H || R3.busy) return;
       H.t += dt;
       const dx = R3.player.x - g.position.x, dz = R3.player.z - g.position.z, dist = Math.hypot(dx, dz);
-      const speed = 2 + Math.min(.9, H.t * .035); // walk 2.1, run 3.6 (less with the shakes)
+      const speed = (2.3 + Math.min(1, H.t * .04)) * g.userData.pace; // faster than a walk, slower than a run (less with the shakes)
       g.position.x += dx / dist * speed * dt; g.position.z += dz / dist * speed * dt; g.rotation.y = Math.atan2(dx, dz);
-      g.userData.animate(t, dt, dist, speed); L2Demon.tick(dt, Math.max(0, 1 - dist / 14));
-      g.visible = Math.random() > .03;
+      g.userData.animate(t, dt, dist); L2Demon.tick(dt, Math.max(0, 1 - dist / 14));
       H.beat -= dt; if (H.beat <= 0) { H.beat = .35 + Math.min(.7, dist / 14); thump(Math.max(.2, 1 - dist / 14)); }
-      if (dist < .75) caught();
+      if (dist < 1.1) caught();
       else if (H.t > 28) endHunt('outran');
     });
   }
   function endHunt(how) {
     const H = hunt; if (!H) return; hunt = null; huntCool = 90; L2Demon.quiet();
-    if (H.g.parent) H.g.parent.remove(H.g);
+    H.g.userData.dispose();
     document.body.classList.remove('l2-hunted');
     if (how === 'outran') { App.count('l2_outran'); Career.checkAchievements(); }
     if (how === 'outran') L2.toast('🍸 You look back. Nothing. Just a coat on a hook. Your heart doesn\'t believe it.');
-    if (how === 'door') L2.toast('🍸 The door closes behind you. He doesn\'t follow. Not yet.');
-    if (how === 'mori') L2.toast('🍸 Mori\'s voice in your ear, steady, and he steps back into the dark like he was never there.');
+    if (how === 'door') L2.toast('🍸 The door closes behind you. It doesn\'t follow. Not yet.');
+    if (how === 'mori') L2.toast('🍸 Mori\'s voice in your ear, steady, and the red goes out of the dark like it was never there.');
   }
   async function caught() {
     const d = st(); endHunt('caught'); huntCool = 120; d.strikes = (d.strikes || 0) + 1; App.save();
     await L2Demon.scare(); apply();
     if (d.strikes >= 3) { await L2.death(); return; }
     await L2.ui.say(d.strikes === 1
-      ? [{ who: 'narr', text: 'Fingers like cold nails close on your shoulder. Its face splits open an inch from yours, and the breath that comes out of it is your brand. Your knees go.' }, { who: 'narr', text: 'When you open your eyes you\'re on the floor and somebody is asking if you\'re all right. It\'s gone. The taste isn\'t.' }]
-      : [{ who: 'narr', text: 'It catches you by the collar and lifts you off your feet. Something in your chest stutters and catches, like a song skipping on a jukebox.' }, { name: 'A security guard', who: 'x', text: 'Hey. Hey! Stay with me. Look at me.' }, { who: 'narr', text: 'You come back. Barely. Next time, you might not.' }]);
+      ? [{ who: 'narr', text: 'It has your face. Grey and starved, the eyes gone yellow in the skull, the lips split: you, a few years and a lot of bottles from now. The breath that comes out of it is your brand. Your knees go.' }, { who: 'narr', text: 'When you open your eyes you\'re on the floor and somebody is asking if you\'re all right. It\'s gone. The taste isn\'t.' }]
+      : [{ who: 'narr', text: 'Your own dead face, so close you can see the broken veins. It takes you by the collar and lifts you off your feet. Something in your chest stutters and catches, like a song skipping on a jukebox.' }, { name: 'A security guard', who: 'x', text: 'Hey. Hey! Stay with me. Look at me.' }, { who: 'narr', text: 'You come back. Barely. Next time, you might not.' }]);
     d.crave = Math.max(d.crave, 85); apply();
   }
 
@@ -215,5 +226,5 @@ const L2Bottle = (() => {
   const path = () => st().path;
   const ready = () => !!st().steps.sponsorOffered && !sober();
 
-  return { needs, feed, roundNeeds, _startHunt: startHunt, get hunting() { return !!hunt; }, endHunt, init, start, stop, apply, drink, refuse, offer, step, callMori, panel, path, ready, severity, get state() { return st(); }, SEV };
+  return { needs, feed, roundNeeds, _startHunt: startHunt, _stalk: stalk, get hunting() { return !!hunt; }, endHunt, init, start, stop, apply, drink, refuse, offer, step, callMori, panel, path, ready, severity, get state() { return st(); }, SEV };
 })();
