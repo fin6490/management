@@ -956,12 +956,18 @@ returning 99%, each with autobet:
 - **Mines:** a 5×5 grid hiding 1 to 24 mines. Each gem raises the multiplier; cash out any time, or
   hit a mine and lose the lot.
 
-**Autobet** (every game): the number of bets (0 runs until you stop), what happens to the stake after
-a win and after a loss (back to the base, or raised by a percentage: a martingale is "on loss,
-increase by 100%"), and stop-on-profit and stop-on-loss for the run. Mines' autobet turns the
-tiles you tick, every round. A running total, a profit graph and the last results sit under each
-game. Each bet costs a little of the drink. The smallest stake is £1; when you leave a game you
-land back on the laptop's list of games. Achievement: Set and Forget (an autobet of fifty bets).
+**Autobet** (every game): the number of bets (0 runs until you stop), then what to do after a win
+and after a loss: reset the bet; increase or decrease it by a percentage; add or take off a sum;
+set it to a sum; increase or decrease the win chance by a percentage (relative, so 10% on 49.5% is
+54.45%), set it or reset it; switch Dice between over and under; or stop. The win chance is Dice's
+line, Limbo's target, Crash's auto cash-out (both 99% ÷ the multiplier) and, in Mines, the number
+of mines. **Advanced rules** add as many conditions as you like: on *every*, *every streak of*,
+*first streak of* or *streak above* N wins, losses or bets, or when the run's profit or loss
+reaches £N, do any of the same actions (a martingale that stops after a first streak of five
+losses, say, or a bet that doubles on every streak of three wins). Stop-on-profit and stop-on-loss
+end the run. Mines' autobet turns the tiles you tick, every round. A running total, a profit graph
+and the last results sit under each game. Each bet costs a little of the drink. The smallest
+stake is £1; when you leave a game you land back on the laptop's list of games. Achievement: Set and Forget (an autobet of fifty bets).
 
 **The room is where the dreams came from.** The television's channels are a sitcom called The
 Rusty Spur (Dolores), Lucky Lou's Riverboat game show, a crime drama called Meridian Nights
