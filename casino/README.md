@@ -970,6 +970,27 @@ end the run. Mines' autobet turns the tiles you tick, every round. A running tot
 and the last results sit under each game. The drink runs down with the clock while you play, not with the number of bets. The smallest
 stake is £1; when you leave a game you land back on the laptop's list of games. Achievement: Set and Forget (an autobet of fifty bets).
 
+**The list on the fridge.** A note stuck to the fridge door, in your own handwriting: THINGS TO DO.
+Open it from the fridge, by tapping the note, or from ☰. It crosses itself off as you go:
+
+| On the list | How |
+| --- | --- |
+| Look yourself in the eye | the mirror |
+| Find where it all came from | the TV, the photo, the letters, the postcards, the books, the calendar, the window, the radio |
+| Watch every channel | the TV, all five |
+| Beat Mick at darts | the dartboard |
+| Ring the number on the leaflet, and tell them your name | the leaflet on the fridge: the St Jude's helpline answers |
+| Get a delivery to the door | order cans on the laptop, collect them |
+| Win ten times your stake on one bet | any game on the laptop |
+| Win a hundred times your stake on one bet | any game on the laptop |
+| Let an autobet run fifty bets | the Originals |
+| Get to £10,000 / Get to £100,000 | your best balance |
+| Pay them all back. Walk out of the door. | £500,000: the good true ending |
+
+It also shows which of the three endings you've found. Ticks stay ticked if you wake up in the bedsit
+again. Achievements: Where It Came From, Mick Never Turns Up, Hundredfold, Somebody Answered and
+Every Line Crossed Out.
+
 **The room is where the dreams came from.** The television's channels are a sitcom called The
 Rusty Spur (Dolores), Lucky Lou's Riverboat game show, a crime drama called Meridian Nights
 (Mori), the Vinnie's Loans advert and a 1987 film called The Seventeenth Card (Kessler). The
