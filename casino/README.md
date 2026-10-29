@@ -614,6 +614,13 @@ happened. The story is told gently and never shown.
 - the police station, St Brigid's chapel and the park, the river embankment, and Greenhill
   cemetery
 People are out in the rain, and the places you'd expect are open all night.
+The roads are two full lanes, one each way, with wide pavements, so the traffic passes cleanly and
+there's room to walk.
+
+**The tables.** The Meridian floor has the dream's table games with your real money: two blackjack
+tables, roulette, craps, baccarat, Crazy 4 Poker, Ultimate Texas Hold'em, Three Card Poker and Let
+It Ride. The high-limit Salon has blackjack, Crazy 4 Poker and Mississippi Stud. The poker games
+(the Thursday game at Sully's, Mr. Chen's table) use the same engine as the dream's Back Room.
 
 **Puzzles:**
 - **The count.** Count a shoe of cards with Hi-Lo to get your old badge switched back on.
@@ -680,18 +687,32 @@ wallet. Your dream bankroll is kept safe and comes back when you return to the d
 - **Effect on the story.** The endings remember which way it went, but nothing in the main story
   depends on it. The notebook's **The bottle** tab tracks it.
 
-**Floor games.** Three games that stand on the Meridian's floor. Walk up to one and the machine
-itself appears above your bets, drawn and animated, while they slide up from the bottom of the screen.
-- **Big Six money wheel.** A 54-segment wheel with a leather flapper. Bet on $1, $2, $5, $10, $20,
-  Joker or Meridian, and the dealer gives it a pull.
+**Floor games.** Three games stand on the Meridian's floor, and each fills the screen when you play,
+like the tables in the dream: the machine on top, the bets underneath.
+- **Big Six money wheel.** A 54-segment wheel with pegs, a leather flapper and chasing bulbs. Bet on
+  $1, $2, $5, $10, $20, Joker or Meridian. The last results run along the top.
 - **Sic Bo.** Three dice rattle under a glass dome. Bets include Small and Big, Odd and Even, any
   triple or a specific triple, totals from 4 to 17, and single numbers.
-- **High Tide and Low Tide coin pushers.** Real shelf physics: time the dropper, and coins that
-  fall in the middle land in your tray. Every 60th coin the machine adds a gold token worth 10
-  coins. Each shelf is saved, so a machine you've loaded up is still loaded when you come back.
+- **High Tide and Low Tide coin pushers**, in 2.5D: a shelf in perspective with coins that have
+  thickness, a pusher that sweeps, the gutters and your tray. Time the dropper:
+  - **The BONUS pocket** slides along the back wall. Drop a coin into it and three bonus reels spin:
+    a shower of coins, a gold token (ten coins) or a JP chip.
+  - **A JP chip** pushed into your tray spins the Jackpot Wheel.
+  - **Every 150th coin** the machine adds a gold token.
 
-They return 96–98%, like the rest of the game. Big Six and Sic Bo are worked out exactly and the
-pusher is simulated:
+  Each shelf is saved, so a machine you've loaded up is still loaded when you come back.
+- **The Meridian Jackpots.** Three progressive meters (Mini from $100, Major from $500, Grand from
+  $2,000) show on every machine, and they climb as the floor plays:
+  - **Big Six:** turn on the ★ jackpot bet (+$5 a spin) and a Joker or Meridian spins the
+    **Jackpot Wheel**.
+  - **Sic Bo:** turn on the ★ jackpot bet (+$5 a roll) and any triple pays $40, then spins the
+    Jackpot Wheel.
+
+  You spin the Jackpot Wheel yourself: thirty segments of cash and the three meters.
+
+They return 95–98% (the pusher about 92% if you drop at random, a little over 100% if you only drop
+when the pocket lines up). Big Six, Sic Bo and the jackpot bets are worked out exactly and the pusher
+is simulated:
 
 ```
 node casino/tools/l2-odds.js
@@ -716,30 +737,61 @@ shakes stop, and it counts as a drink), drink the water (it takes the edge off),
 into the rain and drink the water (a step towards getting sober), or grip the wheel until it
 passes (that counts as turning a drink down).
 
-**Food, water and sleep**, and **buying them**, like in the dream. Level 2 uses the dream's own hunger 🍔, thirst 💧 and energy ⚡ bars, so
-you wake up as hungry as you went to sleep, and they come back with you when you dream again.
-Awake they drain in real time (hunger in about half an hour, thirst a little faster, energy in
-about forty minutes) and a bit more for every round at a table. They show under your objective.
-- **Thirst** makes the craving come on faster. **Hunger** and **tiredness** slow you down; with no
+**Food, water, sleep and spirit**, like in the dream.
+
+**The bars.** Level 2 uses the dream's own hunger 🍔, thirst 💧 and energy ⚡ bars, so you wake up as
+hungry as you went to sleep, and they come back with you when you dream again. Awake they drain in
+real time (hunger in about half an hour, thirst a little faster, energy in about forty minutes) and a
+bit more for every round at a table. They show under your objective, with a fourth: spirit 🙂.
+- **Thirst** makes the craving come on faster. **Hunger** and **tiredness** slow you down. With no
   energy left you can't run, and with any bar empty the edges of the screen go dark.
-- **Where to fix it:** Rosie's diner (a cheeseburger and fries, soup, cherry pie, coffee with free
-  refills, water); the Kwik Mart (water, energy drinks, cola, sandwiches, chocolate, crisps, and a
-  booze aisle that counts as a drink you're offered); the Low Tide (food, coffee or water from
-  Delia); the vending machine in the car park; the minibar in room 1717; and the water cooler and a
-  pot of coffee in the clinic.
-- **Other places that help:** St Brigid's chapel (light a candle, or sit in the circle of chairs
-  where the Thursday meeting happens) and the river take the edge off the craving.
+
+**Spirit 🙂** is how you're holding up: Hollow, Low, Holding on or Hopeful. A line floats up when
+something moves it.
+- **What lifts it:** a hot meal, a pot of tea, the cat, a song, a candle, a kind word with someone
+  new, saying no to a drink, each recovery step, sleep, flowers for the graves, and helping people.
+- **What sinks it:** going hungry, thirsty or exhausted, the Barman, losing hard at the tables, and
+  the drink wearing off.
+- **What it does:** low spirit makes the craving come faster and brings dark thoughts; high spirit
+  slows the craving.
+
+**Menus, like the dream's.** Every place shows what it sells, what it costs and what it does
+(🍔 💧 ⚡ 🙂), with your bars on top, and you buy as much as you like before you close it.
+- **The Low Tide:** pick your drink (lager, stout, red wine, whisky, rum and cola), a soft drink or
+  food. Delia offers your usual on the house the first time; "Just water, Delia" counts as saying no.
+- **Rosie's diner:** pancakes, eggs and bacon, cherry pie and coffee with free refills, and work
+  washing up if you're broke.
+- **The Kwik Mart:** drinks, food, mints and carnations (for Greenhill), plus a booze aisle that
+  counts as a drink you're offered.
+- **Elsewhere:** Gus's hot dog cart, the car-park vending machine and the minibar in room 1717.
+
+**Sleep, like the dream's.** At any bed you can nap for an hour, sleep properly (energy full, spirit
+up, hungrier and thirstier), or let the dream take you back to the town. The car is cold, the clinic
+bed is a hospital bed, and room 1717 is a real bed. You can't sleep with the shakes.
+
+**Other places that help:** St Brigid's chapel (light a candle, or sit in the circle of chairs
+where the Thursday meeting happens) and the river take the edge off the craving.
 
 **Money, awake.** In the dream, money was the whole game. Awake, it's what gets you through the
 night, and the Meridian is still the only place in the city where it can turn into more: the tables,
 the slots and the floor games all use your real wallet (you wake with $2,400). The 📓 notebook's
 Money page keeps track.
-- **Kit**, at Sully's Pawn & Hardware: a 🔦 torch ($120: your own light, so the Barman slows down
-  and you only have to outlast it for 20 seconds, not 30, and it hides less often; the batteries run
-  down, faster while it hunts you, and new ones are $15 at Sully's or $18 at the Kwik Mart), 👟
-  running shoes ($220: run a quarter faster) and a 🧥 raincoat ($160: without one, the rain wears
-  your energy down half as fast again). Dr. Okafor can prescribe 💊 naltrexone so the craving comes
-  on slower, but your insurance lapsed while you slept, so it's $300.
+- **Kit**, at Sully's Pawn & Hardware. The basics:
+  - 🔦 a torch ($120): your own light, so the Barman slows down and you only have to outlast it for
+    20 seconds, not 30, and it hides less often. The batteries run down, faster while it hunts you;
+    new ones are $15 at Sully's or $18 at the Kwik Mart.
+  - 👟 running shoes ($220): run a quarter faster.
+  - 🧥 a raincoat ($160): without one, the rain wears your energy down half as fast again.
+
+  The proper stuff, which Sully only gets in once you've needed it:
+  - 🔦 a police Maglite ($1,200, after the Barman first hunts you): twice the reach, half the
+    battery drain.
+  - 👟 proper running shoes ($1,500, deeper into the case): run nearly half as fast again.
+  - 🧥 a waxed jacket ($900): the rain stops wearing you down, and you tire slower.
+  - 📿 a St Christopher medal ($2,000, after two hunts): the Barman comes less often.
+
+  Dr. Okafor can prescribe 💊 naltrexone so the craving comes on slower, but your insurance lapsed
+  while you slept, so it's $300.
 - **Things worth buying back:** 💍 your wedding ring ($9,500), pawned the week after the funeral and
   kept out of the window by Sully ever since (it makes the craving come slower and takes back one of
   the times the Barman caught you), and, once you know who Eddie Marsh was, a 🪦 headstone for the
@@ -803,17 +855,41 @@ themselves, and they ask you things back. Most have something to offer:
   at the news stand (the late edition, and Lucky Sevens scratchcards), Gus's hot dog cart on the
   embankment, Rajesh at the taxi rank, Shona smoking outside the Low Tide, Officer Danny Price on his
   beat, Carla and Pete walking home in the rain, and a black cat with somewhere to be.
-- **The Low Tide:** Delia's full menu (beer, whisky, wine, soft drinks, burgers, chips, toasties),
-  **darts** with Big Sean (three rounds of three darts for $20, $50 or $100: hold on the board to
-  aim, let go to throw, and the shakes make your aim wander), **pool** with Lou Marino (pub rules,
-  reds and yellows; drag back like a catapult to shoot), the jukebox ($1 a song: it changes the
-  music), Mags at the bar and Old Walt in his corner.
+- **The Low Tide:**
+  - Delia's full menu.
+  - **Darts** with Big Sean: the dream's own game, one leg of 301 with a double out, for $20, $50
+    or $100. Two taps a dart; the shakes or a drink make the sweeps faster.
+  - **Pool** with Lou Marino, full screen, pub rules, reds and yellows. Touch the table to aim: a
+    guide shows the ghost ball and where the object ball goes. Hold Shoot and let go when the power
+    is right.
+  - The jukebox: $1 a song, and it changes the music.
+  - Mags at the bar and Old Walt in his corner.
 - **Rosie's:** a longer menu (pancakes, a BLT, milkshakes, juice, tea), Benny the cook, Dale the
   trucker and Priya, a nurse from St Jude's on her break.
 - **Elsewhere:** Omar at the Kwik Mart (mints, batteries, a bigger fridge), Sully at the pawn shop,
   Sergeant Hanley and Terry (sleeping it off) at the police station, Father Tom and Ruth at St
   Brigid's, Bree with her tray, Hollis, Glenda and Tiffany on the Meridian floor, Mr. Chen in the
   Salon, Lupe on the 17th floor, Nurse Adeyemi at the clinic and Stan in the car park booth.
+
+**Side jobs.** Ask people if they need a hand (it's an option when you tap them):
+- **The Good Horn:** buy Marcus's Selmer back from Sully's window ($600) and he plays for you, free,
+  for ever.
+- **The Late Edition:** deliver Ida's papers to the Low Tide, Rosie's and the Meridian.
+- **Mind the Stand:** serve Gus's customers what they ask for, for tips.
+- **Lost Property:** find the owner of the briefcase Rajesh found in his cab ($1,000).
+- **Last One:** take Shona some nicotine gum from the Kwik Mart.
+- **The Circle:** sit in the circle of chairs at St Brigid's for Ruth.
+
+**The white tulips** (found only by talking, with AI chat on). Somebody leaves three white tulips on
+the graves every week. Ask the right people the right things:
+1. Ida, at the news stand, knows who buys them.
+2. Hollis, on the casino floor, knows what happened at the back door that night.
+3. Ruth, at St Brigid's, knows who sits outside the Thursday meeting in his car.
+
+The ending happens in the circle of chairs.
+
+Achievements: Good Neighbour (four side jobs), The Night Watch (the tulips), Hopeful (spirit at its
+best) and Meridian Jackpot (the Major or the Grand).
 
 **The card games.** Ask Lou Marino at the Low Tide about a card game and he'll tell you about the
 Thursday game in the back room at Sully's: six-handed no-limit hold'em, $500 to sit, top two paid,
