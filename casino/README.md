@@ -908,6 +908,54 @@ dream and the endings you've found. A save from before Level 2 was rebuilt is of
 - **Computer:** WASD or the arrow keys walk too, Shift runs, and E, Space or Enter uses whatever
   you're next to (so does the ✋ button).
 
+## Level 3: The bedsit
+
+The true ending. Once you've seen any ending of Level 2, the roof offers a fourth choice: **look at
+your reflection in the black glass of the roof door**. There's no rain in the reflection. There's a
+small room with a yellow bulb, and a man lit blue by a laptop.
+
+There was no Meridian, no town, no case. You live in a bedsit over a bookmaker's and haven't been
+outside since the summer. You have no job, no friends, £850, and £500,000 of debt. Level 3 is fully
+3D and first person, and the only place in it is the room.
+
+**The drink.** One bar is left. It runs down all the time, and every hand at the laptop costs a
+bit more. The fridge has three cans to start (each one adds 30); the laptop can order eight more
+for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
+it blurs. Let it run out and you collapse: **Last Orders**, a bad true ending.
+
+**The laptop.** LuckyStrike.bet has every game from the dreams, played with your real money in
+pounds: blackjack, Ultimate Texas Hold'em, Three Card Poker, Mississippi Stud, Let It Ride,
+Crazy 4 Poker, baccarat, craps, roulette, Casino War, all four slot machines and the poker
+tournaments. Make **£500,000** and you clear the debt, ring the number on the leaflet and check into
+rehab: **Day One**, the good true ending. Fall below the £5 minimum and that's **The House Always
+Wins**, the other bad true ending. After any ending you can wake up in the bedsit again; the
+endings you've found are kept.
+
+**The room is where the dreams came from.** The television's channels are a sitcom called The
+Rusty Spur (Dolores), Lucky Lou's Riverboat game show, a crime drama called Meridian Nights
+(Mori), the Vinnie's Loans advert and a 1987 film called The Seventeenth Card (Kessler). The
+dartboard is where you play 301 against Mick, who isn't there. The family in the photo frame is the
+picture the frame came with. The letters by the door are from Vinnie's Loans, Kessler Capital and
+Big Nico. There are postcards and a St Jude's leaflet on the fridge, paperbacks on the shelf, a
+radio that plays the Spur or the riverboat, and a calendar with the 17th circled. And there's the
+mirror over the basin, where you can see what you really are: the thing that hunted you through
+the Meridian.
+
+Achievements: It's You, Last Orders and Day One. The title screen has a **Level 3** button on any
+save that has reached it, and so do the ☰ menus of Level 1 and Level 2.
+
+**Controls:**
+- **Look** by dragging anywhere (or with ← → on a keyboard).
+- **Walk** with WASD or ↑ ↓, or with the stick that appears when you touch the left side of a
+  phone screen.
+- **Use** whatever is in the middle of the screen with E, Space, Enter or the ✋ button, or tap the
+  thing itself.
+- ☰ saves, switches to lighter graphics for slower phones, turns the sound off, or starts the
+  level over.
+
+The room is drawn with three.js r128 (MIT licence), bundled in `js/vendor` so the game still works
+offline.
+
 ## AI chat
 
 Everyone in town can talk back in their own voice: story characters, rivals, dealers (the 💬 button
