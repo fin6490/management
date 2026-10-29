@@ -570,8 +570,9 @@ const L3 = (() => {
   const pickOne = a => a[Math.floor(Math.random() * a.length)];
 
   /* ---------- the laptop: every game from the dreams, with real money ---------- */
+  // lap: opened from the laptop, so leaving it comes back to the laptop's games
   function toGame(go, lap) {
-    const st = S(); st.atTable = true; st.fromLaptop = !!lap; // from the laptop, you come back to the laptop st.dreamBank = App.state.bank; st.dreamVenue = App.state.venue; st.before = st.cash;
+    const st = S(); st.atTable = true; st.fromLaptop = !!lap; st.dreamBank = App.state.bank; st.dreamVenue = App.state.venue; st.before = st.cash;
     App.state.bank = st.cash; App.state.venue = 'palace'; if (G) st.pos = { x: G.x, z: G.z, yaw: G.yaw }; App.save(); go();
   }
   function back() {
@@ -580,6 +581,7 @@ const L3 = (() => {
     const diff = st.cash - (st.before || st.cash); if (diff < 0) st.lost += -diff; App.save();
   }
   function openLaptop() {
+    if (document.querySelector('.l3-laptop')) return; // already open
     const st = S(); if (G) G.busy++;
     const o = h('div.l3-laptop'), close = () => { o.remove(); if (G) G.busy = Math.max(0, G.busy - 1); };
     const games = ['bj', 'uth', 'tcp', 'ms', 'lir', 'c4', 'bac', 'craps', 'roulette', 'war'].filter(g => GAMES[g]);
