@@ -953,8 +953,20 @@ dartboard is where you play 301 against Mick, who isn't there. The family in the
 picture the frame came with. The letters by the door are from Vinnie's Loans, Kessler Capital and
 Big Nico. There are postcards and a St Jude's leaflet on the fridge, paperbacks on the shelf, a
 radio that plays the Spur or the riverboat, and a calendar with the 17th circled. And there's the
-mirror over the basin, where you can see what you really are: the thing that hunted you through
-the Meridian.
+mirror over the basin, where you can see what you really are: the face from the Meridian's jump
+scare, your own face (it follows Your look), wasted by the drink, on a body starved thin in a
+yellowed vest and an open dressing gown, a can in its hand. It stands where you stand and moves
+as you move; only the mirror sees it. Use the mirror and you lean in over the basin until the face
+fills it, and if you hold its gaze the jaw drops open.
+
+**The room** is built in three.js out of real shapes: a bed with a headboard and a rumpled duvet,
+an office chair, a desk with drawers and an ashtray, a laptop with its lid tipped back, kitchen
+units, a steel sink with the plates still in it, two rings and a kettle, a fridge with the
+microwave on top, a pedestal basin, a four-panel door with its chain, a bookcase of real books, a
+radio with an aerial, the window's blinds (one slat bent), curtains and a radiator, a TV on a
+cabinet, a velour armchair with a blanket over it, a rug, and the cans, the clothes, the bin bag
+and the pizza box on the floor. The bulb throws soft shadows (on high graphics), drawn once since
+nothing in the room moves.
 
 Achievements: It's You, Last Orders and Day One. The title screen has a **Level 3** button on any
 save that has reached it, and so do the ☰ menus of Level 1 and Level 2. **For testing, for now,**
