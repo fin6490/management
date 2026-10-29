@@ -474,7 +474,25 @@ const L3 = (() => {
     if (st.drink < 35 && Date.now() - lastThought > 40000) { lastThought = Date.now(); toast('🍺 ' + THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)]); }
   }
   // a hand at the laptop takes time too
-  function roundNeeds(kind, k = 1) { if (kind === 'round') { const st = S(); st.drink = Math.max(1, st.drink - 6 * k); } }
+  // at the laptop the drink runs down with the clock, as it does in the room, not by the bet: an autobet
+  // of a hundred costs no more than a minute's thinking (roundNeeds is kept so the tables have a hook)
+  function roundNeeds() { }
+  let lapTimer = 0;
+  function lapStart() { clearInterval(lapTimer); lapTimer = setInterval(lapTick, 1000); }
+  function lapStop() { clearInterval(lapTimer); lapTimer = 0; }
+  function lapTick() {
+    if (!App.state || !App.inLaptop()) return lapStop();
+    if (document.hidden) return;
+    const st = S(); st.drink = Math.max(0, st.drink - DRAIN); lapHud();
+    if (st.drink < 35 && st.drink > 0 && Date.now() - lastThought > 40000) { lastThought = Date.now(); UI.toast('🍺 ' + THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)], 'warn'); }
+    if (st.drink > 0) return;
+    // empty: let the hand in play finish (stop an autobet), then back to the room, where you go down
+    if (typeof Originals !== 'undefined' && Originals.busy()) { Originals.stopAuto(); return; }
+    const scr = Router.screen; // only the game on screen can hold you: a hand in play, spinning reels, a seat in a tournament
+    if ((scr === 'table' && Router.table && Router.table.busy) || (scr === 'slots' && typeof Slots !== 'undefined' && Slots.busy()) || (scr === 'pokertable' && typeof Holdem !== 'undefined' && Holdem.active()) || (scr === 'darts' && typeof Darts !== 'undefined' && Darts.active())) return;
+    lapStop(); Router.go('bedsit');
+  }
+  function lapHud() { const e = document.getElementById('hud-drink'); if (!e) return; const v = S().drink; e.textContent = `${Math.round(v)}% · ${stateOf(v)}`; e.parentElement.classList.toggle('low', v < 35); }
 
   /* ---------- the loop ---------- */
   function frame(now) {
@@ -573,10 +591,10 @@ const L3 = (() => {
   // lap: opened from the laptop, so leaving it comes back to the laptop's games
   function toGame(go, lap) {
     const st = S(); st.atTable = true; st.fromLaptop = !!lap; st.dreamBank = App.state.bank; st.dreamVenue = App.state.venue; st.before = st.cash;
-    App.state.bank = st.cash; App.state.venue = 'palace'; if (G) st.pos = { x: G.x, z: G.z, yaw: G.yaw }; App.save(); go();
+    App.state.bank = st.cash; App.state.venue = 'palace'; if (G) st.pos = { x: G.x, z: G.z, yaw: G.yaw }; App.save(); go(); lapStart(); lapHud();
   }
   function back() {
-    const st = S(); if (!st.atTable) return;
+    const st = S(); lapStop(); if (!st.atTable) return;
     st.cash = Math.round(App.state.bank * 100) / 100; App.state.bank = st.dreamBank; App.state.venue = st.dreamVenue || App.state.venue; st.atTable = false;
     const diff = st.cash - (st.before || st.cash); if (diff < 0) st.lost += -diff; App.save();
   }
@@ -658,7 +676,7 @@ const L3 = (() => {
       { text: 'You\'re on the end of a bed in a room above a bookmaker\'s. The laptop is open. It\'s always open. The light from it is blue and the light from the bulb is yellow and there isn\'t any other light.' },
       { text: 'There was no Meridian. No town. No case. You haven\'t been outside since the summer. You haven\'t had a job in three years, or a friend in longer. You owe five hundred thousand pounds, and you have eight hundred and fifty.' },
       { text: 'Your hands are shaking. There are three cans in the fridge.' }]), 600); }
-    else setTimeout(() => { checkEnd(); if (fromLap && G && !S().ended && !document.querySelector('.l3-say, .l3-laptop, .l3-end')) openLaptop(); }, 400); // back to the laptop's games, not the room
+    else setTimeout(() => { if (S().drink <= 0) return collapse(); checkEnd(); if (fromLap && G && !S().ended && !document.querySelector('.l3-say, .l3-laptop, .l3-end')) openLaptop(); }, 400); // back to the laptop's games, not the room
   }
   async function menu() {
     const c = await choose('☰', [['save', '💾 Save'], ['gfx', `Graphics: ${App.state.settings.gfx === 'low' ? 'low (faster)' : 'high'}`], ['sound', `Sound: ${App.state.settings.sound !== false ? 'on' : 'off'}`], ['restart', '↺ Wake up in the bedsit again (start Level 3 over)'], ['title', 'Back to the title'], ['no', 'Close']]);
@@ -677,5 +695,5 @@ const L3 = (() => {
   // the way in: the roof of the Meridian, a reflection in the black glass of the door
   async function begin() { if (!App.state.l3) App.state.l3 = fresh(); App.save(); Router.safeGo('bedsit'); } // safeGo: not from the middle of a hand // a room you've already woken in is as you left it (☰ starts it over)
 
-  return { screen, unmount, begin, roundNeeds, back, checkEnd, ending, restart, GOAL, START, money, get state() { return S(); }, get G() { return G; }, A, openLaptop, CHANNELS };
+  return { screen, unmount, begin, roundNeeds, lapHud, back, checkEnd, ending, restart, GOAL, START, money, get state() { return S(); }, get G() { return G; }, A, openLaptop, CHANNELS };
 })();

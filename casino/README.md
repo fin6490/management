@@ -933,8 +933,9 @@ There was no Meridian, no town, no case. You live in a bedsit over a bookmaker's
 outside since the summer. You have no job, no friends, £850, and £500,000 of debt. Level 3 is fully
 3D and first person, and the only place in it is the room.
 
-**The drink.** One bar is left. It runs down all the time, and every hand at the laptop costs a
-bit more. The fridge has three cans to start (each one adds 30); the laptop can order eight more
+**The drink.** One bar is left. It runs down all the time, by the clock, in the room and at the laptop alike (the laptop's top bar
+shows it); a fast autobet costs no more than a slow hand. If it runs out at the laptop, the hand in
+play finishes, any autobet stops, and you're back in the room. The fridge has three cans to start (each one adds 30); the laptop can order eight more
 for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
 it blurs. Let it run out and you collapse: **Last Orders**, a bad true ending.
 
@@ -966,7 +967,7 @@ of mines. **Advanced rules** add as many conditions as you like: on *every*, *ev
 reaches £N, do any of the same actions (a martingale that stops after a first streak of five
 losses, say, or a bet that doubles on every streak of three wins). Stop-on-profit and stop-on-loss
 end the run. Mines' autobet turns the tiles you tick, every round. A running total, a profit graph
-and the last results sit under each game. Each bet costs a little of the drink. The smallest
+and the last results sit under each game. The drink runs down with the clock while you play, not with the number of bets. The smallest
 stake is £1; when you leave a game you land back on the laptop's list of games. Achievement: Set and Forget (an autobet of fifty bets).
 
 **The room is where the dreams came from.** The television's channels are a sitcom called The

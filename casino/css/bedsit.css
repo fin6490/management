@@ -174,3 +174,5 @@ body[data-screen="originals"] { background: #0b1a24; }
 .orig-on { color: var(--o-mute); font-size: 12px; font-weight: 700; min-width: 18px; }
 .orig-x { background: none; border: 0; color: #ff8a92; font-size: 20px; cursor: pointer; padding: 0 6px; }
 .orig-auto select.orig-in { flex: 1 1 auto; width: auto; min-width: 0; }
+.hud-l3 .hs.drink b { color: #f0c060; font-size: 13px; }
+.hud-l3 .hs.drink.low b { color: #ff6a5a; animation: l3-pulse 1.2s ease-in-out infinite; }

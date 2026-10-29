@@ -40,7 +40,7 @@ const Originals = (() => {
   /* ---------- money: a bet settles into the bank and the stats ---------- */
   function settle(bet, payout, mult) {
     const st = App.state; st.bank = r2(st.bank - bet + payout);
-    App.roundDone('orig_' + S.game, { wagered: bet, returned: payout, net: r2(payout - bet), stamina: .06 });
+    App.roundDone('orig_' + S.game, { wagered: bet, returned: payout, net: r2(payout - bet) });
     S.stats.wagered = r2(S.stats.wagered + bet); S.stats.profit = r2(S.stats.profit + payout - bet); S.stats[payout > bet ? 'wins' : 'losses']++; S.stats.curve.push(S.stats.profit); if (S.stats.curve.length > 200) S.stats.curve.shift();
     S.hist.unshift({ mult, win: payout > bet }); S.hist.length = Math.min(S.hist.length, 14);
     paintStats(); paintHist();
