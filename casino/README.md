@@ -946,6 +946,23 @@ rehab: **Day One**, the good true ending. Fall below the £5 minimum and that's 
 Wins**, the other bad true ending. After any ending you can wake up in the bedsit again; the
 endings you've found are kept.
 
+**LuckyStrike Originals.** The laptop also has the site's own games (`js/originals.js`), each
+returning 99%, each with autobet:
+- **Dice:** drag the line and roll over or under it (0.00 to 100.00). The multiplier follows the odds.
+- **Limbo:** name a multiplier from 1.01× up; the result has to reach it.
+- **Crash:** the line climbs from 1.00× until it crashes. Cash out before it does, or set an auto
+  cash-out.
+- **Plinko:** 8, 12 or 16 rows of pegs, low, medium or high risk, up to 1,000×.
+- **Mines:** a 5×5 grid hiding 1 to 24 mines. Each gem raises the multiplier; cash out any time, or
+  hit a mine and lose the lot.
+
+**Autobet** (every game): the number of bets (0 runs until you stop), what happens to the stake after
+a win and after a loss (back to the base, or raised by a percentage: a martingale is "on loss,
+increase by 100%"), and stop-on-profit and stop-on-loss for the run. Mines' autobet turns the
+tiles you tick, every round. A running total, a profit graph and the last results sit under each
+game. Each bet costs a little of the drink. The smallest stake is £1; when you leave a game you
+land back on the laptop's list of games. Achievement: Set and Forget (an autobet of fifty bets).
+
 **The room is where the dreams came from.** The television's channels are a sitcom called The
 Rusty Spur (Dolores), Lucky Lou's Riverboat game show, a crime drama called Meridian Nights
 (Mori), the Vinnie's Loans advert and a 1987 film called The Seventeenth Card (Kessler). The
