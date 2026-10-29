@@ -803,11 +803,25 @@ Money page keeps track.
 - **Losing hurts more awake:** walk away from a table down hard and the craving surges.
 - **A cab** (☰ menu, out on the street) takes you anywhere in the city for a fare by distance, even
   with the Barman behind you.
-- **Broke?** Rosie needs someone to wash up ($40 and a bowl of soup for a sinkful of plates), and the
-  cage will advance you $5,000 against the insurance cheque (it won't cash it: that's the bank's
-  job, and five working days).
+- **Broke? No loans.** Your credit died while you slept: the cage won't cash the insurance cheque
+  (that's the bank, and five working days), and when you ask for an advance it checks your name and
+  says no. Nobody in the city will lend you a cent. Work a shift instead (`js/reality/shifts.js`),
+  as often as you can stand it, at four places that will always give you an hour:
+
+  | Where | The work | Pay |
+  | --- | --- | --- |
+  | Rosie's diner | Wash up a sinkful of plates | $40 and a bowl of soup |
+  | The Kwik Mart | Put the night delivery on the right shelves for Omar | $45 |
+  | Sully's Pawn & Hardware | Count the bins in the back for the stocktake | $50 |
+  | The Low Tide | Pull five pints behind Delia's bar, each to the line | $55 and tips, but the craving rises (not if you're sober) |
+
+  Do the job well and the pay goes up by as much as half again. Every shift costs energy and makes
+  you hungry and thirsty; you need a bit of energy left to be given one, and each boss wants you to
+  rest a minute and a half between shifts. Ask from the menu at Rosie's, the Kwik Mart and the Low
+  Tide, or from Sully's counter.
 - Achievements: Eyes Open, N. (the ring), He Called for Help (the headstone), Comped (every
-  promotion), Ready for the Dark (all the kit) and Honest Work (a shift at Rosie's).
+  promotion), Ready for the Dark (all the kit), Honest Work (a shift) and Every Door on Harbour Road
+  (a shift at all four).
 
 **How it looks.** Everything is drawn on a canvas, nothing is downloaded:
 - the ground first, then everything that stands up (buildings, walls, furniture, people) back to

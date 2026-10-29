@@ -368,7 +368,7 @@ const L2 = (() => {
     async pusher(id) { await L2Games.pusher(id); },
     async cashier() {
       if (!S().clues.cheque) return say([{ name: 'Cashier', who: 'x', text: 'Chips or cash? ...Oh. Sorry. Take your time.' }]);
-      if (has('cashed')) return say([{ name: 'Cashier', who: 'x', text: 'Anything else tonight?' }, { who: 'narr', text: '*The money is just numbers. It was always going to be just numbers.*' }]);
+      if (has('cashed') || has('cageNo')) return say([{ name: 'Cashier', who: 'x', text: 'Anything else tonight?' }, { who: 'narr', text: '*The money is just numbers. It was always going to be just numbers.*' }]);
       await say([{ who: 'narr', text: '*The envelope is in your pocket. Half a million dollars, made out to you, for them.*' }, { who: 'narr', text: '*In the dream you spent months clawing back a debt one hand at a time. Here it would take one signature.*' }]);
       await L2Money.advance();
     },
