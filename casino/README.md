@@ -949,6 +949,15 @@ There was no Meridian, no town, no case. You live in a bedsit over a bookmaker's
 outside since the summer. You have no job, no friends, £850, and £500,000 of debt. Level 3 is fully
 3D and first person, and the only place in it is the room.
 
+**If you never drank in the dreams.** How much you drank in the town (Level 1) sets how hard the
+withdrawal hits when you wake (Level 2): mild, moderate or severe, and never none, because the drink
+was there before the dream. If you stayed off it in both dreams (not a drop in the town, none in the
+city, not even the flask in the car), Level 3 is still the same room and the same drink, but it's
+told differently: the dreams were the part of you that knows, telling you to deal with it. The
+intro says so, the mirror says you kept it away in the dreams but it was here all along, you tell the
+St Jude's helpline that in your dreams you never drink, and Day One and Last Orders each have a line
+of their own.
+
 **The drink.** One bar is left. It runs down all the time, by the clock, in the room and at the laptop alike (the laptop's top bar
 shows it); a fast autobet costs no more than a slow hand. If it runs out at the laptop, the hand in
 play finishes, any autobet stops, and you're back in the room. The fridge has three cans to start (each one adds 30); the laptop can order eight more
