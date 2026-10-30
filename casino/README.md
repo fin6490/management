@@ -126,6 +126,14 @@ Every other building has an inside too, each with its own staff, locals and thin
 - **Downtown Apartments**: the mailboxes, your own front door once you rent a place, and the elevator.
 - **Prime Cut Steakhouse**: the maître d', the lobster tank and the wine cellar.
 
+The rooms fill the screen when you walk in (a small room is drawn bigger), with boards that run in
+rows, carpets with a pile, panelled walls under a cornice, pools of light from the ceiling and a
+shadow under everything that stands on the floor. Each has something on its walls: windows and a
+clock and a pink EAT sign at Mel's (and stools at the counter), LOTTO and 2 FOR $3 posters at the
+Quik-Stop, the key board and a lobby sofa at the Starlite, a LOANS sign and guitars at Vinnie's,
+sconces and paintings at Rosa's and the Grand (sofas in the lobby), a notice board and a bench at the
+Apartments, a wine rack at Prime Cut (chairs at its tables).
+
 Out on the street there's a newsstand, an ATM, a phone booth and the Lucky Park duck pond, and the
 main roads are signposted. Tap 🗺️ (or press **M**, or ☰ → Town map) for a map of the whole town
 with everywhere labelled and a marker where you're standing.
@@ -369,6 +377,11 @@ theatre ticket, a recipe card, a cassette and more. They don't belong in the dre
 - **Achievements.** Something Familiar for your first, Remember for all seventeen.
 - **What they're for.** Each one has a torn square of a photograph taped to the back. In Level 2
   you put them together.
+- **Asking around.** Once you've woken up (reached Level 2) and gone back to sleep, the people of the
+  dream seem to know you're looking. Ask anyone in the chat window and they'll point you to one you
+  haven't found: the building it's in, or what it's near outside (*"I saw a seashell in the grass not
+  far from the Quik-Stop"*). With AI chat, just ask them about lost things, the photograph or
+  anything that doesn't belong; without it, use the **🧩 Ask about the lost things** button.
 
 ### Your file
 
@@ -614,6 +627,9 @@ happened. The story is told gently and never shown.
 - the police station, St Brigid's chapel and the park, the river embankment, and Greenhill
   cemetery
 People are out in the rain, and the places you'd expect are open all night.
+The hotel's 17th floor has a runner down its length, plants and an ice machine; the roof has its
+vents and steam, the lift housing, crates, puddles and a lamp; and the real Rusty Spur, when you find
+it, has its back bar, bottles, a COLD BEER sign, a dartboard, a jukebox and tables to sit at.
 The roads are two full lanes, one each way, with wide pavements, so the traffic passes cleanly and
 there's room to walk.
 
