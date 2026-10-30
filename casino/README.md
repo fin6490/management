@@ -937,7 +937,9 @@ outside since the summer. You have no job, no friends, £850, and £500,000 of d
 shows it); a fast autobet costs no more than a slow hand. If it runs out at the laptop, the hand in
 play finishes, any autobet stops, and you're back in the room. The fridge has three cans to start (each one adds 30); the laptop can order eight more
 for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
-it blurs. Let it run out and you collapse: **Last Orders**, a bad true ending.
+it blurs. Let it run out and you collapse: **Last Orders**, a bad true ending. Once you have the
+shakes, two paracetamol from the bathroom cabinet quieten them and make the drink last twice as long
+for two and a half minutes (12 in the box; not again until the last two wear off; the HUD shows 💊).
 
 **The laptop.** LuckyStrike.bet has every game from the dreams, played with your real money in
 pounds: blackjack, Ultimate Texas Hold'em, Three Card Poker, Mississippi Stud, Let It Ride,
@@ -991,6 +993,20 @@ It also shows which of the three endings you've found. Ticks stay ticked if you 
 again. Achievements: Where It Came From, Mick Never Turns Up, Hundredfold, Somebody Answered and
 Every Line Crossed Out.
 
+**The bathroom** is through a door in the right-hand wall, and the door is a real one: it swings
+open on its hinges and shuts again (the way through is closed while it's shut, and it won't shut on
+you). The mirror is on the far wall, straight across from the door, so the first time you open it the
+strip light ticks on and somebody is standing in there, looking at you. Inside: tiles to shoulder
+height, damp paint and mould above, a lino floor in a worn check, a pedestal basin under the mirror,
+the cabinet beside it (its door opens; the paracetamol is in there), a toilet you can use (the lid
+lifts; it trickles and flushes), and a shower in the corner with a curtain gone black at the
+bottom, which isn't worth it: you gave up on being clean around the time you gave up on being anyone.
+
+**Taps on a phone** use things the moment the finger lifts, even if it wobbled a little (the view
+only turns once you really drag), and the click the browser sends after a tap is swallowed for half
+a second, so it can't land on whatever the tap just opened (a game on the laptop, say). The laptop's
+games sound like the room they're played in, the fridge and the rain, not a casino floor.
+
 **The room is where the dreams came from.** The television's channels are a sitcom called The
 Rusty Spur (Dolores), Lucky Lou's Riverboat game show, a crime drama called Meridian Nights
 (Mori), the Vinnie's Loans advert and a 1987 film called The Seventeenth Card (Kessler). The
@@ -998,7 +1014,7 @@ dartboard is where you play 301 against Mick, who isn't there. The family in the
 picture the frame came with. The letters by the door are from Vinnie's Loans, Kessler Capital and
 Big Nico. There are postcards and a St Jude's leaflet on the fridge, paperbacks on the shelf, a
 radio that plays the Spur or the riverboat, and a calendar with the 17th circled. And there's the
-mirror over the basin, where you can see what you really are: the face from the Meridian's jump
+mirror over the bathroom basin, where you can see what you really are: the face from the Meridian's jump
 scare, your own face (it follows Your look), wasted by the drink, on a body starved thin in a
 yellowed vest and an open dressing gown, a can in its hand. It stands where you stand and moves
 as you move; only the mirror sees it. Use the mirror and you lean in over the basin until the face
@@ -1007,11 +1023,11 @@ fills it, and if you hold its gaze the jaw drops open.
 **The room** is built in three.js out of real shapes: a bed with a headboard and a rumpled duvet,
 an office chair, a desk with drawers and an ashtray, a laptop with its lid tipped back, kitchen
 units, a steel sink with the plates still in it, two rings and a kettle, a fridge with the
-microwave on top, a pedestal basin, a four-panel door with its chain, a bookcase of real books, a
+microwave on top and tiles behind the worktop, a four-panel front door, two coats on the hook nobody wears, a bookcase of real books, a
 radio with an aerial, the window's blinds (one slat bent), curtains and a radiator, a TV on a
 cabinet, a velour armchair with a blanket over it, a rug, and the cans, the clothes, the bin bag
-and the pizza box on the floor. The bulb throws soft shadows (on high graphics), drawn once since
-nothing in the room moves.
+and the pizza box on the floor; papered walls with a picture rail and coving. The bulb throws soft shadows (on high graphics),
+drawn once and redrawn only while the bathroom door swings; the bathroom's walls keep its light out.
 
 Achievements: It's You, Last Orders and Day One. The title screen has a **Level 3** button on any
 save that has reached it, and so do the ☰ menus of Level 1 and Level 2. **For testing, for now,**
