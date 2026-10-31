@@ -1023,7 +1023,6 @@ body.jittery .hud { animation: hr-jitter .18s linear infinite; }
    reels, a sheen of glass over them, and each machine's own reel stock (parchment, river blue, ivory and red, champagne) */
 .sl-cab::before { content: ''; position: absolute; inset: 5px; border: 4px dotted color-mix(in srgb, var(--sl-a) 90%, #fff); border-radius: 18px; pointer-events: none; opacity: .85; animation: slbulb 1s steps(2, jump-none) infinite; }
 @keyframes slbulb { 0% { border-color: color-mix(in srgb, var(--sl-a) 90%, #fff); filter: drop-shadow(0 0 3px var(--sl-a)); } 100% { border-color: color-mix(in srgb, var(--sl-a) 40%, #000); filter: none; } }
-.sl-cab > * { position: relative; }
 .sl-marquee { background: linear-gradient(180deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15)); border-radius: 12px; padding: .2rem .4rem; border: 1px solid color-mix(in srgb, var(--sl-a) 55%, transparent); }
 .sl-reels { position: relative; gap: 0; padding: .45rem; background: linear-gradient(180deg, #2b2b30, #0c0c10); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--sl-a) 70%, #000), inset 0 6px 18px rgba(0, 0, 0, .8); }
 .sl-reel { position: relative; gap: .25rem; padding: .25rem; background: var(--sl-stock, linear-gradient(180deg, #e9dcc0, #fdf8ec 50%, #e9dcc0)); border-left: 3px solid #9aa0a8; border-right: 3px solid #50545a; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
