@@ -428,12 +428,19 @@ Investments) and a door opens behind the Spur's bar. Inside are real no-limit ho
 
 | Tournament | Buy-in | Field | Notes |
 | --- | --- | --- | --- |
-| Back Room Sit & Go | $100 + $10 | 6 | One table, top two paid |
-| Nine-Handed Turbo | $1,000 + $100 | 9 | Top three paid |
+| Back Room Sit & Go | $100 + $10 | 6 | One table, top two paid. A soft game |
+| Nine-Handed Turbo | $1,000 + $100 | 9 | Top three paid. Mostly amateurs |
 | The Spur Daily | $5,000 + $500 | 27 | Three tables |
 | The Tenth-Day Major | $50,000 + $5,000 | 45 | Every tenth day, from the Palace chapter |
 | High Roller | $500,000 + $25,000 | 18 | From the Salon chapter |
 | Super High Roller | $5,000,000 + $100,000 | 9 | After the story ends |
+
+**How good they are.** The cheap games are easier. The $100 sit and go (and the Thursday Game in
+Level 2) is full of people who came for a drink: calling stations, rocks, nits and wild men, never a
+shark or a tight regular; they don't study how you play, and their sense of their own chances is
+only roughly right, so they call with too little and fold too much. The $1,000 turbo is in between
+(the odd regular, a little adjusting, smaller mistakes). From the Spur Daily up it's the full range,
+and the good ones adjust to you.
 
 **Who you're playing.** Every opponent has a personality:
 
