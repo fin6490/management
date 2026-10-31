@@ -138,6 +138,18 @@ Out on the street there's a newsstand, an ATM, a phone booth and the Lucky Park 
 main roads are signposted. Tap 🗺️ (or press **M**, or ☰ → Town map) for a map of the whole town
 with everywhere labelled and a marker where you're standing.
 
+### Messages and nights
+
+Story news (a new chapter, new evidence, a keepsake, a whisper, a side job paid, Sal's marker cleared)
+stays on screen until you tap it, with a "tap to close" under it, so you can't miss it while you're
+walking; no more than three at a time, and the rest wait their turn. Achievements and friendships
+stay eight seconds (tap to clear them sooner), and everyday messages slip away after three.
+
+Going to bed fades to a night sky with the clock running on from bedtime to morning (a tap skips
+it), then the morning summary. A nap gets a short one. Pass out, from drink or from running out
+of energy, and the screen simply goes dark ("Everything goes dark… You come round: somewhere
+outside"), so it's clear what happened before you find out where you woke up.
+
 ### Hunger, thirst and energy
 
 Three bars drain as you walk and play. If any of them is empty you can't deal a new hand, and if
@@ -528,7 +540,8 @@ partner, stands beside it. Walk up to the board, or talk to Mick and press **�
 ### Slots
 
 Every casino has a bank of slot machines on its right-hand wall, each with its own theme, art, bets
-and bonus:
+and bonus. The cabinets have chasing bulbs round them, a lit marquee, reel strips in each machine's own
+stock that curve away top and bottom under a sheen of glass, and chrome between the reels:
 
 | Machine | Where | Bets | Bonuses |
 | --- | --- | --- | --- |
@@ -973,6 +986,22 @@ tournaments. Make **£500,000** and you clear the debt, ring the number on the l
 rehab: **Day One**, the good true ending. Fall below the £5 minimum and that's **The House Always
 Wins**, the other bad true ending. After any ending you can wake up in the bedsit again; the
 endings you've found are kept.
+
+**Promotions.** LuckyStrike.bet dangles offers like any online casino, except these are worth
+taking (the debt is meant to be hard, not hopeless). They sit at the top of the laptop, with a 🎁
+count of what's waiting:
+
+| Offer | What you get | How often |
+| --- | --- | --- |
+| Welcome back bonus | 100% of your balance, up to £1,000, paid as cash once you've wagered 5× the bonus | once |
+| Reload bonus | 50% of your balance, up to £5,000, paid once you've wagered 4× it | every 30 minutes, after the welcome, one bonus at a time |
+| 25 free spins | on any LuckyStrike slot, each paying up to £2 of the stake | every 15 minutes |
+| 20% cashback | on what you've lost since the last claim, up to £25,000 | every 10 minutes |
+| 2% rakeback | on everything you wager, on every game | any time |
+| Originals Power Hour | for ten minutes every Originals win pays 3% more (102% return) | every 30 minutes |
+
+Timers run on the real clock. Every hand, spin and bet at the laptop counts towards the bonuses'
+wagering and the rakeback.
 
 **LuckyStrike Originals.** The laptop also has the site's own games (`js/originals.js`), each
 returning 99%, each with autobet:
