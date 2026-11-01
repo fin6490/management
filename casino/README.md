@@ -120,20 +120,21 @@ Every other building has an inside too, each with its own staff, locals and thin
 - **Starlite Motel**: the front desk rents a room for the night; the lobby has an ice machine,
   vending machine, Sal's old Room 7 and your own Room 12.
 - **Vinnie's Pawn & Loan**: the loan counter, cases of pawned treasures, and Vinnie himself leaning
-  on the safe. The door behind the counter says KNOCK. THEN LEAVE. Knock anyway: Nico lets you into
-  **Vinnie's back office**, where everything is a risk:
-  - **The flip** (once a week, while you owe Sal's marker): Sal's silver dollar. Heads, half the
-    marker is gone; tails, it grows by half. Even money and huge swings, so Vinnie lets you save a copy
-    of your game first.
-  - **An errand** (once a day): carry something across town for him. About seven times in ten it pays
-    (more in later chapters); otherwise it goes wrong and costs you.
-  - **The ledger** (once, while he takes a phone call): turn it over and you might read what Vinnie did
-    to Sal. If Nico catches you, $10,000 goes on the marker for the rudeness.
-  Achievements: Knock, Then Enter; Heads I Win; Cooked Books.
+  on the safe. Ask him for an **errand** (lean on the safe with him, or ask in his chat): carry something
+  across town, two a day. Most pay ($250 to $1,000+, more in later chapters); about one in four goes
+  wrong and costs you. Run five and he gives you the key to the door that says KNOCK. THEN LEAVE.:
+  **Vinnie's back office**, a secret room. His desk and his ledger (turn it over while he's on the shop
+  phone and you might read what he did to Sal; get caught and it's $10,000 on the marker), the big
+  safe, a racehorse that came last in 1979, a photo of him and Sal, and his phone: the **big errands**,
+  once a day, for real money and real risk.
 - **Lucky Strike Outfitters**: Rosa's counter, the racks, the showroom car and a full-length mirror.
 - **Grand Hotel**: reception (a suite for the night), the lobby fountain, piano and elevator.
 - **Downtown Apartments**: the mailboxes, your own front door once you rent a place, and the elevator.
-- **Prime Cut Steakhouse**: the maître d', the lobster tank and the wine cellar.
+- **Prime Cut Steakhouse**: the maître d', the lobster tank, and the **wine cellar** down the stairs
+  behind his desk. Philippe opens it to regulars (dine there three times) or for a $250
+  consideration. Inside: wine racks and casks, a tasting table (a glass of the good stuff, $40), the
+  bin book (the postcard trail's bin is down here), and his **deliveries**: a case of wine across town,
+  once a day, a safe little errand.
 
 The rooms fill the screen when you walk in (a small room is drawn bigger), with boards that run in
 rows, carpets with a pile, panelled walls under a cornice, pools of light from the ceiling and a
@@ -158,6 +159,22 @@ Going to bed fades to a night sky with the clock running on from bedtime to morn
 it), then the morning summary. A nap gets a short one. Pass out, from drink or from running out
 of energy, and the screen simply goes dark ("Everything goes dark… You come round: somewhere
 outside"), so it's clear what happened before you find out where you woke up.
+
+### Work, when the tables have been cruel
+
+- **The Rusty Spur's staff board** (the notice by the bar, or ask Dolores): a shift behind the bar,
+  two a day, taking hours and energy like anything else. You start as a glass collector ($60 for two
+  hours) and every few shifts move up: barback, bartender (tips), floor manager, night manager
+  ($1,300 a shift), and every chapter adds a fifth to the pay. Achievement: On the Clock.
+- **Pool at the Spur**: the table in the corner, against the regulars, from Hank ($20, can't aim) to
+  The Professor ($500, chapter 3). Same game as Level 2's: touch the table to aim, ◀ ▶ for fine
+  aim, set the power with the slider and Shoot (or arrow keys and Space). The pockets are generous.
+  Achievement: Pool Shark (beat five).
+- **Errands** for Vinnie and Philippe (above).
+- **Small businesses** you can buy from day one in Lucky Strike Outfitters → Investments, each paying
+  every morning: a shoeshine stand ($800, $45 a day), a hot dog cart ($2,500, $130), vending machines
+  ($6,000, $300); from the Riverboat chapter a laundromat ($15,000, $650) and a taxi medallion ($40,000,
+  $1,500).
 
 ### Hunger, thirst and energy
 
@@ -445,9 +462,9 @@ Investments), tell her, and a door opens behind the Spur's jukebox straight away
 | Super High Roller | $5,000,000 + $100,000 | 9 | After the story ends |
 
 **How good they are.** The cheap games are easier. The $100 sit and go (and the Thursday Game in
-Level 2) is full of people who came for a drink: calling stations, rocks, nits and wild men, never a
-shark or a tight regular; they don't study how you play, and their sense of their own chances is
-only roughly right, so they call with too little and fold too much. The $1,000 turbo is in between
+Level 2) is full of people who came for a drink: mostly calling stations and rocks, a nit, the odd
+wild man, never a shark or a regular; they don't study how you play, bluff far less, and their sense
+of their own chances can be well off, so they call with too little and fold too much. The $1,000 turbo is in between
 (the odd regular, a little adjusting, smaller mistakes). From the Spur Daily up it's the full range,
 and the good ones adjust to you.
 
@@ -1209,15 +1226,15 @@ Table sounds:
 
 ## Saving
 
-The game autosaves to browser storage after every round, in one of six slots. Before something
-risky, use **☰ → Save a copy to another slot**: you keep playing in your own slot, and the copy waits
+The game autosaves to browser storage after every round, in one of three slots. Whenever you like,
+use **☰ → Save a copy to another slot**: you keep playing in your own slot, and the copy waits
 in the one you pick (the title screen and the slot list show which slot it's a copy of, and when it
 was saved). If it goes badly, **☰ → Load another slot** brings the copy back. Use **☰ → Export save
 file** to download a backup `.json`, and **Import save file** on the title screen to load one,
 including on another computer.
 
 The title screen is The Meridian's: a neon sign over a city at night in the rain, the tower in the
-middle with its beacon, and your six slots.
+middle with its beacon, and your three slots.
 
 ## Controls
 

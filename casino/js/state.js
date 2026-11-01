@@ -1,6 +1,6 @@
 /* Game state, saving/loading, bankroll accounting, progressive meters and stats. */
 const SAVE_KEY = 'highroller.slot.';
-const SLOTS = 6; // room for a spare: save a copy before something risky, load it back if it goes wrong
+const SLOTS = 3;
 
 const Progressives = {
   KEYS: ['bj', 'uth', 'ms', 'tcp', 'bac'],
