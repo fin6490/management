@@ -165,6 +165,7 @@ const Screens = {
     Router.go('world');
     await Looks.edit(true);
     if (mode === 'career') {
+      await Chat.settings({ intro: true });
       await Me.edit({ intro: true });
       const fin = Me.known().length ? [{ who: 'dolores', text: () => `And you're the one with the betting programs, aren't you, ${App.state.name}? Word gets around. Sal kept his systems on bar napkins. He'd have loved you.` }] : [];
       await UI.dialog(CHAPTERS[0].intro.concat(fin, [{ who: 'narrator', text: 'Walk with the arrow keys or WASD (the pad on a phone). **Space** or **A** to talk, sit or buy; hold **Shift** or **B** to run. 🗺️ shows the map: head for the **Rusty Spur**. 📖 shows your goal. Watch hunger 🍔, thirst 💧 and energy ⚡ at the top.' }]));
