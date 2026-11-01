@@ -1135,7 +1135,7 @@ offline.
 
 ## AI chat
 
-Everyone in town can talk back in their own voice: story characters, rivals, dealers (the 💬 button
+Everyone in town can talk back, in text: story characters, rivals, dealers (the 💬 button
 at any table), the staff behind every counter (Mel, Raj at the Quik-Stop, the bartenders, Darlene at
 the motel, Mr. Pemberton at the Grand, Rosa at the Outfitters), the townsfolk and the regulars by the
 tables, and your darts and poker opponents (💬 Talk and 💬 Table talk). They know the story so far,
@@ -1152,27 +1152,6 @@ your bankroll and needs, what they sell, and the state of the game you're playin
   Each reply costs roughly 1 to 2 cents. The key stays in that browser and is never saved into save
   files or exports.
 - **Without either**, characters use their scripted lines and the whole game still works.
-
-### Voice
-
-☰ → AI chat → **Voice** turns on spoken replies. Story scenes can be read aloud too: the narrator,
-Dolores, Kessler, Sal and the rest each get their own voice. Tap 🎤 in any chat to talk instead of
-typing, or turn on **Hands-free** and the mic reopens after each reply. Tap 🔊 in a chat to mute it.
-
-- **Device voices (free):**
-  - Every character is cast to a different voice installed on your phone that fits their accent: a
-    British voice for Kessler, Irish for Mick, French for Margot and Philippe.
-  - Joke voices are skipped.
-  - If the browser won't list its voices (common in iPhone home-screen apps), characters are still
-    told apart by accent.
-  - For better voices on iPhone, go to Settings → Accessibility → Spoken Content → Voices → English
-    and download a few **Enhanced** or **Premium** voices in different accents.
-- **Natural voices (optional):**
-  - These use OpenAI's text-to-speech with your own key, and every character gets acting directions
-    (accent, age, mood).
-  - Paste the key under ☰ → AI chat → Voice. It stays in this browser and is never saved to save
-    files or exports.
-- **🎭 Voice cast** lets you hear each character and pick their voice yourself.
 
 ### Background sound
 
