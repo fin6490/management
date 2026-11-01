@@ -897,11 +897,13 @@ const L3 = (() => {
       h('div.l3-end-box', h('small', E.kind), h('h2', E.title),
         h('p', kind === 'rehab' ? 'You cleared the debt, made the call, and walked out of the door.' : kind === 'collapse' ? 'The drink ran out before the money did.' : 'The money ran out before the drink did.'),
         h('p.muted', `True endings found: ${Object.keys(st.endings).length} of 3.`),
-        h('div.l3-end-btns', h('button.l3-btn', { onclick: () => { o.remove(); restart(); } }, 'Wake up in the bedsit again'), h('button.l3-btn.ghost', { onclick: () => { o.remove(); unmount(); Router.go('title'); } }, 'Back to the title'))));
+        kind === 'rehab' ? h('p.muted', 'This one is for keeps. There is no going back.') : null,
+        h('div.l3-end-btns', kind === 'rehab' ? null : h('button.l3-btn', { onclick: () => { o.remove(); restart(); } }, '↺ Wake up in the bedsit again'), h('button.l3-btn' + (kind === 'rehab' ? '' : '.ghost'), { onclick: () => { o.remove(); unmount(); Router.go('title'); } }, kind === 'rehab' ? 'The end' : 'Back to the title'))));
     document.body.append(o);
   }
   const collapse = () => ending('collapse');
-  function restart() { const keep = S(); App.state.l3 = fresh({ endings: keep.endings }); App.save(); unmount(); Router.go('bedsit'); }
+  function restart() { const keep = S(); if (keep.ended === 'rehab') return; // the good true ending is for keeps
+    App.state.l3 = fresh({ endings: keep.endings }); App.save(); unmount(); Router.go('bedsit'); }
   function checkEnd() { const st = S(); if (st.ended) return; if (st.cash >= GOAL) return ending('rehab'); if (st.cash < MIN_BET) return ending('broke'); }
 
   /* ---------- the screen ---------- */
