@@ -304,11 +304,13 @@ const CHAPTERS = [
     goal: () => App.state.flags.firstVig || !App.state.loans.find(l => l.id === 'sal'),
     intro: [
       { who: 'narrator', text: 'Uncle Sal left you three things: a silver dollar, a dented flask, and a debt.' },
-      { who: 'vinnie', text: () => `So you're Sal's kid. ${App.state.name}, right? Sal owed me **half a million dollars**. The bar tab, the boat, the bad nights. Sal's not around, so now you owe me $500,000.` },
+      { who: 'vinnie', text: () => `So you're Sal's family. ${App.state.name}, right? Sal owed me **half a million dollars**. The bar tab, the boat, the bad nights. Sal's not around, so now you owe me $500,000.` },
       { who: 'vinnie', text: 'I\'m a reasonable guy. No interest, as long as you pay me every week: **$1,500 by day 7** to start, more as you come up in the world. Miss a week and Nico visits, and the marker gets bigger. Three visits and you leave town.' },
       { who: 'me', text: 'I\'ve got $500 to my name.' },
+      { who: 'vinnie', text: () => Me.line('hometown', v => `Should've stayed in ${v}, kid.`) },
       { who: 'vinnie', text: 'Then I suggest you get lucky. The Rusty Spur is down the street. Tell Dolores I sent you. Actually, don\'t.' },
-      { who: 'dolores', text: 'Sal\'s kid? He used to say the side bets here were the best-kept secret in town. Maybe the paytables are softer than they look, sugar.' },
+      { who: 'dolores', text: 'Sal\'s family? He used to say the side bets here were the best-kept secret in town. Maybe the paytables are softer than they look, sugar.' },
+      { who: 'dolores', text: () => Me.line('drink', v => `And I'll keep a ${v} back for you. Once a day, on the house.`) },
     ],
     outro: [
       { who: 'vinnie', text: () => { const l = App.state.loans.find(x => x.id === 'sal'); return l ? `First payment, on time. Huh. Sal was always late. Only ${fmt(l.balance)} to go, kid. Same time next week.` : 'Paid in full. Huh. Sal never managed that. Maybe you\'re smarter than him.'; } },
@@ -322,6 +324,7 @@ const CHAPTERS = [
     intro: [
       { who: 'narrator', text: 'The Riverboat smells like brass polish and diesel. Somewhere a craps table is screaming.' },
       { who: 'doc', text: 'You\'ve got Sal\'s nose. And his silver dollar, I see. Sit. Let an old man buy you a drink.' },
+      { who: 'doc', text: () => Me.line('job', v => `Sal said you were "${v}" these days. Good. Then you know work beats luck.`) },
       { who: 'doc', text: 'Sal was good. Too good. He figured out the meters on the progressives run hot, and he only bet them when the math said so. Then somebody took his bar.' },
       { who: 'doc', text: 'I can teach you what he knew. My **Poker Notebook** and **Counting Course** are for sale in the shop. Friends-and-family price, which is to say full price.' },
       { who: 'me', text: 'Who took his bar?' },

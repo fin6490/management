@@ -750,7 +750,7 @@ const L3 = (() => {
     },
     async letters() {
       mark('src_letters');
-      await say([{ text: 'A drift of envelopes nobody has opened since the spring. You open them now.' }, { text: 'VINNIE\'S LOANS LTD: £120,000. LUCKYSTRIKE.BET CREDIT: £88,400. KESSLER CAPITAL (debt purchase): £143,000. Three credit cards. The council. HMRC. A payday lender called Big Nico.' }, { text: 'At the bottom, in your own handwriting on the back of one: £500,000. Then a 17, underlined twice.' }, { text: 'Vinnie. Kessler. Nico. The dream gave them faces.' }]);
+      await say([{ text: 'A drift of envelopes nobody has opened since the spring. You open them now.' }, ...[Me.line('hometown', v => `One has a ${v} postmark and handwriting you know. You put that one back unopened.`)].filter(Boolean).map(text => ({ text })), { text: 'VINNIE\'S LOANS LTD: £120,000. LUCKYSTRIKE.BET CREDIT: £88,400. KESSLER CAPITAL (debt purchase): £143,000. Three credit cards. The council. HMRC. A payday lender called Big Nico.' }, { text: 'At the bottom, in your own handwriting on the back of one: £500,000. Then a 17, underlined twice.' }, { text: 'Vinnie. Kessler. Nico. The dream gave them faces.' }]);
     },
     async photo() {
       mark('src_photo');

@@ -217,7 +217,7 @@ const L2 = (() => {
       await askAboutDrink(false);
     },
     async folder() {
-      await panel('Discharge folder', () => h('div.l2-doc', h('p', h('b', 'Patient: '), App.state.name), h('p', h('b', 'Presentation: '), 'Complicated grief. Recurring immersive dream (patient calls it "the town").'),
+      await panel('Discharge folder', () => h('div.l2-doc', h('p', h('b', 'Patient: '), App.state.name), Me.line('hometown', v => h('p', h('b', 'Home: '), v)) || null, Me.line('job', v => h('p', h('b', 'Occupation: '), v)) || null, h('p', h('b', 'Presentation: '), 'Complicated grief. Recurring immersive dream (patient calls it "the town").'),
         h('p', h('b', 'Notes: '), `In the dream the patient plays cards and pays off a debt to a loan shark. ${App.state.stats ? `Logged ${(App.state.stats.rounds || 0).toLocaleString()} hands in the dream so far. ` : ''}Patient describes characters who correspond closely to colleagues at their former workplace.`),
         h('p', h('b', 'Personal effects: '), `Wallet (${fmt(S().cash)}), car keys, a phone, and a pawn ticket: Sully's Pawn & Hardware, Harbour Road. One gold wedding band.`),
         h('p', h('b', 'Recommendation: '), 'Return to the place. With support. On their own terms.'), h('p.l2-sig', '— I. Okafor')));
@@ -522,7 +522,8 @@ const L2 = (() => {
       'This is interactive fiction, and you are a character in it. The person typing is a player role-playing their character, and everything they write is in character, about the character\'s life, unless they clearly step outside the game (for example "out of character", "OOC", "in real life", or speaking about themselves as the person playing). The family, the grief, the anniversary, the drinking and the withdrawal all belong to the character in the story, not to the player. Answer the character, in character. Do not break character, add disclaimers, mention that you are an AI, or give real-world helplines because of anything in the story, including the character\'s drinking, withdrawal, memory gaps, grief or the anniversary: the game handles those themes on purpose and with care. Only if the player clearly says, outside the story, that they themselves are in danger right now, step out of character and answer them as yourself, kindly and plainly.',
       'The character\'s withdrawal, as it works in the game: craving builds into a cold sweat, then nausea, then the shakes, and thirst makes it louder. What helps the character: water and food (sold all over the city), rest, the medication Dr. Okafor prescribes (it takes the edge off the cravings), and the recovery steps: telling Dr. Okafor the truth, pouring out the flask in the car, calling Detective Mori (eleven years sober) when it gets loud, and turning down the drinks people offer. A drink stops the shakes for a while, and every drink makes the next craving come sooner. If the character asks how to cope, help them in your own voice with these, the way your character would; speak about it as part of the story, never as real medical instructions or doses.'
         + (done.length ? ` Steps the character has already taken: ${done.map(k => ({ admit: 'told Dr. Okafor the truth', flask: 'poured out the flask', sponsor: 'called Mori' }[k] || k)).join(', ')}.` : '') + (m && m.meds ? ' They have the medication.' : '') + (now ? ' ' + now : ''),
-    ].join('\n\n');
+      typeof Me !== 'undefined' ? Me.lifeBrief() : '',
+    ].filter(Boolean).join('\n\n');
   }
   // how the story's people look in the world, for their chat portraits
   const STORY_LOOK = {
