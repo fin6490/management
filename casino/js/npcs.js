@@ -746,7 +746,7 @@ const Chat = {
           h('li', 'Under ', h('b', 'API Keys'), ', press ', h('b', 'Create Key'), ' and copy it. It starts with sk-ant-.'),
           h('li', 'Paste it below and press ', h('b', 'Test'), '. Dolores should answer.')),
         h('label.lbl', { for: 'ai-key' }, 'Claude API key'), key,
-        h('p.muted.small', 'The key stays in this browser only: it is never put in save files or exports. Replies are billed to your Anthropic account, roughly 1 to 2 cents each. Each phone or browser needs the key pasted once. Playing inside claude.ai instead needs no key at all.'),
+        h('p.muted.small', 'The key stays in this browser, never in saves. Replies cost about 1 to 2 cents each. No key needed inside claude.ai.'),
         status);
     body.append(Voice.settingsRows());
     const choice = await UI.modal({ title: '💬 AI chat', body, buttons: inSample ? [{ label: 'Done', cls: 'primary' }] : [{ label: 'Remove key', value: 'clear', cls: 'ghost' }, { label: 'Test', value: 'test' }, { label: 'Save', value: 'save', cls: 'primary' }] });

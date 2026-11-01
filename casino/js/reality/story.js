@@ -870,7 +870,7 @@ const L2 = (() => {
     if (S().clues.rabbit || has('okafor')) opts.splice(1, 0, ['phone', '💬 Phone someone to talk']);
     if (R3.area === 'city') opts.splice(1, 0, ['taxi', '🚕 Hail a cab']);
     if (Object.keys(found()).length) opts.push(['roof', '↺ Back to the roof: choose again']);
-    if (typeof L3 !== 'undefined') opts.push(['l3', App.state.l3 ? '🪞 Level 3: the bedsit' : '🧪 Try Level 3 (testing)']); // testing: open to every save for now
+    if (typeof L3 !== 'undefined') opts.push(['l3', App.state.l3 ? '🪞 The room' : '🧪 Test (skip ahead)']); // testing: open to every save for now
     opts.push(['restart', '↺ Start Level 2 again'], ['title', 'Title screen']);
     const c = await choose('Menu', opts);
     if (c === 'sound') { App.state.settings.sound = App.state.settings.sound === false; App.save(); }

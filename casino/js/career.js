@@ -642,7 +642,7 @@ const Career = {
     await UI.modal({
       title: `🌙 Night ${st.day - 1} · ${L.name}`, buttons: [{ label: `Wake up: Day ${st.day}`, cls: 'primary' }],
       body: h('div', h('table.paytable', lines.map(r => h('tr', h('td', r[0]), h('td.num', r[1])))),
-        h('p.muted.small', `You wake at ${World.clockText()}${wake >= 660 ? ' (a late night costs you the morning)' : wake <= 420 ? ', up with the sun' : ''}. Energy ${Math.round(st.stamina)}/${this.energyMax()}. ${(L.grace || 8) >= 10 ? 'Well rested: you\'ll stay sharp a couple of hours longer today. ' : L.base ? 'A rough night: you start the day already a bit tired. ' : ''}You wake up a little hungry and thirsty. Progressive meters grew overnight.`),
+        h('p.muted.small', `You wake at ${World.clockText()}${wake >= 660 ? ' (a late night costs you the morning)' : wake <= 420 ? ', up with the sun' : ''}. Energy ${Math.round(st.stamina)}/${this.energyMax()}. ${(L.grace || 8) >= 10 ? 'Well rested. ' : L.base ? 'A rough night. ' : ''}A little hungry and thirsty.`),
         h('button.btn.sm', { onclick: () => Chat.newspaper() }, '📰 Read the morning paper')),
     });
     await this.collections();
