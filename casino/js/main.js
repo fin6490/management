@@ -391,7 +391,7 @@ const Screens = {
     return `${s.name} · ${s.mode === 'free' ? 'Free Play' : s.l3 ? 'Level 3' : s.l2 ? 'Level 2' : 'Career, ch. ' + (s.chapter + 1)} · Day ${s.day} · ${fmt(s.bank)}${s.flags && s.flags.gameOver ? ' · 💀' : ''}${s.copyOf ? ` · a copy of slot ${s.copyOf}` : ''}${when}`;
   },
   // save a copy of this game to another slot (a checkpoint before something risky), or load another slot
-  async slots(mode) {
+  async saveSlots(mode) {
     const list = App.listSlots();
     const m = UI.modal({ title: mode === 'copy' ? '🗂️ Save a copy' : '📂 Load a slot',
       body: h('div', h('p.muted.small', mode === 'copy' ? `You keep playing in slot ${App.slot}; the copy waits in the slot you pick. If something goes badly, load it back.` : `Your game in slot ${App.slot} is saved first.`),
@@ -430,8 +430,8 @@ const Screens = {
         h('button.btn', { onclick: () => { box.close(); Looks.edit(); } }, '🪞 Your look'),
         h('button.btn', { onclick: () => { box.close(); Me.edit(); } }, '🗂️ Your file (make it personal)'),
         h('button.btn', { onclick: () => { App.save(); UI.toast('Saved to slot ' + App.slot, 'good'); } }, '💾 Save now'),
-        h('button.btn', { onclick: () => { box.close(); Screens.slots('copy'); } }, '🗂️ Save a copy to another slot'),
-        h('button.btn', { onclick: () => { box.close(); Screens.slots('load'); } }, '📂 Load another slot'),
+        h('button.btn', { onclick: () => { box.close(); Screens.saveSlots('copy'); } }, '🗂️ Save a copy to another slot'),
+        h('button.btn', { onclick: () => { box.close(); Screens.saveSlots('load'); } }, '📂 Load another slot'),
         h('button.btn', { onclick: () => App.exportSave() }, '⤓ Export save file'),
         h('button.btn.ghost', { onclick: () => { box.close(); App.save(); Router.safeGo('title'); } }, '⏏ Quit to title')),
       h('p.muted.small', `Slot ${App.slot} · autosaves after every round`));
