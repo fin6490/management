@@ -1,11 +1,11 @@
-# High Roller
+# The Meridian
 
-A casino table-games app with a career mode. Open `index.html` in any modern browser: no install,
+(Formerly High Roller.) A casino story game in three levels, with table games and a career mode. Open `index.html` in any modern browser: no install,
 no build step, no internet needed. Everything runs from local files.
 
 ## Install on your phone
 
-High Roller is an installable web app: once it's hosted, add it to your home screen and it runs
+The Meridian is an installable web app: once it's hosted, add it to your home screen and it runs
 full-screen and offline like a native app.
 
 1. Host it with GitHub Pages: in the repo go to **Settings → Pages**, set **Source** to *Deploy from a
@@ -120,7 +120,16 @@ Every other building has an inside too, each with its own staff, locals and thin
 - **Starlite Motel**: the front desk rents a room for the night; the lobby has an ice machine,
   vending machine, Sal's old Room 7 and your own Room 12.
 - **Vinnie's Pawn & Loan**: the loan counter, cases of pawned treasures, and Vinnie himself leaning
-  on the safe.
+  on the safe. The door behind the counter says KNOCK. THEN LEAVE. Knock anyway: Nico lets you into
+  **Vinnie's back office**, where everything is a risk:
+  - **The flip** (once a week, while you owe Sal's marker): Sal's silver dollar. Heads, half the
+    marker is gone; tails, it grows by half. Even money and huge swings, so Vinnie lets you save a copy
+    of your game first.
+  - **An errand** (once a day): carry something across town for him. About seven times in ten it pays
+    (more in later chapters); otherwise it goes wrong and costs you.
+  - **The ledger** (once, while he takes a phone call): turn it over and you might read what Vinnie did
+    to Sal. If Nico catches you, $10,000 goes on the marker for the rudeness.
+  Achievements: Knock, Then Enter; Heads I Win; Cooked Books.
 - **Lucky Strike Outfitters**: Rosa's counter, the racks, the showroom car and a full-length mirror.
 - **Grand Hotel**: reception (a suite for the night), the lobby fountain, piano and elevator.
 - **Downtown Apartments**: the mailboxes, your own front door once you rent a place, and the elevator.
@@ -424,7 +433,7 @@ header.
 ### The Back Room (poker)
 
 From the Riverboat chapter on, Dolores has a side job: buy the Back Room Refit (Lucky Strike Outfitters →
-Investments) and a door opens behind the Spur's bar. Inside are real no-limit hold'em tournaments:
+Investments), tell her, and a door opens behind the Spur's jukebox straight away. Inside are real no-limit hold'em tournaments:
 
 | Tournament | Buy-in | Field | Notes |
 | --- | --- | --- | --- |
@@ -1200,9 +1209,15 @@ Table sounds:
 
 ## Saving
 
-The game autosaves to browser storage after every round (three slots). Use **☰ → Export save file**
-to download a backup `.json`, and **Import save file** on the title screen to load one, including
-on another computer.
+The game autosaves to browser storage after every round, in one of six slots. Before something
+risky, use **☰ → Save a copy to another slot**: you keep playing in your own slot, and the copy waits
+in the one you pick (the title screen and the slot list show which slot it's a copy of, and when it
+was saved). If it goes badly, **☰ → Load another slot** brings the copy back. Use **☰ → Export save
+file** to download a backup `.json`, and **Import save file** on the title screen to load one,
+including on another computer.
+
+The title screen is The Meridian's: a neon sign over a city at night in the rain, the tower in the
+middle with its beacon, and your six slots.
 
 ## Controls
 

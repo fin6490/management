@@ -267,6 +267,9 @@ const ACHIEVEMENTS = [
   { id: 'dMick', name: 'Student Becomes Master', desc: 'Beat Mick Doyle for real money', test: () => App.counter('dartBeatMick') >= 1, reward: 1000, swagger: 3 },
   { id: 'dGold', name: 'The Golden Arrow', desc: 'Win the Golden Arrow knockout', test: () => App.counter('dartGAwin') >= 1, reward: 0, swagger: 6 },
   // poker
+  { id: 'office', name: 'Knock, Then Enter', desc: 'Get into Vinnie\'s back office', test: () => App.counter('officeVisit') >= 1, reward: 100 },
+  { id: 'officeHeads', name: 'Heads I Win', desc: 'Win the flip for Sal\'s marker in Vinnie\'s office', test: () => App.counter('officeHeads') >= 1, reward: 0, swagger: 3 },
+  { id: 'officeLedger', name: 'Cooked Books', desc: 'Read Vinnie\'s ledger without getting caught', test: () => App.counter('officeLedger') >= 1, reward: 500, swagger: 1 },
   { id: 'backroom', name: 'Shuffle Up', desc: 'Reopen the Spur\'s back poker room', test: () => !!App.state.flags.pokerRoom, reward: 500, swagger: 2 },
   { id: 'pkCash', name: 'In the Money', desc: 'Cash in a poker tournament', test: () => !!(App.state.stats.poker && App.state.stats.poker.cashes), reward: 250 },
   { id: 'pkWin', name: 'Ship It', desc: 'Win a poker tournament', test: () => !!(App.state.stats.poker && App.state.stats.poker.wins), reward: 1000, swagger: 2 },

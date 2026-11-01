@@ -181,7 +181,7 @@ const World = (() => {
     pawn: { name: "Vinnie's Pawn & Loan", W: 14, H: 10, floor: 'wood', theme: { wall: '#3d3d3d', trim: '#1d1d1d' }, staff: null,
       f: [['hcounter', 3, 4, 8, 1, { screen: 'loans', label: 'Loan counter: borrow or repay' }], ['case', 1, 6, 3, 1, { fn: 'watchcase', label: 'Display case' }],
         ['case', 10, 6, 3, 1, { talk: 'Guitars, a taxidermied armadillo, a slot-machine handle. Everything in town ends up here eventually, kid.', label: 'Display case' }], ['safe', 12, 2, 1, 1, { talk: 'A huge old safe. Vinnie leans on it whenever he talks numbers.', label: 'Safe' }],
-        ['door', 2, 1, 1, 1, { talk: 'The back office. A sign reads: KNOCK. THEN LEAVE.', label: 'Back office' }], ['neon', 5, 1, 3, 1, null, { text: 'LOANS', col: '#ffd54f' }], ['guitar', 9, 1, 2, 1], ['clock', 4, 1, 1, 1], ['frame', 11, 1, 1, 1]],
+        ['door', 2, 1, 1, 1, { fn: 'office', label: 'Vinnie\'s back office (KNOCK. THEN LEAVE.)' }], ['neon', 5, 1, 3, 1, null, { text: 'LOANS', col: '#ffd54f' }], ['guitar', 9, 1, 2, 1], ['clock', 4, 1, 1, 1], ['frame', 11, 1, 1, 1]],
       folk: [] },
     shop: { name: 'Lucky Strike Outfitters', W: 16, H: 11, floor: 'carpet', theme: { wall: '#b03a2e', trim: '#5a1a14', carpet: '#3b2a40' }, staff: ['rosa', 7, 3],
       f: [['hcounter', 5, 4, 6, 1, { screen: 'shop', label: 'Counter: shop with Rosa' }], ['rack', 1, 3, 3, 1, { screen: 'shop', label: 'Suits and hats' }], ['mirror', 13, 2, 1, 1, { fn: 'mirror', label: 'Full-length mirror' }],
@@ -316,6 +316,7 @@ const World = (() => {
     if (fn === 'salSafe') return SalQuest.safe();
     if (fn === 'clubBar') return SalQuest.bar();
     if (fn === 'watchcase') return Postcards.watchcase();
+    if (fn === 'office') return Office.knock();
     if (fn === 'cellar') return Postcards.cellar();
     if (fn === 'ice') {
       if (st.flags.iceDay === st.day) return UI.toast('The ice machine coughs. Come back tomorrow.', 'warn');
@@ -1229,5 +1230,7 @@ const World = (() => {
     const where = t === G.GRASS || t === G.FLOWERS ? RNG.pick(['face-down in the grass', 'curled up in a flowerbed', 'on your back in the grass, staring at the sky']) : t === G.SAND ? 'half buried in sand on the riverbank' : t === G.PLANK ? 'on the planks of the dock, one shoe missing' : RNG.pick(['on the pavement', 'propped against a lamppost', 'in a doorway', 'flat on the sidewalk']);
     return { x, y, text: `${where}${near ? `${nd < 6 ? ' outside' : ' not far from'} ${near}` : ''}` };
   }
-  return { mount, unmount, townMap, wakeSomewhere, fragWhere, drawPerson, openNow, hoursText, refreshGoal: () => updateGoal(), roomName: k => (ROOMS[k] || {}).name || 'indoors', savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
+  // put back what belongs on the current map now (a door a side job just opened), without leaving and coming back
+  function repopulate() { if (S && S.m) populate(S.m); }
+  return { mount, unmount, townMap, wakeSomewhere, fragWhere, repopulate, drawPerson, openNow, hoursText, refreshGoal: () => updateGoal(), roomName: k => (ROOMS[k] || {}).name || 'indoors', savePos, clock, isNight, clockText, where: () => S && { map: S.m.id, x: S.p.x, y: S.p.y, dir: S.p.dir }, _map: () => S && S.m };
 })();

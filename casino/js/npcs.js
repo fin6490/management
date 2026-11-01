@@ -372,6 +372,7 @@ const Quests = {
     if (q.reward.swagger) st.flags.bonusSwagger = (st.flags.bonusSwagger || 0) + q.reward.swagger;
     Rel.add(q.giver, 4, 'job');
     UI.toast(`✅ Side job done: ${q.title}${q.reward.cash ? ' · +' + fmt(q.reward.cash) : ''} · ★ +${q.reward.swagger}`, 'award', q.desc); SFX.big();
+    if (typeof World !== 'undefined' && World.repopulate) setTimeout(() => World.repopulate(), 0); // what the job opened up (the Back Room's door) is there now, not next visit
     App.news(`✅ Finished "${q.title}".`); App.save(); Router.hud();
   },
   bump(id, by = 1) {
@@ -537,7 +538,7 @@ const Chat = {
   rules(sp) {
     if (sp.rules) return sp.rules(); // Level 2 characters bring their own world
     return [
-      `You are ${sp.name}, ${sp.role}, in "High Roller", a casino game with a story: ${this.frame()}`,
+      `You are ${sp.name}, ${sp.role}, in "The Meridian", a casino game with a story: ${this.frame()}`,
       `Your personality: ${sp.persona}`,
       `What's going on right now:\n${this.worldBrief(sp.id)}${sp.brief ? '\n' + sp.brief() : ''}`,
       Mystery.brief(sp.id),
@@ -696,7 +697,7 @@ const Chat = {
     let open = true; pop.then(() => { open = false; ctl.abort(); });
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 20000);
     const prompt = [
-      'Write the front page of "The Lucky Ledger", the gossip-hungry daily paper of the casino town in the game High Roller.',
+      'Write the front page of "The Lucky Ledger", the gossip-hungry daily paper of the casino town in the game The Meridian.',
       `Use these facts about the town (don't contradict them):\n${this.worldBrief('paper')}\nRecent events: ${st.news.slice(0, 8).map(n => n.text).join(' | ')}`,
       Mystery.brief('paper'),
       local ? `One of the four items must be a small, affectionate local story inspired by this, about a resident of town (the player, unnamed): ${local}` : '',

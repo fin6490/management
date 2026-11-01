@@ -1,6 +1,6 @@
 {
-  "name": "High Roller",
-  "short_name": "High Roller",
+  "name": "The Meridian",
+  "short_name": "Meridian",
   "description": "Casino table games with a career mode.",
   "start_url": "./index.html",
   "scope": "./",
