@@ -68,7 +68,7 @@ const Postcards = {
     if (!ok) return;
     if (['0120', '0090'].includes(inp.value.trim())) { // 2:1 x 6 decks (0090 was the answer when naturals paid 3:2)
       await this.solve(2, 'watch', [
-        { who: 'vinnie', text: 'Ticket ninety. *long look* Sal\'s watch. He hocked it the week he lost the Spur and never came back for it. Take it. And if you tell anybody I\'m sentimental, I\'ll deny it.' },
+        { who: 'vinnie', text: 'Ticket one-twenty. *long look* Sal\'s watch. He hocked it the week he lost the Spur and never came back for it. Take it. And if you tell anybody I\'m sentimental, I\'ll deny it.' },
         { who: 'narrator', text: 'The watch stopped at 2:10. When you pry open the case back, a postcard folded small as a stamp falls into your palm.' },
       ], 'Folded inside the case back of the watch.');
     } else await UI.dialog([{ who: 'vinnie', text: RNG.pick(['That ticket\'s for a saxophone. You don\'t look like a sax guy.', 'Nope. Do the math again, kid. A natural, times the shoe.', 'Wrong ticket. Naturals pay two to one round here, last I checked.']) }]);
