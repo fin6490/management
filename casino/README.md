@@ -27,10 +27,10 @@ Saves live on the phone. Export a backup from **☰ → Export save file** now a
 | Mississippi Stud | 3-Card Bonus, Stud jackpot |
 | Three Card Poker | Pair Plus, 6-Card Bonus, Mini Royal jackpot |
 | Let It Ride | 3-Card Bonus |
-| Baccarat (commission or EZ) | Player/Banker Pair, Dragon 7, Panda 8, Four of a Kind jackpot |
-| Craps | Odds up to 100x, come bets, place bets, true-odds props, Fire Bet, All/Tall/Small |
-| Roulette (American, European, French La Partage) | Inside and outside bets |
-| Casino War | Tie / suited tie |
+| Baccarat (2.5% commission or EZ; Player natural 9 pays 6:5) | Player/Banker Pair, Dragon 7, Panda 8, Four of a Kind jackpot |
+| Craps (come-out 12 pushes Pass) | Odds up to 100x, come bets, place bets, true-odds props, Fire Bet, All/Tall/Small |
+| Roulette (American, European, French; House Zero refunds) | Inside and outside bets |
+| Casino War (a war win pays both bets) | Tie / suited tie |
 | Crazy 4 Poker (best four of five; the Salon only, and Level 2's Meridian) | Super Bonus up to 200:1, Queens Up |
 
 ### Crazy 4 Poker
@@ -41,14 +41,32 @@ You and the dealer each get five cards, and the best four play.
 - **The dealer** needs king high to qualify. If it doesn't, the Ante pushes and the Play bet still
   goes against the dealer's hand.
 - **Super Bonus:** a straight or better pays whatever the dealer has: Four Aces 200, Straight Flush
-  50, Four of a Kind 40, Flush 2, Straight 1. Otherwise it pushes when you beat or tie the dealer.
+  50, Four of a Kind 40, Flush 5:2, Straight 3:2. Otherwise it pushes when you beat or tie the dealer.
 - **Queens Up** is an optional side bet on your own hand and returns 99.9%.
-- **Odds:** the main game's house edge is about 3% of the Ante with the simple strategy, which Doc's
+- **Odds:** the main game returns about 101.5% of the Ante with the simple strategy, which Doc's
   hint shows: 3x with aces or better, 1x with any pair or K-Q-8-4 and up, fold the rest.
 - **Where to play:** in the dream it's only dealt at the Monte Royale Salon Privé. In the waking
   world it has its own table on the Meridian floor.
 
 ### Player-friendly odds
+
+Every main game is tuned so a player using good basic strategy has the edge, or at worst breaks even:
+
+| Game | House rule or paytable | Return |
+|---|---|---|
+| Blackjack | Blackjack pays 2:1 at every table | 101.5–102% (by venue rules) |
+| Roulette | House Zero: when a zero hits, every losing bet comes back | 100% on any bet off the zeros |
+| Craps | Come-out 12 pushes Pass and wins for Don't Pass; Field pays 3x on 2 and 12; place bets at true odds | Pass 101.4%, Don't 101.4%, Field and place 100% |
+| Baccarat | 2.5% commission (2% in the Salon); Player natural 9 pays 6:5; Tie 9.5:1; EZ three-card 7 pays half | Player 100.5%, Banker 100.1–100.3%, Tie 99.9% |
+| Casino War | Winning a war pays the original bet too | 101.1% |
+| Ultimate Texas Hold'em | Blind: Straight 3:2, Flush 2:1, Quads 12:1 | about 101.3% |
+| Mississippi Stud | Full House 12, Flush 8, Straight 6 | about 100.8% |
+| Let It Ride | Straight 6, Trips 4 | about 101.3% |
+| Three Card Poker | Ante Bonus: Straight 2, Trips 5, Straight Flush 6 | 100.3% |
+| Crazy 4 Poker | Super Bonus: Flush 5:2, Straight 3:2 | about 101.5% |
+
+The poker games' figures come from `tools/main-odds.js`, a simulation of millions of hands with the
+same strategy the hints teach (accurate to about ±0.3%); the rest are exact.
 
 The side bets use paytables no real casino would offer. Most return 98.5–100.6%, and craps props
 pay true odds. Progressive jackpots start a little under break-even; each one goes positive once its
@@ -66,7 +84,7 @@ Edit `js/paytables.js` and re-run the script to rebalance anything.
 Uncle Sal left you a silver dollar and a **$500,000 marker** owed to Vinnie "The Vig", a loan shark.
 You start with $500 outside the Starlite Motel and work up from The Rusty Spur through the
 Riverboat, the Gilded Palace and the Monte Royale Salon Privé. Better venues have higher limits and
-better rules (S17, surrender, bigger craps odds, single-zero roulette).
+better rules (S17, surrender, bigger craps odds, single-zero roulette, lower baccarat commission).
 
 ### Sal's marker
 
