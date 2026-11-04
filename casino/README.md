@@ -1161,7 +1161,10 @@ your bankroll and needs, what they sell, and the state of the game you're playin
 
 - **On claude.ai** (the published artifact): nothing to set up. The first time you chat, Claude asks
   for permission to answer from your account.
-- **The installed app or GitHub Pages version**: you need your own Anthropic API key.
+- **On spindecks.app** (SpinDecks Premium): nothing to set up. Replies come through the site, up to
+  100 a day per player.
+- **The installed app or GitHub Pages version**: you need your own Anthropic API key (up to 100
+  replies a day).
   1. Sign in at console.anthropic.com, add a payment method and buy some credits under Billing.
   2. Create a key under API Keys.
   3. In the game, open ☰ → AI chat (or press **Set up AI chat** in any chat window), paste the key
