@@ -956,7 +956,8 @@ themselves, and they ask you things back. Most have something to offer:
     or $100. Two taps a dart; the shakes or a drink make the sweeps faster.
   - **Pool** with Lou Marino, full screen, pub rules, reds and yellows. Touch the table to aim: a
     guide shows the ghost ball and where the object ball goes. Hold Shoot and let go when the power
-    is right.
+    is right. A foul (going in-off, or hitting nothing) gives the other player two shots: the second
+    is kept while they keep potting and used up by their first miss. The Spur's table plays the same.
   - The jukebox: $1 a song, and it changes the music.
   - Mags at the bar and Old Walt in his corner.
 - **Rosie's:** a longer menu (pancakes, a BLT, milkshakes, juice, tea), Benny the cook, Dale the
