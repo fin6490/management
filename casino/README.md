@@ -1023,10 +1023,12 @@ intro says so, the mirror says you kept it away in the dreams but it was here al
 St Jude's helpline that in your dreams you never drink, and Day One and Last Orders each have a line
 of their own.
 
-**The drink.** One bar is left. It runs down all the time, by the clock, in the room and at the laptop alike (the laptop's top bar
-shows it); a fast autobet costs no more than a slow hand. If it runs out at the laptop, the hand in
-play finishes, any autobet stops, and you're back in the room. The fridge has three cans to start (each one adds 30); the laptop can order eight more
-for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
+**The drink.** One bar is left. It runs down by the clock: twelve minutes from full in the room, a
+third as fast at the laptop (the laptop's top bar shows it), and a sixth as fast while you're in a
+poker tournament or an autobet is running, so neither gets cut short. If it does run out at the
+laptop, the hand in play finishes, any autobet stops, and you're back in the room. The fridge has
+three cans to start (each one adds 30), and the 🍺 button on the laptop's bar drinks one without
+getting up; the laptop can order eight more for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
 it blurs. Let it run out and you collapse: **Last Orders**, a bad true ending. Once you have the
 shakes, two paracetamol from the bathroom cabinet quieten them and make the drink last twice as long
 for two and a half minutes (12 in the box; not again until the last two wear off; the HUD shows 💊).
@@ -1038,6 +1040,18 @@ tournaments. Make **£500,000** and you clear the debt, ring the number on the l
 rehab: **Day One**, the good true ending. Fall below the £5 minimum and that's **The House Always
 Wins**, the other bad true ending. After any ending you can wake up in the bedsit again; the
 endings you've found are kept.
+
+**Day One plays out in the room.** You sit down at the laptop and watch every debt paid down to
+nothing, one creditor at a time; you take the leaflet off the fridge and ring St Jude's, and this
+time give your name; and then it is two weeks later: the cans and the bin bag are gone, the blind is
+up, daylight is in the room for the first time, the front door swings open on the landing and you
+walk out to the stairs. Tap any line to move on. The other two endings are still told in your own
+voice over the room as it is.
+
+**Small things.** The microwave on the fridge has blinked 12:00 since the power went off in the
+spring: set it, and it keeps real time from then on (run it empty and it hums for thirty seconds).
+The kettle makes a cup of tea, which steadies your hands for a minute. Lying on the bed puts you
+on your back, looking up at the bulb and the stain on the ceiling.
 
 **Promotions.** LuckyStrike.bet dangles offers like any online casino, except these are worth
 taking (the debt is meant to be hard, not hopeless). They sit at the top of the laptop, with a 🎁
