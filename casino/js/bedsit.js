@@ -1025,7 +1025,7 @@ const L3 = (() => {
     await wait(300); await fade(0, 1800);
     await cue('*Two weeks later. The rain has stopped.*', 5000);
     await Promise.all([glide({ ...lookAt(5.05, 3.0, 5.05, RD, 1.2, 1.6), eye: 1.6 }, 2600), cue('You open the front door, all the way.', 3800)]);
-    SFX.creak(); tween(1600, e => { if (G) G.frontDoor.rotation.y = 1.95 * e; }); await wait(500);
+    SFX.creak(); tween(1600, e => { if (G) G.frontDoor.rotation.y = -1.75 * e; }); await wait(500); // it swings out onto the landing, so it doesn't sweep through you
     await Promise.all([glide({ x: 5.05, z: RD + .55, pitch: 0 }, 3000), cue('You walk down the stairs with a holdall. The bus is the 14.', 4200)]);
     await fade(1, 1500, '#fff');
     // 4. the days
