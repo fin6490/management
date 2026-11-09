@@ -16,7 +16,9 @@
      called The Seventeenth Card), the dartboard and the friend who isn't there to throw against, the
      stock photo in the frame, the letters by the door, the fridge postcards, the radio. */
 const L3 = (() => {
-  const GOAL = 500000, MIN_BET = 1, START = 850, DRAIN = 100 / 420; // the drink, per second: about seven minutes from full
+  const GOAL = 500000, MIN_BET = 1, START = 850, DRAIN = 100 / 720; // the drink, per second: twelve minutes from full in the room
+  // at the laptop it goes a third as fast (you're absorbed), and a sixth while a tournament seat or an autobet is running, so neither is cut short
+  const lapK = () => ((typeof Holdem !== 'undefined' && Holdem.active && Holdem.active()) || (typeof Originals !== 'undefined' && Originals.busy && Originals.busy())) ? 1 / 6 : 1 / 3;
   // did you stay off the drink in both dreams (no drinks in the town, none when you woke in the city)? Then the dreams were
   // the part of you that knows, telling you to deal with it: you wake in the same room with the same problem, told a little differently
   const dryDreams = () => typeof App !== 'undefined' && App.counter('drinks') === 0 && App.counter('l2_drinks') === 0;
@@ -648,7 +650,7 @@ const L3 = (() => {
   function lapTick() {
     if (!App.state || !App.inLaptop()) return lapStop();
     if (document.hidden) return;
-    const st = S(); st.drink = Math.max(0, st.drink - DRAIN * calmK()); calmTick(1); lapHud(); notePeak(App.state.bank);
+    const st = S(); st.drink = Math.max(0, st.drink - DRAIN * calmK() * lapK()); calmTick(1); lapHud(); notePeak(App.state.bank);
     if (st.drink < 35 && st.drink > 0 && Date.now() - lastThought > 40000) { lastThought = Date.now(); UI.toast('🍺 ' + THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)], 'warn'); }
     if (st.drink > 0) return;
     // empty: let the hand in play finish (stop an autobet), then back to the room, where you go down
@@ -657,7 +659,14 @@ const L3 = (() => {
     if ((scr === 'table' && Router.table && Router.table.busy) || (scr === 'slots' && typeof Slots !== 'undefined' && Slots.busy()) || (scr === 'pokertable' && typeof Holdem !== 'undefined' && Holdem.active()) || (scr === 'darts' && typeof Darts !== 'undefined' && Darts.active())) return;
     lapStop(); Router.go('bedsit');
   }
-  function lapHud() { const e = document.getElementById('hud-drink'); if (!e) return; const v = S().drink; e.textContent = `${Math.round(v)}% · ${stateOf(v)}${S().calm > 0 ? ' · 💊' : ''}`; e.parentElement.classList.toggle('low', v < 35); }
+  // the laptop's top bar: the drink, and a can from the fridge without getting up (it's two steps away)
+  function lapHud() {
+    const e = document.getElementById('hud-drink'); if (!e) return; const st = S(), v = st.drink; e.textContent = `${Math.round(v)}% · ${stateOf(v)}${st.calm > 0 ? ' · 💊' : ''}`; e.parentElement.classList.toggle('low', v < 35);
+    let b = document.getElementById('hud-can'); if (!b) { b = h('button#hud-can.btn.sm', { onclick: () => { if (drinkCan()) UI.toast(pickOne(['*Ssssk.* Warm before it\'s halfway down. Your hands stop.', 'You reach for the fridge without looking. You don\'t need to look.', 'One more. Your head stops. For a bit.']), 'good'); } }); e.parentElement.append(b); }
+    b.textContent = `🍺 ${st.cans}`; b.title = st.cans ? 'Drink a can from the fridge (+30)' : 'No cans left'; b.disabled = !st.cans; b.style.display = st.cans || st.order ? '' : 'none';
+  }
+  // a can from the fridge: it buys you thirty
+  function drinkCan() { const st = S(); if (st.cans < 1) return false; st.cans--; st.drink = Math.min(100, st.drink + 30); App.count('l3_cans'); App.save(); hud(); lapHud(); if (!st.cans && !st.order) toast('🍺 That was the last one. The laptop can order more.'); return true; }
 
   /* ---------- the loop ---------- */
   function frame(now) {
@@ -714,7 +723,7 @@ const L3 = (() => {
     async fridge() {
       const st = S();
       const c = await choose(`The fridge. ${st.cans ? `${st.cans} can${st.cans > 1 ? 's' : ''} of the cheap lager on the shelf, and nothing else but a lemon gone grey.` : 'Empty, apart from a lemon gone grey. The light inside is the warmest thing in the room.'} Postcards on the door, and a leaflet.`, [...(st.cans ? [['drink', '🍺 Drink a can (the drink +30)']] : []), ['leaflet', '📄 Read the leaflet on the door'], ['cards', '🖼️ Look at the postcards'], ['list', '📝 Read the list stuck to the door'], ['no', 'Close it']]);
-      if (c === 'drink') { st.cans--; st.drink = Math.min(100, st.drink + 30); App.count('l3_cans'); App.save(); hud(); await say([{ text: pickOne(['*Ssssk.* Warm before it\'s halfway down. Your hands stop. Your head stops. Everything stops, for a bit.', 'You drink it standing at the open fridge, in its light, like a man at a shrine.', 'It doesn\'t taste of anything any more. That isn\'t why you drink it.']) }]); if (!st.cans && !st.order) toast('🍺 That was the last one. The laptop can order more.'); }
+      if (c === 'drink') { drinkCan(); await say([{ text: pickOne(['*Ssssk.* Warm before it\'s halfway down. Your hands stop. Your head stops. Everything stops, for a bit.', 'You drink it standing at the open fridge, in its light, like a man at a shrine.', 'It doesn\'t taste of anything any more. That isn\'t why you drink it.']) }]); }
       if (c === 'leaflet') await say([{ text: 'ST JUDE\'S RECOVERY CENTRE. Alcohol and gambling. "You don\'t have to do this alone." 0800 17 17 17.' }, { text: 'St Jude\'s. The clinic you woke up in, in the dream. Dr. Okafor was a voice on their helpline, once, at four in the morning. You hung up when she asked your name.' }, { text: 'They\'d want you sober. They\'d want the debt dealt with. Five hundred thousand pounds. You put the leaflet back under its magnet.' }]).then(async () => { if (await choose('0800 17 17 17. Your phone is on the bed, on four per cent.', [['ring', '📞 Ring the number'], ['no', 'Not tonight']]) === 'ring') await ring(); });
       if (c === 'list') return A.list();
       if (c === 'cards') { S().flags.cards = 1; mark('src_cards'); await say([{ text: 'A postcard of a paddle steamer, bought in a charity shop. A beer mat from a pub called the Rusty Spur, which closed in 2009. A calendar page with a lucky 17 on it.' }, { text: 'Sal sent you postcards, in the dream. Nobody has ever sent you a postcard.' }]); }

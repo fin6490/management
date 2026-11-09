@@ -1023,10 +1023,12 @@ intro says so, the mirror says you kept it away in the dreams but it was here al
 St Jude's helpline that in your dreams you never drink, and Day One and Last Orders each have a line
 of their own.
 
-**The drink.** One bar is left. It runs down all the time, by the clock, in the room and at the laptop alike (the laptop's top bar
-shows it); a fast autobet costs no more than a slow hand. If it runs out at the laptop, the hand in
-play finishes, any autobet stops, and you're back in the room. The fridge has three cans to start (each one adds 30); the laptop can order eight more
-for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
+**The drink.** One bar is left. It runs down by the clock: twelve minutes from full in the room, a
+third as fast at the laptop (the laptop's top bar shows it), and a sixth as fast while you're in a
+poker tournament or an autobet is running, so neither gets cut short. If it does run out at the
+laptop, the hand in play finishes, any autobet stops, and you're back in the room. The fridge has
+three cans to start (each one adds 30), and the 🍺 button on the laptop's bar drinks one without
+getting up; the laptop can order eight more for £16, and they're left outside the door. Below 35 the room shakes and the darts wobble; below 15
 it blurs. Let it run out and you collapse: **Last Orders**, a bad true ending. Once you have the
 shakes, two paracetamol from the bathroom cabinet quieten them and make the drink last twice as long
 for two and a half minutes (12 in the box; not again until the last two wear off; the HUD shows 💊).

@@ -176,6 +176,8 @@ body[data-screen="originals"] { background: #0b1a24; }
 .orig-auto select.orig-in { flex: 1 1 auto; width: auto; min-width: 0; }
 .hud-l3 .hs.drink b { color: #f0c060; font-size: 13px; }
 .hud-l3 .hs.drink.low b { color: #ff6a5a; animation: l3-pulse 1.2s ease-in-out infinite; }
+.hud-l3 .hs.drink { display: flex; align-items: center; gap: 8px; }
+.hud-l3 #hud-can { padding: 2px 8px; font-size: 12px; }
 
 /* the list on the fridge */
 .l3-listbg { position: fixed; inset: 0; z-index: 58; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, .6); }
