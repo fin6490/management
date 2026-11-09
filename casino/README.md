@@ -1039,6 +1039,18 @@ rehab: **Day One**, the good true ending. Fall below the £5 minimum and that's 
 Wins**, the other bad true ending. After any ending you can wake up in the bedsit again; the
 endings you've found are kept.
 
+**Day One plays out in the room.** You sit down at the laptop and watch every debt paid down to
+nothing, one creditor at a time; you take the leaflet off the fridge and ring St Jude's, and this
+time give your name; and then it is two weeks later: the cans and the bin bag are gone, the blind is
+up, daylight is in the room for the first time, the front door swings open on the landing and you
+walk out to the stairs. Tap any line to move on. The other two endings are still told in your own
+voice over the room as it is.
+
+**Small things.** The microwave on the fridge has blinked 12:00 since the power went off in the
+spring: set it, and it keeps real time from then on (run it empty and it hums for thirty seconds).
+The kettle makes a cup of tea, which steadies your hands for a minute. Lying on the bed puts you
+on your back, looking up at the bulb and the stain on the ceiling.
+
 **Promotions.** LuckyStrike.bet dangles offers like any online casino, except these are worth
 taking (the debt is meant to be hard, not hopeless). They sit at the top of the laptop, with a 🎁
 count of what's waiting:
